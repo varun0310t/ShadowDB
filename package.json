@@ -1,0 +1,16 @@
+{
+  "name": "shadowdb",
+  "version": "1.0.0",
+  "description": "ShadowDB is a high-performance database proxy designed to optimize query execution, reduce load on primary databases, and improve scalability. It acts as an intelligent middleware between applications and databases, handling query routing, caching, failover management, and performance monitoring seamlessly.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start":"tsc && node dist/index.js"
+  },
+  "author": "varun",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "typescript": "^5.7.3"
+  }
+}
