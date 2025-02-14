@@ -1,0 +1,56 @@
+import { NextResponse } from "next/server";
+import pool from "../../../../../db";
+import bcrypt from "bcrypt";
+import crypto from "crypto";
+import { sendVerificationEmail } from "../../../../../db/email";
+// This endpoint handles POST requests for user registration
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const { name, email, password } = body;
+
+    if (!name || !email || !password) {
+      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    }
+
+    // Check if the user exists
+    const exists = await pool.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
+    if (exists.rows.length > 0) {
+      return NextResponse.json(
+        { error: "User already exists" },
+        { status: 400 }
+      );
+    }
+
+    // Hash the password before storing (increase saltRounds in production)
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const verification_token = crypto.randomBytes(32).toString("hex");
+    const verification_expires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+    // Insert new user into the database
+    const res = await pool.query(
+      "INSERT INTO users (name, email, password,verification_token, verification_expires) VALUES ($1, $2, $3,$4,$5) RETURNING id, name, email",
+      [name, email, hashedPassword, verification_token, verification_expires]
+    );
+
+    const user = res.rows[0];
+    //console.log("New user:", user);
+
+    //sends verification email
+    try {
+      await sendVerificationEmail(email, verification_token);
+    } catch (mailError) {
+      console.error("Verification email error:", mailError);
+    }
+
+    return NextResponse.json({ user }, { status: 201 });
+  } catch (error) {
+    console.error("Sign up error:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}

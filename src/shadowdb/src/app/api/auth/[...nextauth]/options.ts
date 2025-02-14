@@ -2,6 +2,7 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import Email from "next-auth/providers/email";
 import pool from "../../../../../db";
+import bcrypt from "bcrypt";
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -17,7 +18,7 @@ export const authOptions: NextAuthOptions = {
           if (!email || !password) {
             return null;
           }
-  
+
           try {
             // Query the database for a user with the provided email
             const res = await pool.query(
@@ -30,12 +31,16 @@ export const authOptions: NextAuthOptions = {
             }
   
             const user = res.rows[0];
-  
 
-            if (user.password !== password) {
+            if(!user.verified){
               return null;
             }
-  
+
+            if (!(await bcrypt.compare(password,user.password))) {
+              return null;
+            }
+
+             // console.log("Authorized user:", user);
             // Return an object with the user info (excluding sensitive info)
             return { id: user.id, name: user.name || "", email: user.email };
           } catch (error) {
