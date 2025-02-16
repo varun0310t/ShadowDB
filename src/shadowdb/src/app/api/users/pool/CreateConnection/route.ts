@@ -54,7 +54,7 @@ async function initializeUserPool(
       // Set up read replicas
       for (let i = 0; i < replicaCount; i++) {
         const readerPool = new Pool({
-          connectionString: `postgresql://${process.env.PG_USER}:${password}@${process.env.PG_HOST}:${process.env.PG_PORT}/${db_name}`,
+          connectionString: `postgresql://${process.env.PG_USER_REPLICA}${i}:${password}@${process.env.PG_HOST_REPLICA}${i}:${process.env.PG_PORT_REPLICA}${i}/${db_name}`,
           application_name: `reader-${i + 1}`,
         });
 
