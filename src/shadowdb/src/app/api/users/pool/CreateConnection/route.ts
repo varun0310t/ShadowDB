@@ -19,8 +19,22 @@ async function initializeUserPool(
       return {
         writer: existingPools.writer,
         readerCount: existingPools.readers.length,
-        status: 'connected'
+        status: "connected",
       };
+    }
+
+    //create database
+    try {
+      await pool.query(`CREATE DATABASE ${db_name}`);
+    } catch (error: any) {
+      //if database already exists
+      //error code 42P04
+      if (error.code === "42P04") {
+        console.log(`Database ${db_name} already exists`);
+      } else {
+        console.error("Error creating database:", error);
+        return { message: "Database creation failed" };
+      }
     }
 
     // Create writer pool
@@ -45,7 +59,10 @@ async function initializeUserPool(
         });
 
         await readerPool.query("SELECT NOW()");
-        console.log(`Connected to PostgreSQL reader-${i + 1} at:`, new Date().toISOString());
+        console.log(
+          `Connected to PostgreSQL reader-${i + 1} at:`,
+          new Date().toISOString()
+        );
         setUserPool(userId, readerPool, true);
       }
 
@@ -53,7 +70,7 @@ async function initializeUserPool(
       return {
         writer: pools?.writer,
         readerCount: pools?.readers.length || 0,
-        status: 'connected'
+        status: "connected",
       };
     } catch (err) {
       console.error("Connection error", err);
