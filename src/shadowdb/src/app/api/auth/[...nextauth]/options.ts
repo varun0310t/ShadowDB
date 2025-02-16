@@ -14,10 +14,12 @@ export const authOptions: NextAuthOptions = {
         },
         async authorize(credentials) {
           // Ensure credentials are provided
+        //  console.log("Authorize callback invoked, credentials:", credentials);
           const { email, password } = credentials ?? {};
           if (!email || !password) {
             return null;
           }
+         
 
           try {
             // Query the database for a user with the provided email
@@ -31,16 +33,16 @@ export const authOptions: NextAuthOptions = {
             }
   
             const user = res.rows[0];
-
-            if(!user.verified){
+    
+            if(!user.is_verified){
               return null;
             }
-
+        
             if (!(await bcrypt.compare(password,user.password))) {
               return null;
             }
 
-             // console.log("Authorized user:", user);
+             console.log("Authorized user:", user);
             // Return an object with the user info (excluding sensitive info)
             return { id: user.id, name: user.name || "", email: user.email };
           } catch (error) {
@@ -50,5 +52,19 @@ export const authOptions: NextAuthOptions = {
         },
       }),
     ],
+    callbacks: {
+      jwt: async ({ token, user }) => {
+        if (user) {
+          // On first sign in, add user info to token
+          token.user = user;
+        }
+        return token;
+      },
+      session: async ({ session, token }) => {
+        // Attach the user from token to the session
+        session.user = token.user as any;
+        return session;
+      },
+    },
 
   };

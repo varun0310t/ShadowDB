@@ -11,14 +11,39 @@ async function initializeUserPool(
   userId: string
 ) {
   if (tenancy_type === "isolated" && db_name) {
-    // Check if a pool already exists
+    // First, try to create the database using the main pool
+    try {
+      await pool.query(`CREATE DATABASE ${db_name}`);
+      console.log(`Database ${db_name} created successfully`);
+    } catch (err: any) {
+      // Ignore error if database already exists
+      if (err.code !== '42P04') { // 42P04 is the error code for "database already exists"
+        console.error("Error creating database:", err);
+        throw err;
+      }
+    }
+
+    // Now create/get the user-specific pool
     let userPool = getUserPool(userId);
     if (!userPool) {
+      console.log("Creating new pool for user:", userId);
+      const password = encodeURIComponent(process.env.PG_PASSWORD || '');
       userPool = new Pool({
-        connectionString: `postgres://postgres:${process.env.PG_PASSWORD}@localhost:${process.env.PG_PORT}/${db_name}`,
+        connectionString: `postgresql://${process.env.PG_USER}:${password}@${process.env.PG_HOST}:${process.env.PG_PORT}/${db_name}`,
       });
-      setUserPool(userId, userPool);
+
+      try {
+        const res = await userPool.query("SELECT NOW()");
+        console.log("Connected to PostgreSQL for user at:", res.rows[0].now);
+        setUserPool(userId, userPool);
+      } catch (err) {
+        console.error("Connection error", err);
+        throw err; // Propagate the error
+      }
+ 
     }
+
+    
     return userPool;
   }
 
@@ -54,10 +79,18 @@ export async function POST(req: Request) {
       session.user.id
     );
 
+
+    const sanitizedStatus = poolStatus instanceof Pool ? {
+      totalCount: (poolStatus as any).totalCount,
+      idleCount: (poolStatus as any).idleCount,
+      waitingCount: (poolStatus as any).waitingCount,
+      status: 'connected'
+    } : poolStatus;
+
     return NextResponse.json({
       message: "User application started",
       config: { tenancy_type, db_name },
-      poolStatus,
+      poolStatus: sanitizedStatus
     });
   } catch (error: any) {
     console.error("Error starting user application:", error);

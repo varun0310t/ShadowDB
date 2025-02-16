@@ -4,6 +4,11 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import pool from "../../../../../../db";
 
 export async function POST(req: Request) {
+
+
+
+  const cookieHeader = req.headers.get("cookie");
+  console.log("Cookie header:", cookieHeader);
   // Validate session
   const session = await getServerSession(authOptions);
   if (!session) {
@@ -49,6 +54,7 @@ export async function POST(req: Request) {
       tenancy_type === "isolated" ? db_name : null,
       session.user.id,
     ];
+    console.log("Query:", session.user.id,session.user.name,session.user.email,tenancy_type,db_name);
     const result = await pool.query(query, values);
 
     if (result.rowCount === 0) {
