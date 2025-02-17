@@ -14,12 +14,16 @@ bootstrap:
     ttl: 30
     loop_wait: 10
     retry_timeout: 10
+    syncrounous_mode: true
+    syncrounous_mode_strict: true
     postgresql:
       use_pg_rewind: true
       parameters:
+        wal_keep_size: 1GB
         wal_level: replica
         max_wal_senders: 10
         max_replication_slots: 10
+        synchrounous_standby_names: "*"
       pg_hba:
         - "host replication replicator 0.0.0.0/0 trust"
         - "host all all 0.0.0.0/0 md5"

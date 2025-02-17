@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
-import pool from "../../../../../../db";
+import {
+  getDefaultWriterPool,
+  getAppropriatePool,
+  getUserPool,
+  setUserPool,
+} from "../../../../../../lib/userPools";
 import { Pool } from "pg";
-import { getUserPool, setUserPool } from "../../../../../../lib/userPools";
 
 async function initializeUserPool(
   tenancy_type: string,
@@ -14,21 +18,19 @@ async function initializeUserPool(
   if (tenancy_type === "isolated" && db_name) {
     // Check existing pools
     const existingPools = getUserPool(userId);
-    if (existingPools) {
+    if (existingPools && existingPools.length > 0) {
       console.log("Using existing pools for user:", userId);
       return {
-        writer: existingPools.writer,
-        readerCount: existingPools.readers.length,
+        writer: existingPools[0],
+        readerCount: existingPools.length - 1,
         status: "connected",
       };
     }
 
     //create database
     try {
-      await pool.query(`CREATE DATABASE ${db_name}`);
+      await getDefaultWriterPool().query(`CREATE DATABASE ${db_name}`);
     } catch (error: any) {
-      //if database already exists
-      //error code 42P04
       if (error.code === "42P04") {
         console.log(`Database ${db_name} already exists`);
       } else {
@@ -46,12 +48,12 @@ async function initializeUserPool(
     });
 
     try {
-      // Test and set up writer pool (only once)
-      const res = await writerPool.query("SELECT NOW()");
-      console.log("Connected to PostgreSQL writer at:", res.rows[0].now);
-      setUserPool(userId, writerPool, false);
+      // Test and set up writer pool (index 0)
+      await writerPool.query("SELECT NOW()");
+      console.log("Connected to PostgreSQL writer");
+      setUserPool(userId, writerPool, 0);
 
-      // Set up read replicas
+      // Set up read replicas (index 1 onwards)
       for (let i = 0; i < replicaCount; i++) {
         const readerPool = new Pool({
           connectionString: `postgresql://${process.env.PG_USER_REPLICA}${i}:${password}@${process.env.PG_HOST_REPLICA}${i}:${process.env.PG_PORT_REPLICA}${i}/${db_name}`,
@@ -59,17 +61,14 @@ async function initializeUserPool(
         });
 
         await readerPool.query("SELECT NOW()");
-        console.log(
-          `Connected to PostgreSQL reader-${i + 1} at:`,
-          new Date().toISOString()
-        );
-        setUserPool(userId, readerPool, true);
+        console.log(`Connected to PostgreSQL reader-${i + 1}`);
+        setUserPool(userId, readerPool, i + 1);
       }
 
       const pools = getUserPool(userId);
       return {
-        writer: pools?.writer,
-        readerCount: pools?.readers.length || 0,
+        writer: pools?.[0],
+        readerCount: (pools?.length || 1) - 1,
         status: "connected",
       };
     } catch (err) {
@@ -81,17 +80,16 @@ async function initializeUserPool(
 }
 
 export async function POST(req: Request) {
-  // Validate session
   const session = await getServerSession(authOptions);
   if (!session || !session.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    // Retrieve the user's pool configuration from the database
     const query = `SELECT tenancy_type, db_name FROM users WHERE id = $1`;
     const values = [session.user.id];
-    const result = await pool.query(query, values);
+    // Use appropriate pool for reading user config
+    const result = await getAppropriatePool(null, false).query(query, values);
 
     if (result.rowCount === 0) {
       return NextResponse.json(
@@ -101,8 +99,6 @@ export async function POST(req: Request) {
     }
 
     const { tenancy_type, db_name } = result.rows[0];
-
-    // Initialize or get the user's dedicated pool based on their configuration
     const poolStatus = await initializeUserPool(
       tenancy_type,
       db_name,
