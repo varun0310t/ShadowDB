@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
-import pool from "../../../../../../db";
+import { getDefaultReaderPool,getDefaultWriterPool } from "../../../../../../lib/userPools";
 
 export async function POST(req: Request) {
 
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
       session.user.id,
     ];
     console.log("Query:", session.user.id,session.user.name,session.user.email,tenancy_type,db_name);
-    const result = await pool.query(query, values);
+    const result = await getDefaultWriterPool().query(query, values);
 
     if (result.rowCount === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });

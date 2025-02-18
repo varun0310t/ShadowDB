@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import pool from "../../../../../db";
+import { getDefaultWriterPool } from "../../../../../lib/userPools";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -11,7 +11,7 @@ export async function GET(req: Request) {
 
   try {
     // Update the user to mark them as verified and clear the token
-    const res = await pool.query(
+    const res = await getDefaultWriterPool().query(
       "UPDATE users SET is_verified = true, verification_token = NULL WHERE verification_token = $1 RETURNING id, name, email, is_verified",
       [token]
     );

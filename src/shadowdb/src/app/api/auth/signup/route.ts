@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import pool from "../../../../../db";
+import { getDefaultReaderPool,getDefaultWriterPool } from "../../../../../lib/userPools";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { sendVerificationEmail } from "../../../../../db/email";
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     }
 
     // Check if the user exists
-    const exists = await pool.query("SELECT * FROM users WHERE email = $1", [
+    const exists = await getDefaultReaderPool().query("SELECT * FROM users WHERE email = $1", [
       email,
     ]);
     if (exists.rows.length > 0) {
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     const verification_expires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
     // Insert new user into the database
-    const res = await pool.query(
+    const res = await getDefaultWriterPool().query(
       "INSERT INTO users (name, email, password,verification_token, verification_expires) VALUES ($1, $2, $3,$4,$5) RETURNING id, name, email",
       [name, email, hashedPassword, verification_token, verification_expires]
     );
