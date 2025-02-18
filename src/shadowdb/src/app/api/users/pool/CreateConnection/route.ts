@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import "../../../../../../../shadowdb/db/index";
 import {
   getDefaultWriterPool,
   getAppropriatePool,
@@ -27,7 +28,7 @@ async function initializeUserPool(
       };
     }
 
-    //create database
+    // Create database
     try {
       await getDefaultWriterPool().query(`CREATE DATABASE ${db_name}`);
     } catch (error: any) {
@@ -55,8 +56,13 @@ async function initializeUserPool(
 
       // Set up read replicas (index 1 onwards)
       for (let i = 0; i < replicaCount; i++) {
+        const replicaUser = process.env[`PG_REPLICA${i + 1}_USER`];
+        const replicaHost = process.env[`PG_REPLICA${i + 1}_HOST`];
+        const replicaPort = process.env[`PG_REPLICA${i + 1}_PORT`];
+        const replicaPassword = encodeURIComponent(process.env[`PG_REPLICA${i + 1}_PASSWORD`] || "");
+
         const readerPool = new Pool({
-          connectionString: `postgresql://${process.env.PG_USER_REPLICA}${i}:${password}@${process.env.PG_HOST_REPLICA}${i}:${process.env.PG_PORT_REPLICA}${i}/${db_name}`,
+          connectionString: `postgresql://${replicaUser}:${replicaPassword}@${replicaHost}:${replicaPort}/${db_name}`,
           application_name: `reader-${i + 1}`,
         });
 

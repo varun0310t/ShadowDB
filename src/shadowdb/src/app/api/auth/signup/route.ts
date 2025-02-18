@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { getDefaultReaderPool,getDefaultWriterPool } from "../../../../../lib/userPools";
+
+import { getDefaultReaderPool, getDefaultWriterPool } from "../../../../../lib/userPools";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { sendVerificationEmail } from "../../../../../db/email";
-// This endpoint handles POST requests for user registration
+import "../../../../../db/index"; // Ensure this import is at the top to initialize the pools
 export async function POST(req: Request) {
   try {
     const body = await req.json();
