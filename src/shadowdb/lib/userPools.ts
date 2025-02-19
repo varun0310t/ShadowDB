@@ -9,8 +9,10 @@ import { config } from "dotenv";
 // Define the Map with proper typing
 if (process.env.environment == "development") {
   checkAndUpdateLeader();
+  console.log("dev mode");
 }
 
+console.log("leaderPoolIndex", leaderPoolIndex.value);
 // Global variable to store the index of the current leader pool
 
 export function getUserPool(userId: string): Pool[] | undefined {
@@ -81,7 +83,6 @@ export function setLeaderPoolIndex(index: number): void {
 
 // Fix the getDefaultWriterPool function
 export function getDefaultWriterPool(): Pool {
-  console.log("leaderPoolIndex", getUserPool("default"));
   const defaultPool = getUserPool("default")?.[leaderPoolIndex.value];
   if (!defaultPool) {
     throw new Error("Default writer pool not initialized");
