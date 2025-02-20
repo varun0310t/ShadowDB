@@ -22,6 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["types/next-auth.d.ts","next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/api/query/executeQueryRoute"],
+  "include": ["types/next-auth.d.ts","next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/api/query/executeQueryRoute", "src/app/api/metrics"],
   "exclude": ["node_modules"]
 }
