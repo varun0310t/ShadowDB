@@ -1,12 +1,31 @@
-import Link from "next/link"
-import { Database } from "lucide-react"
+"use client"
+import Link from "next/link";
+import { Database } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+// Define the Zod schema
+const signUpSchema = z.object({
+  name: z.string().min(3, 'Name is required'),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters long'),
+});
 
 export default function SignUpPage() {
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: zodResolver(signUpSchema),
+  });
+
+  const onSubmit = (data: any) => {
+    console.log('Form data:', data);
+  };
+
   return (
     <div className="min-h-screen bg-[#0B0F17] text-white">
       {/* Navigation */}
@@ -38,10 +57,11 @@ export default function SignUpPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
               <div className="space-y-2 text-purple-100">
                 <Label htmlFor="name">Name</Label>
-                <Input id="name" placeholder="Enter your name" className="bg-[#0B0F17] border-gray-800" />
+                <Input id="name" placeholder="Enter your name" className="bg-[#0B0F17] border-gray-800" {...register('name')} />
+                {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
               </div>
               <div className="space-y-2 text-purple-100">
                 <Label htmlFor="email">Email</Label>
@@ -50,7 +70,9 @@ export default function SignUpPage() {
                   placeholder="Enter your email"
                   type="email"
                   className="bg-[#0B0F17] border-gray-800"
+                  {...register('email')}
                 />
+                {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
               </div>
               <div className="space-y-2 text-purple-100">
                 <Label htmlFor="password">Password</Label>
@@ -59,9 +81,11 @@ export default function SignUpPage() {
                   type="password"
                   placeholder="Create a password"
                   className="bg-[#0B0F17] border-gray-800"
+                  {...register('password')}
                 />
+                {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
               </div>
-              <Button className="w-full bg-purple-600 hover:bg-purple-700">Sign Up</Button>
+              <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700">Sign Up</Button>
               <div className="text-center text-sm text-gray-400">
                 Already have an account?{" "}
                 <Link href="/login" className="text-purple-500 hover:underline">
@@ -73,6 +97,5 @@ export default function SignUpPage() {
         </Card>
       </main>
     </div>
-  )
+  );
 }
-
