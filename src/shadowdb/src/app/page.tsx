@@ -1,101 +1,256 @@
-import Image from "next/image";
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Database, Shield, Zap, Cloud, DollarSign, Users } from "lucide-react"
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+      {/* Header */}
+      <header className="py-4 px-6 flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          <Database className="w-8 h-8 text-purple-500" />
+          <span className="text-2xl font-bold">ShadowDB</span>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <nav className="hidden md:flex space-x-6">
+          <Link href="#features" className="hover:text-purple-400 transition-colors">
+            Features
+          </Link>
+          <Link href="#pricing" className="hover:text-purple-400 transition-colors">
+            Pricing
+          </Link>
+          <Link href="#testimonials" className="hover:text-purple-400 transition-colors">
+            Testimonials
+          </Link>
+        </nav>
+        <Button variant="outline" className=" hidden md:inline-flex text-black ">
+          Get Started
+        </Button>
+      </header>
+
+      {/* Hero Section */}
+      <section className="flex-1 flex flex-col justify-center items-center text-center px-4 py-20 bg-gradient-to-b from-gray-900 to-gray-800">
+        <h1 className="text-4xl md:text-6xl font-bold mb-6">
+          Production-Ready Database <span className="text-purple-500">as a Service</span>
+        </h1>
+        <p className="text-xl mb-8 max-w-2xl">
+          Scale your applications with ease using ShadowDB's powerful, reliable, and secure database solution.
+        </p>
+        <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
+          Sign Up Now
+        </Button>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="py-20 px-4">
+        <h2 className="text-3xl font-bold text-center mb-12">Why Choose ShadowDB?</h2>
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <FeatureCard
+            icon={<Zap className="w-12 h-12 text-purple-500" />}
+            title="In build Redis Caching"
+            description="Experience unparalleled speed with our optimized database architecture."
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
+          <FeatureCard
+            icon={<Shield className="w-12 h-12 text-purple-500" />}
+            title="Produciton Ready"
+            description="Read and Write replicas, automated backups, and 24/7 monitoring."
           />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
+          <FeatureCard
+            icon={<Cloud className="w-12 h-12 text-purple-500" />}
+            title="Scalable Cloud"
+            description="Grow your database effortlessly with our auto-scaling cloud infrastructure."
           />
-          Go to nextjs.org →
-        </a>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20 px-4 bg-gray-800">
+        <h2 className="text-3xl font-bold text-center mb-12">Simple, Transparent Pricing</h2>
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <PricingCard
+            title="Starter"
+            price="$29"
+            features={["Up to 10GB storage", "1,000 requests/day", "Basic support", "1 database"]}
+          />
+          <PricingCard
+            title="Pro"
+            price="$99"
+            features={["Up to 100GB storage", "10,000 requests/day", "24/7 support", "5 databases"]}
+            highlighted={true}
+          />
+          <PricingCard
+            title="Enterprise"
+            price="Custom"
+            features={["Unlimited storage", "Unlimited requests", "Dedicated support", "Unlimited databases"]}
+          />
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section id="testimonials" className="py-20 px-4">
+        <h2 className="text-3xl font-bold text-center mb-12">What Our Customers Say</h2>
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <TestimonialCard
+            quote="ShadowDB has revolutionized our data management. It's fast, reliable, and incredibly easy to use."
+            author="Jane Doe"
+            company="Tech Innovators Inc."
+          />
+          <TestimonialCard
+            quote="The scalability of ShadowDB allowed us to grow our startup without worrying about database limitations."
+            author="John Smith"
+            company="GrowFast Startups"
+          />
+        </div>
+      </section>
+
+      {/* architechture Section */}
+      <section className="py-20 px-4 bg-purple-600 text-center">
+        <h2 className="text-3xl font-bold mb-6">Curious how we manage your data ?</h2>
+        <p className="text-xl mb-8">  We ensure security, scalability, and reliability with a modern architecture. </p>
+        <Button size="lg" variant="secondary">
+          Our Architechture
+        </Button>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 py-8 px-4">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-4 gap-8">
+          <div>
+            <h3 className="font-bold mb-4">Product</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="#" className="hover:text-purple-400 transition-colors">
+                  Features
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="hover:text-purple-400 transition-colors">
+                  Pricing
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="hover:text-purple-400 transition-colors">
+                  Documentation
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-bold mb-4">Company</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="#" className="hover:text-purple-400 transition-colors">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="hover:text-purple-400 transition-colors">
+                  Careers
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="hover:text-purple-400 transition-colors">
+                  Contact
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-bold mb-4">Resources</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="#" className="hover:text-purple-400 transition-colors">
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="hover:text-purple-400 transition-colors">
+                  Case Studies
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="hover:text-purple-400 transition-colors">
+                  Help Center
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-bold mb-4">Legal</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="#" className="hover:text-purple-400 transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="hover:text-purple-400 transition-colors">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="hover:text-purple-400 transition-colors">
+                  Cookie Policy
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div className="mt-8 text-center text-sm text-gray-400">
+          © {new Date().getFullYear()} ShadowDB. All rights reserved.
+        </div>
       </footer>
     </div>
-  );
+  )
 }
+
+function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+  return (
+    <div className="bg-gray-800 p-6 rounded-lg text-center">
+      <div className="flex justify-center mb-4">{icon}</div>
+      <h3 className="text-xl font-semibold mb-2">{title}</h3>
+      <p className="text-gray-400">{description}</p>
+    </div>
+  )
+}
+
+function PricingCard({ title, price, features, highlighted = false }: { title: string; price: string; features: string[]; highlighted?: boolean }) {
+  return (
+    <div className={`bg-gray-800 p-6 rounded-lg text-center ${highlighted ? "ring-2 ring-purple-500" : ""}`}>
+      <h3 className="text-xl font-semibold mb-2">{title}</h3>
+      <p className="text-3xl font-bold mb-4">
+        {price}
+        <span className="text-sm font-normal">/month</span>
+      </p>
+      <ul className="text-left space-y-2 mb-6">
+        {features.map((feature, index) => (
+          <li key={index} className="flex items-center">
+            <DollarSign className="w-5 h-5 text-purple-500 mr-2" />
+            {feature}
+          </li>
+        ))}
+      </ul>
+      <Button
+        className={highlighted ? "bg-purple-600 hover:bg-purple-700" : ""}
+        variant={highlighted ? "default" : "outline"}
+      >
+        Choose Plan
+      </Button>
+    </div>
+  )
+}
+
+function TestimonialCard({ quote, author, company }: { quote: string; author: string; company: string }) {
+  return (
+    <div className="bg-gray-800 p-6 rounded-lg">
+      <p className="mb-4 italic">"{quote}"</p>
+      <div className="flex items-center">
+        <Users className="w-10 h-10 text-purple-500 mr-3" />
+        <div>
+          <p className="font-semibold">{author}</p>
+          <p className="text-sm text-gray-400">{company}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+

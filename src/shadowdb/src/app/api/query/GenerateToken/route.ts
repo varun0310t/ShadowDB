@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { generateQueryToken } from "../../../../../lib/QueryAuth";
+import { generateQueryToken } from "../../../../lib/QueryAuth";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 export async function POST(req: Request) {

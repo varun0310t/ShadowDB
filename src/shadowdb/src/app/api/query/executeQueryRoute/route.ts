@@ -1,7 +1,7 @@
 //// filepath: /b:/git repos B/ShadowDB/src/shadowdb/src/app/api/query/executeQueryRoute.ts
 import { NextResponse } from "next/server";
-import { executeQuery } from "../../../../../lib/queryExecutor";
-import { verifyQueryToken } from "../../../../../lib/QueryAuth";
+import { executeQuery } from "../../../../lib/queryExecutor";
+import { verifyQueryToken } from "../../../../lib/QueryAuth";
 export async function POST(req: Request) {
   try {
     // In production, extract the userId from authentication (here we get it from a header for example).

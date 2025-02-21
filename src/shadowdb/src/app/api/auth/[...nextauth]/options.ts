@@ -4,7 +4,7 @@ import Email from "next-auth/providers/email";
 import {
   getDefaultWriterPool,
   getDefaultReaderPool,
-} from "../../../../../lib/userPools";
+} from "../../../../lib/userPools";
 import bcrypt from "bcrypt";
 
 export const authOptions: NextAuthOptions = {

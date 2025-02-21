@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
-import "../../../../../../../shadowdb/db/index";
-import { getDefaultReaderPool,getDefaultWriterPool } from "../../../../../../lib/userPools";
+import "../../../../../db/index";
+import { getDefaultReaderPool,getDefaultWriterPool } from "../../../../../lib/userPools";
 
 export async function POST(req: Request) {
 

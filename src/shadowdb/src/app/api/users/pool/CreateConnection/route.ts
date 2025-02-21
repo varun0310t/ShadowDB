@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
-import "../../../../../../../shadowdb/db/index";
+import "../../../../../db/index";
 import {
   getDefaultWriterPool,
   getAppropriatePool,
   getUserPool,
   setUserPool,
-} from "../../../../../../lib/userPools";
+} from "../../../../../lib/userPools";
 import { Pool } from "pg";
-import { initializeUserPool } from "../../../../../../lib/initializeUserPools";
+import { initializeUserPool } from "../../../../../lib/initializeUserPools";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
