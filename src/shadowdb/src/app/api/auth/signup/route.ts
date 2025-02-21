@@ -1,12 +1,19 @@
 import { NextResponse } from "next/server";
 
-import { getDefaultReaderPool, getDefaultWriterPool } from "../../../../lib/userPools";
+import {
+  getDefaultReaderPool,
+  getDefaultWriterPool,
+} from "../../../../../lib/userPools";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-import { sendVerificationEmail } from "../../../../db/email";
-import "../../../../db/index"; // Ensure this import is at the top to initialize the pools
+import { sendVerificationEmail } from "../../../../../db/email";
+import "../../../../../db/index"; // Ensure this import is at the top to initialize the pools
 export async function POST(req: Request) {
   try {
+    if (process.env.environment === "dvelopment") {
+      await checkAndUpdateLeader();
+    }
+
     const body = await req.json();
     const { name, email, password } = body;
 
@@ -15,9 +22,10 @@ export async function POST(req: Request) {
     }
 
     // Check if the user exists
-    const exists = await getDefaultReaderPool().query("SELECT * FROM users WHERE email = $1", [
-      email,
-    ]);
+    const exists = await getDefaultReaderPool().query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
     if (exists.rows.length > 0) {
       return NextResponse.json(
         { error: "User already exists" },
