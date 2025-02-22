@@ -1,13 +1,52 @@
-import Link from "next/link"
-import { Database, Github } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-
+"use client";
+import Link from "next/link";
+import { Database, Github } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { loginEmail } from "@/client/lib/services/authService";
+import {toast} from "react-toastify";
+import { useRouter } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { on } from "events";
 export default function LoginPage() {
+  const router = useRouter();
+  const LoginSchema = z.object({
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(8, "Password must be at least 8 characters long"),
+  });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(LoginSchema),
+  });
+  const mutation = useMutation<any, Error, { email: string; password: string }>({
+    mutationFn: loginEmail,
+    onSuccess: () => {
+      toast.success("Logged in successfully");
+      router.push("/");
+    },
+    onError: (error) => {
+
+      toast.error(error.message);
+    },
+  });
+  const onSubmit = async (data: { email: string; password: string }) => {
+    await mutation.mutate(data);
+  };
   return (
     <div className="min-h-screen bg-[#0B0F17] text-white">
       {/* Navigation */}
@@ -17,13 +56,22 @@ export default function LoginPage() {
           <span className="font-semibold">ShadowDB</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link href="#" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">
+          <Link
+            href="#"
+            className="text-sm font-medium text-gray-400 hover:text-white transition-colors"
+          >
             Features
           </Link>
-          <Link href="#" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">
+          <Link
+            href="#"
+            className="text-sm font-medium text-gray-400 hover:text-white transition-colors"
+          >
             Pricing
           </Link>
-          <Link href="#" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">
+          <Link
+            href="#"
+            className="text-sm font-medium text-gray-400 hover:text-white transition-colors"
+          >
             Testimonials
           </Link>
         </nav>
@@ -33,13 +81,20 @@ export default function LoginPage() {
       <main className=" flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
         <Card className="w-full max-w-md mx-4 bg-[#151923] border-gray-800">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-stone-50">Welcome back</CardTitle>
-            <CardDescription className="text-gray-400">Sign in to your ShadowDB account</CardDescription>
+            <CardTitle className="text-2xl font-bold text-stone-50">
+              Welcome back
+            </CardTitle>
+            <CardDescription className="text-gray-400">
+              Sign in to your ShadowDB account
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
               <div className="grid grid-cols-2 gap-4">
-                <Button variant="outline" className="bg-[#0B0F17] border-gray-800 hover:bg-[#151923] text-stone-50 hover:text-gray-500">
+                <Button
+                  variant="outline"
+                  className="bg-[#0B0F17] border-gray-800 hover:bg-[#151923] text-stone-50 hover:text-gray-500"
+                >
                   <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                     <path
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -60,7 +115,10 @@ export default function LoginPage() {
                   </svg>
                   Google
                 </Button>
-                <Button variant="outline" className="bg-[#0B0F17] border-gray-800 hover:bg-[#151923] text-stone-50 hover:text-gray-500">
+                <Button
+                  variant="outline"
+                  className="bg-[#0B0F17] border-gray-800 hover:bg-[#151923] text-stone-50 hover:text-gray-500"
+                >
                   <Github className="mr-2 h-4 w-4" />
                   GitHub
                 </Button>
@@ -70,10 +128,12 @@ export default function LoginPage() {
                   <span className="w-full border-t border-gray-800" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-[#151923] px-2 text-gray-400">Or continue with</span>
+                  <span className="bg-[#151923] px-2 text-gray-400">
+                    Or continue with
+                  </span>
                 </div>
               </div>
-              <form className="space-y-4">
+              <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
                 <div className="space-y-2  text-purple-100">
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -81,19 +141,31 @@ export default function LoginPage() {
                     placeholder="Enter your email"
                     type="email"
                     className="bg-[#0B0F17] border-gray-800"
+                    {...register("email")}
                   />
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between  text-purple-100">
                     <Label htmlFor="password">Password</Label>
-                    <Link href="/forgot-password" className="text-sm text-purple-500 hover:underline">
+                    <Link
+                      href="/forgot-password"
+                      className="text-sm text-purple-500 hover:underline"
+                    >
                       Forgot password?
                     </Link>
                   </div>
-                  <Input id="password" type="password" className="bg-[#0B0F17] border-gray-800" />
+                  <Input
+                    id="password"
+                    type="password"
+                    className="bg-[#0B0F17] border-gray-800"
+                    {...register("password")}
+                  />
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Checkbox id="remember" className="border-gray-800 data-[state=checked]:bg-purple-600" />
+                  <Checkbox
+                    id="remember"
+                    className="border-gray-800 data-[state=checked]:bg-purple-600"
+                  />
                   <label
                     htmlFor="remember"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70  text-purple-100"
@@ -101,11 +173,19 @@ export default function LoginPage() {
                     Remember me
                   </label>
                 </div>
-                <Button className="w-full bg-purple-600 hover:bg-purple-700">Sign In</Button>
+                <Button
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  disabled={isSubmitting}
+                >
+                  Sign In
+                </Button>
               </form>
               <div className="text-center text-sm text-gray-400">
                 Don't have an account?{" "}
-                <Link href="/signup" className="text-purple-500 hover:underline">
+                <Link
+                  href="/signup"
+                  className="text-purple-500 hover:underline"
+                >
                   Sign up
                 </Link>
               </div>
@@ -114,6 +194,5 @@ export default function LoginPage() {
         </Card>
       </main>
     </div>
-  )
+  );
 }
-

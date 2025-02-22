@@ -36,15 +36,8 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
 
-## abhi connection pool ka logic kaafi primitive hai like pool sharing nahi ho rahi
 
-## database schema abhi bas default hai for user schema
 
-## auth is created endpoint wise bana frontend nahi
 
-## verifation of account is also created 
 
-## user table bhi update kia with this new feature req
-
-## abhi next 
 

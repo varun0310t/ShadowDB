@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-
+import "@/db/index";
 import {
   getDefaultReaderPool,
   getDefaultWriterPool,
@@ -8,7 +8,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { sendVerificationEmail } from "../../../../db/email";
 import { checkAndUpdateLeader } from "../../../../lib/LeaderCheck";
-import "../../../../../db/index"; // Ensure this import is at the top to initialize the pools
+
 export async function POST(req: Request) {
   try {
     if (process.env.environment === "dvelopment") {
