@@ -11,7 +11,7 @@ import { checkAndUpdateLeader } from "../../../../lib/LeaderCheck";
 
 export async function POST(req: Request) {
   try {
-    if (process.env.environment === "dvelopment") {
+    if (process.env.environment === "development") {
       await checkAndUpdateLeader();
     }
 
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
-    // Check if the user exists
+    // Check if the user exists with any provider
     const exists = await getDefaultReaderPool().query(
       "SELECT * FROM users WHERE email = $1",
       [email]
@@ -34,21 +34,38 @@ export async function POST(req: Request) {
       );
     }
 
-    // Hash the password before storing (increase saltRounds in production)
+    // Hash the password before storing
     const hashedPassword = await bcrypt.hash(password, 10);
     const verification_token = crypto.randomBytes(32).toString("hex");
     const verification_expires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
-    // Insert new user into the database
+    // Insert new user into the database with provider information
     const res = await getDefaultWriterPool().query(
-      "INSERT INTO users (name, email, password,verification_token, verification_expires) VALUES ($1, $2, $3,$4,$5) RETURNING id, name, email",
-      [name, email, hashedPassword, verification_token, verification_expires]
+      `INSERT INTO users (
+        name, 
+        email, 
+        password, 
+        verification_token, 
+        verification_expires,
+        provider,
+        is_verified,
+        role
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+      RETURNING id, name, email, provider, role`,
+      [
+        name, 
+        email, 
+        hashedPassword, 
+        verification_token, 
+        verification_expires,
+        'credentials', // Set provider type
+        false, // is_verified starts as false
+        'user' // default role
+      ]
     );
 
     const user = res.rows[0];
-    //console.log("New user:", user);
 
-    //sends verification email
     try {
       await sendVerificationEmail(email, verification_token);
     } catch (mailError) {
