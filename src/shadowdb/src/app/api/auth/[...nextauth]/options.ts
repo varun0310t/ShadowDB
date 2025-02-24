@@ -56,17 +56,20 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Check if password exists and matches
-          if (!user.password || !(await bcrypt.compare(password, user.password))) {
+          if (
+            !user.password ||
+            !(await bcrypt.compare(password, user.password))
+          ) {
             console.log("Invalid password");
             return null;
           }
 
           console.log("Authorized user:", user);
-          return { 
-            id: user.id, 
-            name: user.name || "", 
+          return {
+            id: user.id,
+            name: user.name || "",
             email: user.email,
-            provider: 'credentials'
+            provider: "credentials",
           };
         } catch (error) {
           console.error("Authorize error:", error);
@@ -79,37 +82,74 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       if (account?.provider === "google" || account?.provider === "github") {
         try {
-          // Check if user exists
+          console.log("Sign in attempt:", { 
+            email: user.email, 
+            provider: account.provider 
+          });
+
+          // First query - check exact match (changed the query)
           const result = await getDefaultReaderPool().query(
-            "SELECT * FROM users WHERE email = $1 AND provider = $2",
+            "SELECT * FROM users WHERE email = $1 AND provider = $2::provider_type",
             [user.email, account.provider]
           );
 
-          if (result.rows.length === 0) {
-            // Create new user with provider information
-            await getDefaultWriterPool().query(
-              `INSERT INTO users (
-                name, 
-                email, 
-                is_verified, 
-                provider, 
-                provider_id,
-                image
-              ) VALUES ($1, $2, $3, $4, $5, $6)`,
-              [
-                user.name,
-                user.email,
-                true,
-                account.provider,
-                account.providerAccountId,
-                user.image || null,
-              ]
+          console.log("Exact match query result:", result.rows);
+
+          if (result.rows.length > 0) {
+            return true;
+          }
+
+          // Second query - check email with any provider (changed the query)
+          const emailExists = await getDefaultReaderPool().query(
+            "SELECT provider FROM users WHERE email = $1 LIMIT 1",
+            [user.email]
+          );
+
+          console.log("Email exists query result:", emailExists.rows);
+
+          if (emailExists.rows.length > 0) {
+            // Cast the provider to string for error message
+            const providerName = emailExists.rows[0].provider.toString();
+            throw new Error(
+              `This email is already registered with ${providerName}. Please use that to sign in.`
             );
           }
+
+          // Create new user (added RETURNING clause)
+          const newUser = await getDefaultWriterPool().query(
+            `INSERT INTO users (
+              name, 
+              email, 
+              is_verified, 
+              provider, 
+              provider_id,
+              image,
+              role,
+              tenancy_type
+            ) VALUES ($1, $2, $3, $4::provider_type, $5, $6, $7::role, $8::tenancy_type)
+            RETURNING *`,
+            [
+              user.name || profile?.name || "",  // Using profile.login for GitHub
+              user.email,
+              true,
+              account.provider,
+              account.providerAccountId,
+              user.image || null,
+              'user',
+              'shared'
+            ]
+          );
+
+          console.log("New user created:", newUser.rows[0]);
           return true;
+
         } catch (error) {
           console.error("Error handling OAuth sign in:", error);
-          return false;
+          // Check if it's a duplicate key error
+          if (error instanceof Error && error.message.includes('unique_email_per_provider')) {
+            throw new Error("This account already exists. Please try logging in.");
+          }
+          throw error;
         }
       }
       return true;
