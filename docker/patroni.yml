@@ -14,18 +14,24 @@ bootstrap:
     ttl: 30
     loop_wait: 10
     retry_timeout: 10
-    syncrounous_mode: true
-    syncrounous_mode_strict: true
+    synchronous_mode: true           # Fixed typo
+    synchronous_mode_strict: true    # Fixed typo
+    master_start_timeout: 300
     postgresql:
       use_pg_rewind: true
+      use_slots: true  # Add this line
       parameters:
         wal_keep_size: 1GB
-        wal_level: replica
+        wal_level: replica         # Changed from replica to logical
         max_wal_senders: 10
         max_replication_slots: 10
-        synchrounous_standby_names: "*"
+        synchronous_commit: on       # Added
+        synchronous_standby_names: '*' # Fixed typo
+        hot_standby: on             # Added
+        hot_standby_feedback: on    # Added
+        wal_log_hints: on  # Add this line
       pg_hba:
-        - "host replication replicator 0.0.0.0/0 trust"
+        - "host replication replicator 0.0.0.0/0 md5"    # Changed from trust to md5
         - "host all all 0.0.0.0/0 md5"
 
 postgresql:

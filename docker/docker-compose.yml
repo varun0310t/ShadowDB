@@ -36,6 +36,18 @@ services:
       - PATRONI_POSTGRESQL_LISTEN=0.0.0.0:5432
       - PATRONI_POSTGRESQL_CONNECT_ADDRESS=primary:5432
       - PATRONI_POSTGRESQL_DATA_DIR=/var/lib/postgresql/data
+      - PATRONI_POSTGRESQL_PARAMETERS_wal_level=replica
+      - PATRONI_POSTGRESQL_PARAMETERS_max_wal_senders=10
+      - PATRONI_POSTGRESQL_PARAMETERS_max_replication_slots=10
+      - PATRONI_POSTGRESQL_PARAMETERS_synchronous_commit=on
+      - PATRONI_POSTGRESQL_PARAMETERS_synchronous_standby_names='*'
+      - PATRONI_POSTGRESQL_PARAMETERS_synchronous_mode=true
+      - PATRONI_POSTGRESQL_PARAMETERS_synchronous_mode_strict=true
+      - PATRONI_REPLICATION_USERNAME=replicator
+      - PATRONI_REPLICATION_PASSWORD=rep-pass
+      - PATRONI_SLOTS_primary_type=physical
+      - PATRONI_SLOTS_replica1_type=physical
+      - PATRONI_SLOTS_replica2_type=physical
     ports:
       - "5432:5432"
       - "8008:8008"
@@ -59,6 +71,18 @@ services:
       - PATRONI_POSTGRESQL_LISTEN=0.0.0.0:5432
       - PATRONI_POSTGRESQL_CONNECT_ADDRESS=replica1:5432
       - PATRONI_POSTGRESQL_DATA_DIR=/var/lib/postgresql/data
+      - PATRONI_POSTGRESQL_PARAMETERS_hot_standby=on
+      - PATRONI_POSTGRESQL_PARAMETERS_hot_standby_feedback=on
+      - PATRONI_POSTGRESQL_PARAMETERS_wal_level=replica
+      - PATRONI_POSTGRESQL_PARAMETERS_max_wal_senders=10
+      - PATRONI_POSTGRESQL_PARAMETERS_max_replication_slots=10
+      - PATRONI_POSTGRESQL_PARAMETERS_synchronous_commit=remote_write
+      - PATRONI_POSTGRESQL_PARAMETERS_wal_receiver_timeout=60s
+      - PATRONI_POSTGRESQL_PARAMETERS_wal_receiver_status_interval=1s
+      - PATRONI_POSTGRESQL_PARAMETERS_max_standby_streaming_delay=30s
+      - PATRONI_REPLICATION_USERNAME=replicator
+      - PATRONI_REPLICATION_PASSWORD=rep-pass
+      - PATRONI_SLOTS_replica1_type=physical
     ports:
       - "5433:5432"
       - "8009:8008"
@@ -82,6 +106,18 @@ services:
       - PATRONI_POSTGRESQL_LISTEN=0.0.0.0:5432
       - PATRONI_POSTGRESQL_CONNECT_ADDRESS=replica2:5432
       - PATRONI_POSTGRESQL_DATA_DIR=/var/lib/postgresql/data
+      - PATRONI_POSTGRESQL_PARAMETERS_hot_standby=on
+      - PATRONI_POSTGRESQL_PARAMETERS_hot_standby_feedback=on
+      - PATRONI_POSTGRESQL_PARAMETERS_wal_level=replica
+      - PATRONI_POSTGRESQL_PARAMETERS_max_wal_senders=10
+      - PATRONI_POSTGRESQL_PARAMETERS_max_replication_slots=10
+      - PATRONI_POSTGRESQL_PARAMETERS_synchronous_commit=remote_write
+      - PATRONI_POSTGRESQL_PARAMETERS_wal_receiver_timeout=60s
+      - PATRONI_POSTGRESQL_PARAMETERS_wal_receiver_status_interval=1s
+      - PATRONI_POSTGRESQL_PARAMETERS_max_standby_streaming_delay=30s
+      - PATRONI_REPLICATION_USERNAME=replicator
+      - PATRONI_REPLICATION_PASSWORD=rep-pass
+      - PATRONI_SLOTS_replica2_type=physical
     ports:
       - "5434:5432"
       - "8010:8008"
