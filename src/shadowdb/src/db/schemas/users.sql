@@ -5,13 +5,7 @@ BEGIN
   END IF;
 END$$;
 
--- Create enum for tenancy_type if not exists
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tenancy_type') THEN
-    CREATE TYPE tenancy_type AS ENUM ('shared', 'isolated');
-  END IF;
-END$$;
+
 
 -- Create enum for role if not exists
 DO $$
@@ -37,8 +31,7 @@ CREATE TABLE users (
   verification_token VARCHAR(255),
   verification_expires TIMESTAMPTZ DEFAULT (CURRENT_TIMESTAMP + INTERVAL '10 minutes'),
 
-  tenancy_type tenancy_type NOT NULL DEFAULT 'shared',  -- For Hybrid Multi-Tenancy
-  db_name VARCHAR(100),  -- Only needed if tenancy_type is 'isolated'
+
   role role NOT NULL DEFAULT 'user',  -- Access Control
   
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,

@@ -124,9 +124,8 @@ export const authOptions: NextAuthOptions = {
               provider, 
               provider_id,
               image,
-              role,
-              tenancy_type
-            ) VALUES ($1, $2, $3, $4::provider_type, $5, $6, $7::role, $8::tenancy_type)
+              role
+            ) VALUES ($1, $2, $3, $4::provider_type, $5, $6, $7::role)
             RETURNING *`,
             [
               user.name || profile?.name || "",  // Using profile.login for GitHub
@@ -135,8 +134,7 @@ export const authOptions: NextAuthOptions = {
               account.provider,
               account.providerAccountId,
               user.image || null,
-              'user',
-              'shared'
+              'user'
             ]
           );
 
