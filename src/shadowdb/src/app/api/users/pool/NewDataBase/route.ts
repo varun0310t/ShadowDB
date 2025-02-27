@@ -7,6 +7,8 @@ import {
   getDefaultWriterPool,
 } from "../../../../../lib/userPools";
 
+import { checkAndUpdateLeader } from "@/lib/LeaderCheck";
+
 export async function POST(req: Request) {
   // Validate session
   const session = await getServerSession(authOptions);
@@ -39,6 +41,7 @@ export async function POST(req: Request) {
 
   try {
     // Begin transaction
+    await checkAndUpdateLeader();
     const client = await getDefaultWriterPool().connect();
     try {
       await client.query("BEGIN");

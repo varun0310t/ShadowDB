@@ -82,9 +82,9 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       if (account?.provider === "google" || account?.provider === "github") {
         try {
-          console.log("Sign in attempt:", { 
-            email: user.email, 
-            provider: account.provider 
+          console.log("Sign in attempt:", {
+            email: user.email,
+            provider: account.provider,
           });
 
           // First query - check exact match (changed the query)
@@ -118,6 +118,7 @@ export const authOptions: NextAuthOptions = {
           // Create new user (added RETURNING clause)
           const newUser = await getDefaultWriterPool().query(
             `INSERT INTO users (
+              
               name, 
               email, 
               is_verified, 
@@ -128,24 +129,31 @@ export const authOptions: NextAuthOptions = {
             ) VALUES ($1, $2, $3, $4::provider_type, $5, $6, $7::role)
             RETURNING *`,
             [
-              user.name || profile?.name || "",  // Using profile.login for GitHub
+              user.name || profile?.name || "", // Using profile.login for GitHub
               user.email,
               true,
               account.provider,
               account.providerAccountId,
               user.image || null,
-              'user'
+              "user",
             ]
           );
 
           console.log("New user created:", newUser.rows[0]);
-          return true;
 
+          // Overwrite the user object with database values
+          user.id = newUser.rows[0].id; // Set the proper database ID
+          return true;
         } catch (error) {
           console.error("Error handling OAuth sign in:", error);
           // Check if it's a duplicate key error
-          if (error instanceof Error && error.message.includes('unique_email_per_provider')) {
-            throw new Error("This account already exists. Please try logging in.");
+          if (
+            error instanceof Error &&
+            error.message.includes("unique_email_per_provider")
+          ) {
+            throw new Error(
+              "This account already exists. Please try logging in."
+            );
           }
           throw error;
         }
@@ -153,7 +161,47 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     jwt: async ({ token, user, account }) => {
-      if (user) {
+      // For OAuth providers, look up the database ID after creating the user
+      if (
+        user &&
+        (account?.provider === "google" || account?.provider === "github")
+      ) {
+        try {
+          // Look up the user by email and provider to get the database ID
+          const userResult = await getDefaultReaderPool().query(
+            "SELECT id FROM users WHERE email = $1 AND provider = $2::provider_type",
+            [user.email, account.provider]
+          );
+
+          if (userResult.rowCount && userResult.rowCount > 0) {
+            // Use the database ID instead of the provider ID
+            token.user = {
+              id: userResult.rows[0].id, // Database ID
+              name: user.name,
+              email: user.email,
+              image: user.image,
+            };
+          } else {
+            // Fallback to provider ID if necessary
+            token.user = {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              image: user.image,
+            };
+          }
+        } catch (error) {
+          console.error("Error fetching user database ID:", error);
+          // Fallback to provider ID if lookup fails
+          token.user = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            image: user.image,
+          };
+        }
+      } else if (user) {
+        // For credential logins, use the database ID directly
         token.user = {
           id: user.id,
           name: user.name,
@@ -161,10 +209,12 @@ export const authOptions: NextAuthOptions = {
           image: user.image,
         };
       }
+
       if (account) {
         token.provider = account.provider;
         token.providerId = account.providerAccountId;
       }
+
       return token;
     },
     session: async ({ session, token }) => {

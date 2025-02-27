@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
 import {
   Database,
   Home,
@@ -15,10 +16,30 @@ import {
 import HomeContent from "./components/homepage";
 import RunQueryContent from "./components/RunQuery";
 import CreateDatabaseContent from "./components/CreateDatabase";
+import { GetDataBases } from "@/client/lib/services/DatabasesService";
 export default function HomePage() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activePage, setActivePage] = useState("home");
   const [selectedDatabase, setSelectedDatabase] = useState("");
+  const [databases, setDatabases] = useState<DatabaseEntry[]>([]);
+
+  interface DatabaseEntry {
+    id: number;
+    tenancy_type: 'shared' | 'isolated';
+    db_name: string;
+    access_level: 'admin' | 'user';
+  }
+
+  const { data, isLoading, isError } = useQuery<{ databases: DatabaseEntry[] }, Error>({
+    queryKey: ['GetDatabases'], 
+    queryFn: GetDataBases
+  });
+
+
+  if (data && data.databases && databases.length === 0) {
+    setDatabases(data.databases);
+  }
+
 
   const toggleSidebar = () => setIsSidebarCollapsed(!isSidebarCollapsed);
 
@@ -101,6 +122,7 @@ export default function HomePage() {
             <RunQueryContent
               selectedDatabase={selectedDatabase}
               setSelectedDatabase={setSelectedDatabase}
+              databases={databases}
             />
           )}
         </main>
