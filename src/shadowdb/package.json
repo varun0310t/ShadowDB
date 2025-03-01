@@ -33,6 +33,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.54.2",
+    "react-split": "^2.0.14",
     "react-toastify": "^11.0.3",
     "redis": "^4.7.0",
     "resend": "^4.1.2",

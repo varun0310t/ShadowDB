@@ -59,7 +59,7 @@ export default function RunQueryContent({
     mutationFn: (queryData: { db_name: string; query: string }) => 
       executeQuery(queryData),
     onSuccess: (data) => {
-      setResults(data.results || []);
+      setResults(data.rows || []);
       setActiveTab("data");
       setError(null);
     },
