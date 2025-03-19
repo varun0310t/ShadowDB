@@ -56,15 +56,16 @@ export function getReaderPool(userId: string): Pool | undefined {
   if (readerIndex === leaderPoolIndex.value) {
     readerIndex = (readerIndex + 1) % numPools;
   }
-
+console.log("readerIndex for user",readerIndex);
   return pools[readerIndex];
 }
 
-export function getWriterPool(userId: string): Pool | undefined {
+export  function  getWriterPool(userId: string): Pool | undefined {
   const pools = userPools.get(userId);
   if (!pools || pools.length === 0) return undefined;
 
   // Return the leader pool
+  console.log("leaderPoolIndex this is in userPools files", leaderPoolIndex.value);
   return pools[leaderPoolIndex.value];
 }
 
@@ -84,6 +85,7 @@ export function setLeaderPoolIndex(index: number): void {
 // Fix the getDefaultWriterPool function
 export function getDefaultWriterPool(): Pool {
   const defaultPool = getUserPool("default")?.[leaderPoolIndex.value];
+  console.log(userPools);
   if (!defaultPool) {
     throw new Error("Default writer pool not initialized");
   }

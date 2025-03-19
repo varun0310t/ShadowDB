@@ -6,8 +6,7 @@ import {
   getDefaultReaderPool,
   getDefaultWriterPool,
 } from "../../../../../lib/userPools";
-
-import { checkAndUpdateLeader } from "@/lib/LeaderCheck";
+import { checkAndUpdateLeader ,leaderPoolIndex} from "@/lib/LeaderCheck";
 
 export async function POST(req: Request) {
   // Validate session
@@ -42,6 +41,7 @@ export async function POST(req: Request) {
   try {
     // Begin transaction
     await checkAndUpdateLeader();
+    console.log("Leader is ", leaderPoolIndex);
     const client = await getDefaultWriterPool().connect();
     try {
       await client.query("BEGIN");
@@ -53,6 +53,7 @@ export async function POST(req: Request) {
             RETURNING id, name, tenancy_type;
         `;
       const dbValues = [db_name, tenancy_type, session.user.id];
+      console.log("leaderPoolIndex",client);
       const dbResult = await client.query(createDbQuery, dbValues);
 
       // Then, create the user-database relationship with admin access
