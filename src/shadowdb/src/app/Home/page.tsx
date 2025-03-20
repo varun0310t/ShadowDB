@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import {
   Database,
   Home,
@@ -17,6 +18,7 @@ import HomeContent from "./components/homepage";
 import RunQueryContent from "./components/RunQuery";
 import CreateDatabaseContent from "./components/CreateDatabase";
 import { GetDataBases } from "@/client/lib/services/DatabasesService";
+import { signOut } from "next-auth/react";
 export default function HomePage() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activePage, setActivePage] = useState("home");
@@ -36,10 +38,12 @@ export default function HomePage() {
   });
 
 
-  if (data && data.databases && databases.length === 0) {
-    setDatabases(data.databases);
-  }
 
+   useEffect(() => {
+    if (data?.databases && data.databases.length > 0) {
+      setDatabases(data.databases);
+    }
+  }, [data?.databases]);
 
   const toggleSidebar = () => setIsSidebarCollapsed(!isSidebarCollapsed);
 
@@ -112,7 +116,7 @@ export default function HomePage() {
           <h1 className="text-2xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
             {getPageTitle(activePage)}
           </h1>
-          <Button variant="outline">Log Out</Button>
+          <Button variant="outline" className="text-slate-800" onClick={()=>{signOut()}}>Log Out</Button>
         </header>
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-900 bg-opacity-50 p-6">
