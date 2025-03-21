@@ -13,12 +13,14 @@ import {
   ChevronRight,
   Activity,
   Clock,
+  Settings
 } from "lucide-react";
 import HomeContent from "./components/homepage";
 import RunQueryContent from "./components/RunQuery";
 import CreateDatabaseContent from "./components/CreateDatabase";
 import { GetDataBases } from "@/client/lib/services/DatabasesService";
 import { signOut } from "next-auth/react";
+import DatabaseConfiguration from "./components/Configuration";
 export default function HomePage() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activePage, setActivePage] = useState("home");
@@ -92,6 +94,13 @@ export default function HomePage() {
               onClick={() => setActivePage("query")}
               collapsed={isSidebarCollapsed}
             />
+               <SidebarItem
+              icon={<Settings />}
+              title="Configuration"
+              active={activePage === "Configuration"}
+              onClick={() => setActivePage("Configuration")}
+              collapsed={isSidebarCollapsed}
+            />
           </ul>
         </nav>
         <button
@@ -129,6 +138,7 @@ export default function HomePage() {
               databases={databases}
             />
           )}
+          {activePage === "Configuration" && <DatabaseConfiguration databases={databases} />}
         </main>
       </div>
     </div>
