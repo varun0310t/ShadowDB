@@ -19,6 +19,7 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
+
 export const config = {
   matcher: ["/Home/:path*", "/admin/:path*", "/api/protected/:path*"],
 };
