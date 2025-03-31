@@ -43,4 +43,35 @@ export const RevokeToken = async (tokenId: number) => {
   return response.data;
 };
 
+// Database Access Control functions
+export const getDatabaseAccessUsers = async (dbName: string) => {
+  const response = await axios.get(`/api/users/pool/Access?dbName=${encodeURIComponent(dbName)}`);
+  return response.data;
+};
+
+export const grantDatabaseAccess = async (data: {
+  dbName: string;
+  email: string;
+  accessLevel: "admin" | "user" | "read";
+}) => {
+  const response = await axios.post("/api/users/pool/Access", data);
+  return response.data;
+};
+
+export const updateDatabaseAccess = async (data: {
+  dbName: string;
+  email: string;
+  accessLevel: "admin" | "user" | "read";
+}) => {
+  const response = await axios.patch("/api/users/pool/Access", data);
+  return response.data;
+};
+
+export const revokeDatabaseAccess = async (dbName: string, email: string) => {
+  const response = await axios.delete(
+    `/api/users/pool/Access?dbName=${encodeURIComponent(dbName)}&email=${encodeURIComponent(email)}`
+  );
+  return response.data;
+};
+
 

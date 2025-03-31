@@ -342,7 +342,7 @@ export default function DatabaseConfiguration({
 
         {/* Security Settings */}
         <TabsContent value="security" className="space-y-4">
-          <SecurityTab />
+          <SecurityTab selectedDatabase={selectedDatabase} />
         </TabsContent>
 
         {/* API Tokens */}
