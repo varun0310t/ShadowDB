@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GenerateQueryToken } from "@/client/lib/services/DatabasesService";
+import { GenerateQueryToken, GetDataBases } from "@/client/lib/services/DatabasesService";
 import axios from "axios";
 
 // Import tab components
@@ -85,6 +85,12 @@ export default function DatabaseConfiguration({
     },
   });
 
+  const { refetch: refetchDatabases } = useQuery({
+    queryKey: ["databases"],
+    queryFn: GetDataBases,
+    enabled: false,
+  });
+
   useEffect(() => {
     if (tokensData) {
       setApiTokens(tokensData);
@@ -126,6 +132,25 @@ export default function DatabaseConfiguration({
 
   const deleteToken = (tokenId: number) => {
     deleteTokenMutation.mutate(tokenId);
+  };
+
+  const handleDatabaseRefetch = async () => {
+    const { data } = await refetchDatabases();
+
+    if (data && data.databases && selectedDatabaseId) {
+      const refreshedDb = data.databases.find(
+        (db: any) => db.id.toString() === selectedDatabaseId
+      );
+
+      if (refreshedDb) {
+        setSelectedDatabase({
+          ...refreshedDb,
+          region: refreshedDb.region || "us-east-1",
+          created_at: refreshedDb.created_at || new Date().toISOString().split("T")[0],
+          status: refreshedDb.status || "active",
+        });
+      }
+    }
   };
 
   if (isLoading) {
@@ -300,7 +325,8 @@ export default function DatabaseConfiguration({
         <TabsContent value="general" className="space-y-4">
           <GeneralTab 
             selectedDatabase={selectedDatabase} 
-            copyToClipboard={copyToClipboard} 
+            copyToClipboard={copyToClipboard}
+            refetchDatabases={handleDatabaseRefetch}
           />
         </TabsContent>
 

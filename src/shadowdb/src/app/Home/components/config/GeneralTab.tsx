@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,15 +17,76 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Copy } from "lucide-react";
+import { Copy, Save, Loader2 } from "lucide-react";
 import { DatabaseEntry } from "../types/DatabaseTypes";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { UpdateDatabaseName } from "@/client/lib/services/DatabasesService";
+import {toast} from "@/hooks/use-toast";
 
 interface GeneralTabProps {
   selectedDatabase: DatabaseEntry;
   copyToClipboard: (text: string) => void;
+  refetchDatabases: () => Promise<any>;  // Add this prop to enable database refetching
 }
 
-export function GeneralTab({ selectedDatabase, copyToClipboard }: GeneralTabProps) {
+export function GeneralTab({ selectedDatabase, copyToClipboard, refetchDatabases }: GeneralTabProps) {
+  const [dbName, setDbName] = useState(selectedDatabase.db_name);
+  const [originalDbName, setOriginalDbName] = useState(selectedDatabase.db_name);
+  // Get the shared QueryClient from context rather than creating a new instance
+  const queryClient = useQueryClient();
+
+  const updateDbNameMutation = useMutation({
+    mutationFn: () => UpdateDatabaseName({
+      tenancy_type: selectedDatabase.tenancy_type,
+      Original_DB_Name: originalDbName,
+      New_DB_Name: dbName
+    }),
+    onSuccess: async (data) => {
+      if (data.RenameResult.success) {
+        toast({
+          title: "Database updated",
+          description: "Database name has been successfully updated.",
+          variant: "default",
+        });
+        // Update the original name to match the new name
+        setOriginalDbName(dbName);
+        
+        // Invalidate queries and refetch databases
+        queryClient.invalidateQueries({ queryKey: ["databases"] });
+        
+        // Explicitly refetch database list to update UI
+        await refetchDatabases();
+      } else {
+        toast({
+          title: "Update failed",
+          description: data.RenameResult.message || "Failed to update database name",
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.response?.data?.error || "Failed to update database name",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Update the dbName and originalDbName when selectedDatabase changes
+  React.useEffect(() => {
+    setDbName(selectedDatabase.db_name);
+    setOriginalDbName(selectedDatabase.db_name);
+  }, [selectedDatabase.db_name]);
+
+  const handleSaveDbName = () => {
+    if (dbName !== originalDbName) {
+      updateDbNameMutation.mutate();
+    }
+  };
+
+  const nameChanged = dbName !== originalDbName;
+
   return (
     <div className="space-y-4">
       <Card className="bg-[#151923] border-gray-800">
@@ -39,11 +100,39 @@ export function GeneralTab({ selectedDatabase, copyToClipboard }: GeneralTabProp
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="db_name" className="text-gray-200">Database Name</Label>
-              <Input
-                id="db_name"
-                defaultValue={selectedDatabase.db_name}
-                className="bg-[#0B0F17] border-gray-800 text-white"
-              />
+              <div className="flex">
+                <Input
+                  id="db_name"
+                  value={dbName}
+                  onChange={(e) => setDbName(e.target.value)}
+                  className="bg-[#0B0F17] border-gray-800 text-white"
+                />
+                {nameChanged && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="ml-2 border-gray-800 text-gray-200"
+                    onClick={handleSaveDbName}
+                    disabled={updateDbNameMutation.isPending}
+                  >
+                    {updateDbNameMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
+              </div>
+              {nameChanged && (
+                <p className="text-xs text-amber-400">
+                  Click save button to update the database name
+                </p>
+              )}
+              {updateDbNameMutation.isError && (
+                <p className="text-xs text-red-500">
+                  {updateDbNameMutation.error?.message || "Failed to update database name"}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="region" className="text-gray-200">Region</Label>
