@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import "@/db/index";
 import { getDefaultWriterPool } from "../../../../lib/userPools";
 
 export async function GET(req: Request) {

@@ -141,6 +141,7 @@ export async function POST(req: Request) {
     // Check if database exists
     const dbExists = await databaseExists(dbName);
     if (!dbExists) {
+      console.log("User does not have admin access to the database:", dbName,session.user.id);
       return NextResponse.json(
         { error: `Database "${dbName}" does not exist` },
         { status: 404 }
@@ -150,6 +151,7 @@ export async function POST(req: Request) {
     // Check if the requesting user has admin access to the database
     const hasAdminAccess = await CheckIfUserHasAccess(session.user.id, dbName, "admin");
     if (!hasAdminAccess) {
+      console.log("User does not have admin access to the database:", dbName,session.user.id);
       return NextResponse.json(
         { error: "You don't have permission to grant access to this database" },
         { status: 403 }
@@ -159,6 +161,7 @@ export async function POST(req: Request) {
     // Find target user by email
     const targetUser = await findUserByEmail(email);
     if (!targetUser) {
+      console.log("User not found:", email);
       return NextResponse.json(
         { error: `User with email ${email} not found` },
         { status: 404 }

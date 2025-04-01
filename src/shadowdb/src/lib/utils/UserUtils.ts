@@ -6,14 +6,11 @@ import { getDefaultReaderPool, getDefaultWriterPool } from "../userPools";
  * @param provider Optional auth provider (credentials, google, github)
  * @returns User object or null if not found
  */
-export async function findUserByEmail(
-  email: string,
-  provider: string = "credentials"
-): Promise<any | null> {
+export async function findUserByEmail(email: string): Promise<any | null> {
   try {
     const result = await getDefaultReaderPool().query(
-      `SELECT * FROM users WHERE email = $1 AND provider = $2`,
-      [email, provider]
+      `SELECT * FROM users WHERE email = $1`,
+      [email]
     );
 
     return result.rows.length > 0 ? result.rows[0] : null;
@@ -41,7 +38,3 @@ export async function findUserById(id: string | number): Promise<any | null> {
     return null;
   }
 }
-
-
-
-
