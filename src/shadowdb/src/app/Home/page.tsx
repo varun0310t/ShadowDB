@@ -13,7 +13,8 @@ import {
   ChevronRight,
   Activity,
   Clock,
-  Settings
+  Settings,
+  User, // Add User icon for Account tab
 } from "lucide-react";
 import HomeContent from "./components/homepage";
 import RunQueryContent from "./components/RunQuery";
@@ -21,6 +22,9 @@ import CreateDatabaseContent from "./components/CreateDatabase";
 import { GetDataBases } from "@/client/lib/services/DatabasesService";
 import { signOut } from "next-auth/react";
 import DatabaseConfiguration from "./components/Configuration";
+// Import Account component (which you'll need to create)
+import AccountSettings from "./components/AccountSettings";
+
 export default function HomePage() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activePage, setActivePage] = useState("home");
@@ -29,19 +33,20 @@ export default function HomePage() {
 
   interface DatabaseEntry {
     id: number;
-    tenancy_type: 'shared' | 'isolated';
+    tenancy_type: "shared" | "isolated";
     db_name: string;
-    access_level: 'admin' | 'user';
+    access_level: "admin" | "user";
   }
 
-  const { data, isLoading, isError } = useQuery<{ databases: DatabaseEntry[] }, Error>({
-    queryKey: ['GetDatabases'], 
-    queryFn: GetDataBases
+  const { data, isLoading, isError } = useQuery<
+    { databases: DatabaseEntry[] },
+    Error
+  >({
+    queryKey: ["GetDatabases"],
+    queryFn: GetDataBases,
   });
 
-
-
-   useEffect(() => {
+  useEffect(() => {
     if (data?.databases && data.databases.length > 0) {
       setDatabases(data.databases);
     }
@@ -94,7 +99,7 @@ export default function HomePage() {
               onClick={() => setActivePage("query")}
               collapsed={isSidebarCollapsed}
             />
-               <SidebarItem
+            <SidebarItem
               icon={<Settings />}
               title="Configuration"
               active={activePage === "Configuration"}
@@ -103,6 +108,18 @@ export default function HomePage() {
             />
           </ul>
         </nav>
+
+        {/* Account tab at the bottom */}
+        <div className="mt-auto border-t border-gray-700 pt-2 pb-4 px-2 flex flex-col">
+          <SidebarItem
+            icon={<User />}
+            title="Account"
+            active={activePage === "account"}
+            onClick={() => setActivePage("account")}
+            collapsed={isSidebarCollapsed}
+          />
+        </div>
+
         <button
           onClick={toggleSidebar}
           className="p-2 m-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors duration-200 flex items-center justify-center"
@@ -125,7 +142,15 @@ export default function HomePage() {
           <h1 className="text-2xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
             {getPageTitle(activePage)}
           </h1>
-          <Button variant="outline" className="text-slate-800" onClick={()=>{signOut()}}>Log Out</Button>
+          <Button
+            variant="outline"
+            className="text-slate-800"
+            onClick={() => {
+              signOut();
+            }}
+          >
+            Log Out
+          </Button>
         </header>
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-900 bg-opacity-50 p-6">
@@ -138,7 +163,10 @@ export default function HomePage() {
               databases={databases}
             />
           )}
-          {activePage === "Configuration" && <DatabaseConfiguration databases={databases} />}
+          {activePage === "Configuration" && (
+            <DatabaseConfiguration databases={databases} />
+          )}
+          {activePage === "account" && <AccountSettings />}
         </main>
       </div>
     </div>
@@ -159,7 +187,9 @@ function SidebarItem({
   collapsed: boolean;
 }) {
   return (
-    <li>
+    <li className="list-none">
+      {" "}
+      {/* Add list-none to explicitly remove any list styling */}
       <button
         onClick={onClick}
         className={`flex items-center space-x-2 w-full p-2 rounded-lg transition-all duration-200 ${
@@ -169,8 +199,10 @@ function SidebarItem({
         } ${collapsed ? "justify-center" : ""}`}
         title={collapsed ? title : ""}
       >
-        {icon}
-        {!collapsed && <span>{title}</span>}
+        <span className="flex-shrink-0">{icon}</span>{" "}
+        {/* Wrap icon in span to ensure proper styling */}
+        {!collapsed && <span className="ml-2">{title}</span>}{" "}
+        {/* Explicit margin instead of space-x */}
       </button>
     </li>
   );
@@ -184,6 +216,10 @@ function getPageTitle(page: string) {
       return "Create Database";
     case "query":
       return "Run Query";
+    case "Configuration":
+      return "Configuration";
+    case "account":
+      return "Account Settings";
     default:
       return "ShadowDB";
   }
