@@ -1,0 +1,64 @@
+import { User, Shield, Bell, CreditCard, Key, LogOut } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { signOut } from "next-auth/react"
+import { AccountNavItem } from "./AccountNavItem"
+
+interface SidebarProps {
+  activeTab: string
+  setActiveTab: (tab: string) => void
+}
+
+export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
+  const navigationItems = [
+    { icon: <User size={18} />, title: "Profile", id: "profile" },
+    { icon: <Shield size={18} />, title: "Security", id: "security" },
+    { icon: <Bell size={18} />, title: "Notifications", id: "notifications" },
+    { icon: <CreditCard size={18} />, title: "Billing", id: "billing" },
+    { icon: <Key size={18} />, title: "API Keys", id: "api" },
+  ]
+
+  return (
+    <Card className="bg-[#151923] border-gray-800 sticky top-6">
+      <CardContent className="p-4">
+        {/* Profile Section */}
+        <div className="flex flex-col items-center py-6">
+          <Avatar className="h-24 w-24 mb-4 border-2 border-purple-500">
+            <AvatarImage src="/placeholder.svg?height=96&width=96" alt="User" />
+            <AvatarFallback className="bg-purple-800 text-xl">JD</AvatarFallback>
+          </Avatar>
+          <h3 className="text-xl font-semibold">John Doe</h3>
+          <p className="text-gray-400 text-sm">john.doe@example.com</p>
+          <Badge className="mt-2 bg-purple-600">Pro Plan</Badge>
+        </div>
+
+        {/* Navigation */}
+        <nav className="mt-6 space-y-1">
+          {navigationItems.map((item) => (
+            <AccountNavItem
+              key={item.id}
+              icon={item.icon}
+              title={item.title}
+              active={activeTab === item.id}
+              onClick={() => setActiveTab(item.id)}
+            />
+          ))}
+        </nav>
+
+        {/* Sign Out Button */}
+        <div className="mt-8 pt-6 border-t border-gray-800">
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-900/20"
+            onClick={() => signOut()}
+          >
+            <LogOut size={18} className="mr-2" />
+            Sign Out
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
