@@ -5,13 +5,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { signOut } from "next-auth/react"
 import { AccountNavItem } from "./AccountNavItem"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface SidebarProps {
   activeTab: string
   setActiveTab: (tab: string) => void
+  userData: any
+  loading: boolean
 }
 
-export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
+export function Sidebar({ activeTab, setActiveTab, userData, loading }: SidebarProps) {
   const navigationItems = [
     { icon: <User size={18} />, title: "Profile", id: "profile" },
     { icon: <Shield size={18} />, title: "Security", id: "security" },
@@ -25,12 +28,19 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
       <CardContent className="p-4">
         {/* Profile Section */}
         <div className="flex flex-col items-center py-6">
-          <Avatar className="h-24 w-24 mb-4 border-2 border-purple-500">
-            <AvatarImage src="/placeholder.svg?height=96&width=96" alt="User" />
-            <AvatarFallback className="bg-purple-800 text-xl">JD</AvatarFallback>
-          </Avatar>
-          <h3 className="text-xl font-semibold">John Doe</h3>
-          <p className="text-gray-400 text-sm">john.doe@example.com</p>
+          {loading ? (
+            <Skeleton className="h-24 w-24 rounded-full" />
+          ) : (
+            <div className="relative">
+              <img
+                src={userData?.image || "/default-avatar.png"}
+                alt="Profile"
+                className="h-24 w-24 rounded-full object-cover border-2 border-purple-500"
+              />
+            </div>
+          )}
+          <h3 className="text-xl font-semibold">{userData?.name || 'Loading...'}</h3>
+          <p className="text-gray-400 text-sm">{userData?.email || 'Loading...'}</p>
           <Badge className="mt-2 bg-purple-600">Pro Plan</Badge>
         </div>
 

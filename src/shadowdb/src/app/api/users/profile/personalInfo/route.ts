@@ -2,13 +2,22 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { getDefaultReaderPool, getDefaultWriterPool } from "@/lib/userPools";
+import supabase from "@/lib/SupaBaseClient";
 import { z } from "zod";
+
+// Supabase client setup
 
 // Schema for validating personal info updates
 const personalInfoSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   display_name: z.string().min(2).max(50).optional(),
-  image: z.string().url().optional().or(z.literal("")),
+  image: z
+    .union([
+      z.string().url(),
+      z.string().regex(/^data:image\/(jpeg|png|gif);base64,/),
+      z.literal(""),
+    ])
+    .optional(),
   bio: z.string().max(500).optional(),
   location: z.string().max(100).optional(),
   company: z.string().max(100).optional(),
@@ -18,7 +27,7 @@ const personalInfoSchema = z.object({
   timezone: z.string().max(50).optional(),
   language: z.string().length(2).optional(),
   theme: z.enum(["light", "dark", "system"]).optional(),
-  email_notifications: z.boolean().optional()
+  email_notifications: z.boolean().optional(),
 });
 
 // GET: Fetch user's personal info
@@ -51,7 +60,7 @@ export async function GET(req: Request) {
         created_at,
         updated_at
        FROM users
-       WHERE id = $1 AND deleted_at IS NULL`,
+       WHERE id = $1 `,
       [session.user.id]
     );
 
@@ -78,7 +87,7 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json();
-    
+
     // Validate request body
     try {
       personalInfoSchema.parse(body);
@@ -89,21 +98,47 @@ export async function PATCH(req: Request) {
       );
     }
 
-    const {
-      name,
-      display_name,
-      image,
-      bio,
-      location,
-      company,
-      website,
-      github_username,
-      twitter_username,
-      timezone,
-      language,
-      theme,
-      email_notifications
-    } = body;
+    let { image, ...otherFields } = body;
+
+    // Handle base64 image upload
+    if (image && image.startsWith("data:image")) {
+      const currentUser = await getDefaultReaderPool().query(
+        `SELECT image FROM users WHERE id = $1 `,
+        [session.user.id]
+      );
+
+      // Delete old image if exists
+      if (currentUser.rows[0]?.image) {
+        const oldImagePath = currentUser.rows[0].image.split("/").pop();
+        if (oldImagePath) {
+          await supabase.storage
+            .from("profile-pictures")
+            .remove([oldImagePath]);
+        }
+      }
+
+      // Upload new image
+      const base64Data = image.split(",")[1];
+      const buffer = Buffer.from(base64Data, "base64");
+      const fileName = `${session.user.id}-${Date.now()}.jpg`;
+
+      const { data, error } = await supabase.storage
+        .from("profile-pictures")
+        .upload(fileName, buffer, {
+          contentType: "image/jpeg",
+          upsert: true,
+        });
+
+      if (error) {
+        throw new Error("Failed to upload image");
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("profile-pictures").getPublicUrl(fileName);
+
+      image = publicUrl;
+    }
 
     // Check if user exists and get current data
     const currentUser = await getDefaultReaderPool().query(
@@ -116,7 +151,7 @@ export async function PATCH(req: Request) {
     }
 
     // For OAuth users, only allow updating certain fields
-    if (currentUser.rows[0].provider !== 'credentials' && image) {
+    if (currentUser.rows[0].provider !== "credentials" && image) {
       return NextResponse.json(
         { error: "OAuth users cannot change their profile image" },
         { status: 400 }
@@ -149,32 +184,34 @@ export async function PATCH(req: Request) {
         timezone, language, theme, email_notifications,
         updated_at`,
       [
-        name,
-        display_name,
+        otherFields.name,
+        otherFields.display_name,
         image,
-        bio,
-        location,
-        company,
-        website,
-        github_username,
-        twitter_username,
-        timezone,
-        language,
-        theme,
-        email_notifications,
-        session.user.id
+        otherFields.bio,
+        otherFields.location,
+        otherFields.company,
+        otherFields.website,
+        otherFields.github_username,
+        otherFields.twitter_username,
+        otherFields.timezone,
+        otherFields.language,
+        otherFields.theme,
+        otherFields.email_notifications,
+        session.user.id,
       ]
     );
 
     if (result.rows.length === 0) {
-      return NextResponse.json({ error: "Failed to update user" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Failed to update user" },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({
       message: "Personal information updated successfully",
-      user: result.rows[0]
+      user: result.rows[0],
     });
-
   } catch (error: any) {
     console.error("Error updating personal info:", error);
     return NextResponse.json(

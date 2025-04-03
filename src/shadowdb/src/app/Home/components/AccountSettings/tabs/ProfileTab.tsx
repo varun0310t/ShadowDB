@@ -1,13 +1,85 @@
-import { useState } from "react"
-import { Edit2 } from "lucide-react"
+"use client"
+import { useState, useEffect } from "react"
+import { Edit2, Upload } from "lucide-react"
+import { useForm } from "react-hook-form"
+import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Switch } from "@/components/ui/switch"
 
-export function ProfileTab() {
+type ProfileFormData = {
+  name: string
+  display_name?: string
+  bio?: string
+  company?: string
+  website?: string
+  location?: string
+  theme?: 'light' | 'dark' | 'system'
+  language?: string
+  timezone?: string
+  image?: string
+}
+
+interface ProfileTabProps {
+  userData: any
+  onUpdate: () => Promise<void>
+}
+
+export function ProfileTab({ userData, onUpdate }: ProfileTabProps) {
   const [editing, setEditing] = useState(false)
+  const [imagePreview, setImagePreview] = useState<string>("")
+  const { toast } = useToast()
+  const { register, handleSubmit, reset } = useForm<ProfileFormData>()
+
+  useEffect(() => {
+    if (userData) {
+      reset(userData)
+      setImagePreview(userData.image || "")
+    }
+  }, [userData, reset])
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64String = reader.result as string
+        setImagePreview(base64String)
+        handleSubmit((data) => onSubmit({ ...data, image: base64String }))()
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const onSubmit = async (data: ProfileFormData) => {
+    try {
+      const response = await fetch('/api/users/profile/personalInfo', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Profile updated successfully"
+        })
+        setEditing(false)
+        onUpdate()
+      } else {
+        throw new Error((await response.json()).error)
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to update profile"
+      })
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -30,50 +102,99 @@ export function ProfileTab() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="fullName" className="text-gray-200">Full Name</Label>
-              <Input
-                id="fullName"
-                defaultValue="John Doe"
-                className="bg-[#0B0F17] border-gray-800 text-white"
-                disabled={!editing}
-              />
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {editing && (
+              <div className="flex items-center space-x-4">
+                <div className="relative h-20 w-20">
+                  <img
+                    src={imagePreview || "/default-avatar.png"}
+                    alt="Profile Preview"
+                    className="h-full w-full rounded-full object-cover"
+                  />
+                  <div className="absolute bottom-0 right-0">
+                    <Label htmlFor="image-upload" className="cursor-pointer">
+                      <div className="rounded-full bg-purple-600 p-2 hover:bg-purple-700">
+                        <Upload size={16} />
+                      </div>
+                      <Input
+                        id="image-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                      />
+                    </Label>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-400">Click the upload button to change your profile picture</p>
+              </div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-gray-200">Full Name</Label>
+                <Input
+                  id="name"
+                  {...register('name')}
+                  className="bg-[#0B0F17] border-gray-800 text-white"
+                  disabled={!editing}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="display_name" className="text-gray-200">Display Name</Label>
+                <Input
+                  id="display_name"
+                  {...register('display_name')}
+                  className="bg-[#0B0F17] border-gray-800 text-white"
+                  disabled={!editing}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="company" className="text-gray-200">Company</Label>
+                <Input
+                  id="company"
+                  {...register('company')}
+                  className="bg-[#0B0F17] border-gray-800 text-white"
+                  disabled={!editing}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="website" className="text-gray-200">Website</Label>
+                <Input
+                  id="website"
+                  {...register('website')}
+                  className="bg-[#0B0F17] border-gray-800 text-white"
+                  disabled={!editing}
+                />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="bio" className="text-gray-200">Bio</Label>
+                <textarea
+                  id="bio"
+                  {...register('bio')}
+                  className="w-full min-h-[100px] bg-[#0B0F17] border-gray-800 text-white rounded-md p-2"
+                  disabled={!editing}
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-200">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                defaultValue="john.doe@example.com"
-                className="bg-[#0B0F17] border-gray-800 text-white"
-                disabled={!editing}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="company" className="text-gray-200">Company</Label>
-              <Input
-                id="company"
-                defaultValue="Acme Inc"
-                className="bg-[#0B0F17] border-gray-800 text-white"
-                disabled={!editing}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="role" className="text-gray-200">Job Title</Label>
-              <Input
-                id="role"
-                defaultValue="Database Administrator"
-                className="bg-[#0B0F17] border-gray-800 text-white"
-                disabled={!editing}
-              />
-            </div>
-          </div>
-          {editing && (
-            <div className="flex justify-end">
-              <Button className="bg-purple-600 hover:bg-purple-700">Save Changes</Button>
-            </div>
-          )}
+
+            {editing && (
+              <div className="flex justify-end space-x-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setEditing(false)
+                    reset()
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
+                  Save Changes
+                </Button>
+              </div>
+            )}
+          </form>
         </CardContent>
       </Card>
 
