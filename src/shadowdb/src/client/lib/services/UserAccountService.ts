@@ -59,7 +59,7 @@ export class UserAccountService {
    * Validate password complexity
    */
   static validatePassword(password: string): boolean {
-    const passwordRegex = /^[a-zA-Z0-9!@#$%^&*]{6,16}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     return passwordRegex.test(password);
   }
 

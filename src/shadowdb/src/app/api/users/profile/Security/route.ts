@@ -71,7 +71,7 @@ export async function PATCH(req: Request) {
 
     // Get current user's password
     const user = await getDefaultReaderPool().query(
-      `SELECT password, provider FROM users WHERE id = $1 AND deleted_at IS NULL`,
+      `SELECT password, provider FROM users WHERE id = $1`,
       [session.user.id]
     );
 
