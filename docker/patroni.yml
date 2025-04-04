@@ -31,6 +31,8 @@ bootstrap:
         hot_standby_feedback: on    # Added
         wal_log_hints: on  # Add this line
       pg_hba:
+        - "local all all trust"     # Changed from md5 to trust
+        - "local all postgres trust"  
         - "host replication replicator 0.0.0.0/0 md5"    # Changed from trust to md5
         - "host all all 0.0.0.0/0 md5"
 
