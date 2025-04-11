@@ -337,7 +337,7 @@ export default function DatabaseConfiguration({
 
         {/* Backup & Recovery */}
         <TabsContent value="backup" className="space-y-4">
-          <BackupTab />
+          <BackupTab selectedDatabase={selectedDatabase} />
         </TabsContent>
 
         {/* Security Settings */}
