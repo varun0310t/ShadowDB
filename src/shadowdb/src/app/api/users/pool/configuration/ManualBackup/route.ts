@@ -57,11 +57,10 @@ export async function GET(req: Request) {
     const backupId = url.searchParams.get("id");
 
     // Get reader pool for queries
-    const readerPool = await getDefaultReaderPool();
-
+    console.log("Reader pool initialized");
     // If an ID is provided, get specific backup details
     if (backupId) {
-      const { rows: backup } = await readerPool.query(
+      const { rows: backup } = await getDefaultReaderPool().query(
         `SELECT * FROM backup_records 
          WHERE id = $1 
          AND user_id = $2`,
@@ -69,6 +68,7 @@ export async function GET(req: Request) {
       );
 
       if (!backup || backup.length === 0) {
+        console.error("Backup not found:", backupId);
         return NextResponse.json(
           { error: "Backup not found" },
           { status: 404 }
@@ -95,9 +95,9 @@ export async function GET(req: Request) {
       // Add pagination parameters
       const limit = parseInt(url.searchParams.get("limit") || "10");
       const offset = parseInt(url.searchParams.get("offset") || "0");
-
+      console.log("Limit:", limit, "Offset:", offset);
       // Get list of backups
-      const { rows: backups } = await readerPool.query(
+      const { rows: backups } = await getDefaultReaderPool().query(
         `SELECT * FROM backup_records 
          WHERE user_id = $1 
          AND deleted_at IS NULL
@@ -107,7 +107,7 @@ export async function GET(req: Request) {
       );
 
       // Get total count for pagination
-      const { rows: countResult } = await readerPool.query(
+      const { rows: countResult } = await getDefaultReaderPool().query(
         `SELECT COUNT(*) as total FROM backup_records 
          WHERE user_id = $1
          AND deleted_at IS NULL`,
