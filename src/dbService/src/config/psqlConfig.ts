@@ -1,10 +1,11 @@
-import pool from "pg";
+import { Pool } from "pg";
 import dotenv from "dotenv";
-import { setUserPool } from "../lib/Getpools";
-dotenv.config();
 
-const { Pool } = pool;
+import { setUserPool, getUserPool } from "../lib/Getpools";
 
+dotenv.config(); // Loads variables from a .env file (if present)
+console.log("env", process.env.environment);
+// Default writer pool
 const defaultWriter = new Pool({
   user: process.env.PG_USER,
   host: process.env.PG_HOST,
@@ -13,6 +14,7 @@ const defaultWriter = new Pool({
   port: parseInt(process.env.PG_PORT as any, 10),
 });
 
+// Default reader pools
 const defaultReaders = [
   new Pool({
     user: process.env.PG_REPLICA1_USER,
@@ -27,11 +29,28 @@ const defaultReaders = [
     database: process.env.PG_REPLICA2_DATABASE,
     password: process.env.PG_REPLICA2_PASSWORD,
     port: parseInt(process.env.PG_REPLICA2_PORT as any, 10),
-  }),
+  })
 ];
+
 // Initialize default pools in userPools system
 setUserPool('default', defaultWriter, 0);
 
 setUserPool('default', defaultReaders[0], 1);
 setUserPool('default', defaultReaders[1], 2);
 
+// Test connections
+async function testConnections() {
+  try {
+    await defaultWriter.query("SELECT NOW()");
+    console.log("Connected to default writer");
+    
+    for (const reader of defaultReaders) {
+      await reader.query("SELECT NOW()");
+      console.log("Connected to reader replica");
+    }
+  } catch (err) {
+    console.error("Connection error", err);
+  }
+}
+
+testConnections();

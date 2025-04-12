@@ -1,5 +1,6 @@
 import { exec } from "child_process";
 import { promisify } from "util";
+import "../config/psqlConfig";
 import * as fs from "fs";
 import * as path from "path";
 import { getDefaultReaderPool, getDefaultWriterPool } from "../lib/Getpools"; // Fix import to match your project structure
@@ -35,7 +36,10 @@ const DB_CONFIG = {
     const { rows: instances } = await getDefaultReaderPool().query(
       "SELECT * FROM databases WHERE status != 'deleted' AND status != 'hibernated'"
     );
-
+    if (instances.length === 0) {
+      console.log("No database instances to recover");
+      return;
+    }
     console.log(`Found ${instances.length} database instances to recover`);
 
     // Get currently running containers
@@ -107,6 +111,7 @@ const DB_CONFIG = {
 
     console.log("Database service initialization complete");
   } catch (error) {
+    
     console.error("Failed to initialize database service:", error);
     // In a production environment, you might want to exit the process or implement retries
   }
