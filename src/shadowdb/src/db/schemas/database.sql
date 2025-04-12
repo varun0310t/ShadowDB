@@ -1,22 +1,40 @@
-DROP TABLE IF EXISTS databases CASCADE;
-
--- Create enum for tenancy_type if not exists
+-- Types for database states
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tenancy_type') THEN
     CREATE TYPE tenancy_type AS ENUM ('shared', 'isolated');
   END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'database_status') THEN
+    CREATE TYPE database_status AS ENUM ('creating', 'running', 'stopped', 'error', 'deleted', 'hibernated');
+  END IF;
 END$$;
 
-
+-- Main database table that represents logical databases
+DROP TABLE IF EXISTS databases CASCADE;
 CREATE TABLE databases (
   id SERIAL PRIMARY KEY,
   name VARCHAR(100) NOT NULL UNIQUE,
   tenancy_type tenancy_type NOT NULL DEFAULT 'shared',
-  created_by INTEGER REFERENCES users(id),
+  status database_status NOT NULL DEFAULT 'creating',
+  error_message TEXT,
+  owner_id INTEGER REFERENCES users(id) NOT NULL,
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  
+  -- Physical instance details (for isolated databases)
+  container_name VARCHAR(255),
+  container_id VARCHAR(255),
+  volume_name VARCHAR(255),
+  port INTEGER,
+  connection_string TEXT,
+  password VARCHAR(255),
+  last_started_at TIMESTAMP,
+  last_stopped_at TIMESTAMP
 );
 
+-- Indexes
 CREATE INDEX idx_databases_name ON databases(name);
 CREATE INDEX idx_databases_tenancy ON databases(tenancy_type);
+CREATE INDEX idx_databases_owner ON databases(owner_id);
+CREATE INDEX idx_databases_status ON databases(status);
+CREATE INDEX idx_databases_container ON databases(container_name) WHERE container_name IS NOT NULL;
