@@ -1,6 +1,6 @@
 import pool from "pg";
 import dotenv from "dotenv";
-
+import { setUserPool } from "../lib/Getpools";
 dotenv.config();
 
 const { Pool } = pool;
@@ -29,12 +29,9 @@ const defaultReaders = [
     port: parseInt(process.env.PG_REPLICA2_PORT as any, 10),
   }),
 ];
+// Initialize default pools in userPools system
+setUserPool('default', defaultWriter, 0);
 
-// Function to get the default writer pool
-export function getDefaultWriterPool() {
-  return defaultWriter;
-}
-// Function to get the default reader pool
-export function getDefaultReaderPool() {
-  return defaultReaders[0]; // Return the first reader pool for simplicity
-}
+setUserPool('default', defaultReaders[0], 1);
+setUserPool('default', defaultReaders[1], 2);
+

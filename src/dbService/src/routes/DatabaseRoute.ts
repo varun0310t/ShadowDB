@@ -2,10 +2,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import * as fs from "fs";
 import * as path from "path";
-import {
-  getDefaultReaderPool,
-  getDefaultWriterPool,
-} from "../config/psqlConfig";
+import { getDefaultReaderPool, getDefaultWriterPool } from "../lib/Getpools"; // Fix import to match your project structure
 import express, { Router, Request, Response } from "express"; // Fix import with correct types
 const execAsync = promisify(exec);
 const router = Router();
