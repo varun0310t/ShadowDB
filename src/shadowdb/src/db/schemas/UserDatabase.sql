@@ -1,3 +1,11 @@
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'role') THEN
+    CREATE TYPE role AS ENUM ('owner', 'admin', 'user', 'readonly');
+  END IF;
+END $$;
+
+
 DROP TABLE IF EXISTS user_databases CASCADE;
 
 

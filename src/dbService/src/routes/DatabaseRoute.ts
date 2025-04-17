@@ -10,7 +10,7 @@ const router = Router();
 
 // Configuration
 const DB_CONFIG = {
-  basePort: 5432, // Starting port for PostgreSQL instances
+  basePort: 5567, // Starting port for PostgreSQL instances
   networkName: "shadowdb-network", // Docker network name
   volumeBasePath: "/var/lib/postgresql/data", // Base path for volumes
   postgresImage: "postgres:15-alpine", // Docker image to use

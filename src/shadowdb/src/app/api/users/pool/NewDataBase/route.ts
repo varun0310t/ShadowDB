@@ -48,7 +48,7 @@ export async function POST(req: Request) {
 
       // First, create the new database entry
       const createDbQuery = `
-            INSERT INTO databases (name, tenancy_type, created_by)
+            INSERT INTO databases (name, tenancy_type, owner_id)
             VALUES ($1, $2, $3)
             RETURNING id, name, tenancy_type;
         `;

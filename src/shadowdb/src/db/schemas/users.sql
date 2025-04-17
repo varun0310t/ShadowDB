@@ -1,5 +1,16 @@
 DROP TABLE IF EXISTS users;
 
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'provider_type') THEN
+    CREATE TYPE provider_type AS ENUM ('credentials', 'google', 'github', 'twitter');
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'account_status') THEN
+    CREATE TYPE account_status AS ENUM ('active', 'suspended', 'deactivated', 'banned');
+  END IF;
+END $$;
+
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,

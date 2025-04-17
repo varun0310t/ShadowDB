@@ -87,7 +87,7 @@ export async function GET(req: Request) {
         u.name, 
         u.email, 
         ud.access_level, 
-        ud.user_id = d.created_by as is_owner  /* Use created_by instead of owner_id */
+        ud.user_id = d.owner_id as is_owner  /* Use created_by instead of owner_id */
        FROM 
         user_databases ud
        JOIN 
@@ -172,7 +172,7 @@ export async function POST(req: Request) {
 
     // Get database ID
     const dbIdResult = await getDefaultReaderPool().query(
-      `SELECT id, created_by FROM databases WHERE name = $1`,  /* Use created_by instead of owner_id */
+      `SELECT id, owner_id FROM databases WHERE name = $1`,  /* Use created_by instead of owner_id */
       [dbName]
     );
 
@@ -184,7 +184,7 @@ export async function POST(req: Request) {
     }
 
     const dbId = dbIdResult.rows[0].id;
-    const ownerId = dbIdResult.rows[0].created_by;  /* Use created_by instead of owner_id */
+    const ownerId = dbIdResult.rows[0].owner_id;  /* Use created_by instead of owner_id */
 
     // If the created_by is null, we don't need to do owner-specific checks
     if (ownerId && targetUserId.toString() === ownerId.toString() && accessLevel !== "admin") {
@@ -286,7 +286,7 @@ export async function PATCH(req: Request) {
 
     // Get database ID and owner info
     const dbIdResult = await getDefaultReaderPool().query(
-      `SELECT id, created_by FROM databases WHERE name = $1`,  /* Use created_by instead of owner_id */
+      `SELECT id, owner_id FROM databases WHERE name = $1`,  /* Use created_by instead of owner_id */
       [dbName]
     );
 
@@ -391,7 +391,7 @@ export async function DELETE(req: Request) {
 
     // Get database ID and owner info
     const dbIdResult = await getDefaultReaderPool().query(
-      `SELECT id, created_by FROM databases WHERE name = $1`,  /* Use created_by instead of owner_id */
+      `SELECT id, owner_id FROM databases WHERE name = $1`,  /* Use created_by instead of owner_id */
       [dbName]
     );
 

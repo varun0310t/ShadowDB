@@ -118,15 +118,13 @@ export const authOptions: NextAuthOptions = {
           // Create new user (added RETURNING clause)
           const newUser = await getDefaultWriterPool().query(
             `INSERT INTO users (
-              
               name, 
               email, 
               is_verified, 
               provider, 
               provider_id,
-              image,
-              role
-            ) VALUES ($1, $2, $3, $4::provider_type, $5, $6, $7::role)
+              image
+            ) VALUES ($1, $2, $3, $4::provider_type, $5, $6)
             RETURNING *`,
             [
               user.name || profile?.name || "", // Using profile.login for GitHub
@@ -134,8 +132,7 @@ export const authOptions: NextAuthOptions = {
               true,
               account.provider,
               account.providerAccountId,
-              user.image || null,
-              "user",
+              user.image || null
             ]
           );
 
