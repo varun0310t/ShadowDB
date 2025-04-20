@@ -30,6 +30,12 @@ CREATE TABLE databases (
   password VARCHAR(255),
   last_started_at TIMESTAMP,
   last_stopped_at TIMESTAMP
+
+   -- Patroni-specific fields
+  patroni_scope VARCHAR(255),       -- Unique scope identifier for Patroni cluster
+  patroni_port INTEGER,             -- Port for Patroni REST API
+  parent_id INTEGER REFERENCES databases(id), -- Reference to primary if this is a replica
+  is_replica BOOLEAN DEFAULT false  -- Whether this is a replica instance
 );
 
 -- Indexes
@@ -38,3 +44,5 @@ CREATE INDEX idx_databases_tenancy ON databases(tenancy_type);
 CREATE INDEX idx_databases_owner ON databases(owner_id);
 CREATE INDEX idx_databases_status ON databases(status);
 CREATE INDEX idx_databases_container ON databases(container_name) WHERE container_name IS NOT NULL;
+CREATE INDEX idx_databases_patroni_scope ON databases(patroni_scope) WHERE patroni_scope IS NOT NULL;
+CREATE INDEX idx_databases_parent ON databases(parent_id) WHERE parent_id IS NOT NULL;
