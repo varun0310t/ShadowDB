@@ -1,0 +1,49 @@
+scope: shadowdb
+namespace: /db/
+name: ${PATRONI_NAME}
+
+restapi:
+  listen: 0.0.0.0:8008
+  connect_address: ${PATRONI_POSTGRESQL_CONNECT_ADDRESS}
+
+etcd:
+  url: ${PATRONI_ETCD_URL}
+
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    synchronous_mode: true           # Fixed typo
+    synchronous_mode_strict: true    # Fixed typo
+    master_start_timeout: 300
+    postgresql:
+      use_pg_rewind: true
+      use_slots: true  # Add this line
+      parameters:
+        wal_keep_size: 1GB
+        wal_level: replica         # Changed from replica to logical
+        max_wal_senders: 10
+        max_replication_slots: 10
+        synchronous_commit: on       # Added
+        synchronous_standby_names: '*' # Fixed typo
+        hot_standby: on             # Added
+        hot_standby_feedback: on    # Added
+        wal_log_hints: on  # Add this line
+      pg_hba:
+        - "local all all trust"     # Changed from md5 to trust
+        - "local all postgres trust"  
+        - "host replication replicator 0.0.0.0/0 md5"    # Changed from trust to md5
+        - "host all all 0.0.0.0/0 md5"
+
+postgresql:
+  listen: ${PATRONI_POSTGRESQL_LISTEN}
+  connect_address: ${PATRONI_POSTGRESQL_CONNECT_ADDRESS}
+  data_dir: ${PATRONI_POSTGRESQL_DATA_DIR}
+  authentication:
+    replication:
+      username: replicator
+      password: rep-pass
+    superuser:
+      username: postgres
+      password: node.Js03#

@@ -14,6 +14,7 @@ export function isPortInUse(port: number): Promise<boolean> {
         }
       })
       .once('listening', () => {
+        console.log(`Port ${port} is available`);
         server.close();
         resolve(false); // Port is available
       })

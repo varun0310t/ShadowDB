@@ -1,18 +1,9 @@
-import { exec } from "child_process";
-import { promisify } from "util";
+
 import "../config/psqlConfig";
-import * as fs from "fs";
-import * as path from "path";
-import * as os from "os";
-import { getDefaultReaderPool, getDefaultWriterPool } from "../lib/Getpools";
-import express, { Router, Request, Response } from "express";
-import * as net from "net";
-import { DB_CONFIG } from "../config/DatabaseRouteConfig";
+import  { Router, Request, Response } from "express";
 import { initializeService } from "../Services/DatabaseRouteService";
-import { IsPatroniReady } from "../lib/PatroniUitlity/Uitls";
-import { isPortInUse, findAvailablePort } from "../lib/PortUitlity/utils";
 import { AddReplica, CreateDatabase } from "../controllers/DatabasesController";
-const execAsync = promisify(exec);
+
 
 const router = Router();
 

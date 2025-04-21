@@ -52,8 +52,8 @@ export const generatePatroniConfig = (
 export const DB_CONFIG = {
   basePort: 5567, // PostgreSQL port
   patroniBasePort: 8023, // Patroni API port
-  networkName: "shadowdb-network", // Docker network name
+  networkName: "docker_default", // Docker network name
   volumeBasePath: "/var/lib/postgresql/data", // Base path for volumes
   etcdUrl: "http://etcd:2379", // Central etcd service
-  patroniImage: "registry.opensource.zalan.do/acid/spilo-15:3.0-p1", // Patroni image
+  patroniImage: "local/patroni:latest", // Patroni image
 };

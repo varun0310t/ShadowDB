@@ -13,8 +13,8 @@ END$$;
 DROP TABLE IF EXISTS databases CASCADE;
 CREATE TABLE databases (
   id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL UNIQUE,
-  tenancy_type tenancy_type NOT NULL DEFAULT 'shared',
+  name VARCHAR(100) NOT NULL, -- Removed UNIQUE constraint
+  tenancy_type tenancy_type NOT NULL DEFAULT 'isolated', -- Type of database (shared or isolated)
   status database_status NOT NULL DEFAULT 'creating',
   error_message TEXT,
   owner_id INTEGER REFERENCES users(id) NOT NULL,
@@ -29,16 +29,20 @@ CREATE TABLE databases (
   connection_string TEXT,
   password VARCHAR(255),
   last_started_at TIMESTAMP,
-  last_stopped_at TIMESTAMP
+  last_stopped_at TIMESTAMP,
 
-   -- Patroni-specific fields
+  -- Patroni-specific fields
   patroni_scope VARCHAR(255),       -- Unique scope identifier for Patroni cluster
   patroni_port INTEGER,             -- Port for Patroni REST API
   parent_id INTEGER REFERENCES databases(id), -- Reference to primary if this is a replica
   is_replica BOOLEAN DEFAULT false  -- Whether this is a replica instance
 );
 
--- Indexes
+-- Partial unique index for shared databases only
+CREATE UNIQUE INDEX idx_shared_database_names ON databases(name) 
+WHERE tenancy_type = 'shared';
+
+-- Other indexes
 CREATE INDEX idx_databases_name ON databases(name);
 CREATE INDEX idx_databases_tenancy ON databases(tenancy_type);
 CREATE INDEX idx_databases_owner ON databases(owner_id);
