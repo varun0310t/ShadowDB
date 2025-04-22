@@ -90,6 +90,8 @@ export const CreateDatabase = async (req: Request, res: Response) => {
     // Wait for PostgreSQL to be ready
     await IsPatroniReady(containerName, patroniPort);
 
+   
+
     // After IsPatroniReady but before updating status
     try {
       const logsCmd = `docker logs ${containerName} | grep -E "basebackup|replication|slot"`;
