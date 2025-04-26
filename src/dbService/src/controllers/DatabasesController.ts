@@ -5,7 +5,7 @@ import { DB_CONFIG } from "../config/DatabaseRouteConfig";
 import { findAvailablePort } from "../lib/PortUitlity/utils";
 import { Request, Response } from "express";
 import { IsPatroniReady } from "../lib/PatroniUitlity/Uitls";
-
+import axios from "axios";
 const execAsync = promisify(exec);
 
 export const CreateDatabase = async (req: Request, res: Response) => {
@@ -18,7 +18,7 @@ export const CreateDatabase = async (req: Request, res: Response) => {
       });
       return; // Just return without a value
     }
-
+    console.log(password);
     // Generate unique identifiers
     const containerName = `pg-${userId}-${databaseName}-${Date.now()}`;
     const volumeName = `pgdata-${userId}-${databaseName}`;
@@ -89,9 +89,77 @@ export const CreateDatabase = async (req: Request, res: Response) => {
 
     // Wait for PostgreSQL to be ready
     await IsPatroniReady(containerName, patroniPort);
+    // create a database in the new instance
+    console.log(
+      `PostgreSQL instance ${containerName} is ready. Creating database ${databaseName}`
+    );
+    //add one replica to the primary instance by calling the addreplica endpoint
+    try {
+      console.log(`Automatically creating a replica for database ${databaseName} (ID: ${instanceId})...`);
+      
+      // Create a mock request and response for calling AddReplica directly
+      const mockReq = {
+        body: {
+          databaseId: instanceId
+        }
+      } as Request;
+      
+      let replicaResponse: any = null;
+      
+      const mockRes = {
+        status: (code: number) => {
+          return {
+            json: (data: any) => {
+              console.log(`Replica creation completed with status ${code}`);
+              replicaResponse = data;
+              return data;
+            }
+          };
+        }
+      } as unknown as Response;
+      
+      // Call AddReplica directly without creating a new HTTP request
+      await AddReplica(mockReq, mockRes);
+      
+      if (replicaResponse && replicaResponse.id) {
+        console.log(`Successfully created replica with ID: ${replicaResponse.id}`);
+        console.log(`Replica is running on port: ${replicaResponse.port}`);
+      } else {
+        console.warn("Replica creation did not return expected response");
+      }
+    } catch (error) {
+      console.error(`Failed to create replica: ${error instanceof Error ? error.message : String(error)}`);
+      // Continue execution even if replica creation fails
+      console.log("Continuing without replica - it can be added later manually");
+    }
+    // Create the database with timeout protection
+    try {
+      // Add a timeout wrapper around execAsync
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(
+          () => reject(new Error("Command timed out after 15 seconds")),
+          15000
+        );
+      });
 
-   
+      const createDbCmd = `docker exec -e PGPASSWORD="${password}" ${containerName} psql -U postgres postgres -c "CREATE DATABASE ${databaseName} TEMPLATE template0;"`;
 
+      // Race between the command and the timeout
+      const result: any = await Promise.race([
+        execAsync(createDbCmd),
+        timeoutPromise,
+      ]);
+
+      console.log(`Database created: ${result.stdout}`);
+    } catch (error: any) {
+      console.error(`Failed to create database: ${error} ${error.message}`);
+      // Continue execution even if database creation fails
+    }
+
+    console.log(
+      `PostgreSQL instance ${containerName} is ready. Moving past database creation.`
+    );
+    // Check if PostgreSQL is ready
     // After IsPatroniReady but before updating status
     try {
       const logsCmd = `docker logs ${containerName} | grep -E "basebackup|replication|slot"`;
@@ -147,7 +215,7 @@ export const AddReplica = async (req: Request, res: Response) => {
     }-replica-${Date.now()}`;
     const dbPort = await findAvailablePort(DB_CONFIG.basePort);
     const patroniPort = await findAvailablePort(DB_CONFIG.patroniBasePort);
-    
+
     // Get primary IP address using the simpler template approach
     let primaryIPAddress;
     try {
@@ -155,23 +223,27 @@ export const AddReplica = async (req: Request, res: Response) => {
       const primaryIPCmd = `docker inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" ${primary.container_name}`;
       const { stdout: primaryIP } = await execAsync(primaryIPCmd);
       primaryIPAddress = primaryIP.trim();
-      
+
       console.log(`Primary IP address: ${primaryIPAddress}`);
-      
+
       if (!primaryIPAddress) {
-        throw new Error(`Could not get IP address for container ${primary.container_name}`);
+        throw new Error(
+          `Could not get IP address for container ${primary.container_name}`
+        );
       }
     } catch (error) {
       console.error("Failed to get primary IP address:", error);
-      res.status(500).json({ error: "Failed to get primary database IP address" });
+      res
+        .status(500)
+        .json({ error: "Failed to get primary database IP address" });
       return;
     }
-    
+
     console.log(`Primary IP address: ${primaryIPAddress}`);
-    
+
     // Before creating the replica, create a replication slot on primary
     try {
-      const slotName = containerName.replace(/-/g, '_');
+      const slotName = containerName.replace(/-/g, "_");
       const createSlotCmd = `docker exec ${primary.container_name} psql -U postgres -c "SELECT pg_create_physical_replication_slot('${slotName}');"`;
       const { stdout: slotResult } = await execAsync(createSlotCmd);
       console.log(`Created replication slot: ${slotResult}`);
@@ -191,12 +263,16 @@ export const AddReplica = async (req: Request, res: Response) => {
     // Add before creating the replica
     try {
       const replicationPermissionCmd = `docker exec ${primary.container_name} psql -U postgres -c "SELECT rolreplication FROM pg_roles WHERE rolname='replicator';"`;
-      const { stdout: permissionCheck } = await execAsync(replicationPermissionCmd);
+      const { stdout: permissionCheck } = await execAsync(
+        replicationPermissionCmd
+      );
       console.log(`Replication permission check: ${permissionCheck}`);
-      
-      if (!permissionCheck.includes('t')) {
+
+      if (!permissionCheck.includes("t")) {
         console.log("Fixing replication permissions...");
-        await execAsync(`docker exec ${primary.container_name} psql -U postgres -c "ALTER ROLE replicator WITH REPLICATION;"`)
+        await execAsync(
+          `docker exec ${primary.container_name} psql -U postgres -c "ALTER ROLE replicator WITH REPLICATION;"`
+        );
       }
     } catch (error) {
       console.error("Failed to check replication permissions:", error);
@@ -206,7 +282,7 @@ export const AddReplica = async (req: Request, res: Response) => {
     await execAsync(`docker volume create ${volumeName}`);
 
     // Define the slot name once to ensure consistency
-    const slotName = containerName.replace(/-/g, '_');
+    const slotName = containerName.replace(/-/g, "_");
 
     // Create replica with dynamic IP address
     const cmd = `docker run -d \
@@ -247,13 +323,13 @@ export const AddReplica = async (req: Request, res: Response) => {
     try {
       // Wait a bit for container to initialize
       console.log("Waiting 3 seconds for container to initialize...");
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
       // Check if replica can access etcd
       const etcdCheckCmd = `docker exec ${containerName} curl -s http://etcd:2379/version`;
       const { stdout: etcdCheck } = await execAsync(etcdCheckCmd);
       console.log(`Replica etcd access check: ${etcdCheck}`);
-      
+
       // Check if replica can access primary
       const primaryCheckCmd = `docker exec ${containerName} pg_isready -h ${primary.container_name} -p 5432 -U replicator`;
       try {
@@ -289,7 +365,7 @@ export const AddReplica = async (req: Request, res: Response) => {
     );
 
     // Wait for PostgreSQL to be ready with improved timeout
-    await IsPatroniReady(containerName, patroniPort,true);
+    await IsPatroniReady(containerName, patroniPort, true);
 
     // Update status
     await getDefaultWriterPool().query(
@@ -319,7 +395,9 @@ export const AddReplica = async (req: Request, res: Response) => {
     // Check replication status
     const replicationStatusCmd = `docker exec ${containerName} psql -U postgres -c "SELECT * FROM pg_stat_replication;"`;
     try {
-      const { stdout: replicationStatus } = await execAsync(replicationStatusCmd);
+      const { stdout: replicationStatus } = await execAsync(
+        replicationStatusCmd
+      );
       console.log(`Replication status: ${replicationStatus}`);
     } catch (error) {
       console.error(`Failed to check replication status: ${error}`);
@@ -330,9 +408,11 @@ export const AddReplica = async (req: Request, res: Response) => {
       const patroniConfigCmd = `docker exec ${containerName} curl -s http://localhost:8008/config`;
       const { stdout: patroniConfig } = await execAsync(patroniConfigCmd);
       console.log(`Patroni config on replica: ${patroniConfig}`);
-      
+
       const primaryPatroniConfigCmd = `docker exec ${primary.container_name} curl -s http://localhost:8008/config`;
-      const { stdout: primaryPatroniConfig } = await execAsync(primaryPatroniConfigCmd);
+      const { stdout: primaryPatroniConfig } = await execAsync(
+        primaryPatroniConfigCmd
+      );
       console.log(`Patroni config on primary: ${primaryPatroniConfig}`);
     } catch (error) {
       console.error("Failed to check Patroni config:", error);

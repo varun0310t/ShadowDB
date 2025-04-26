@@ -1,9 +1,7 @@
-
 import "../config/psqlConfig";
-import  { Router, Request, Response } from "express";
+import { Router, Request, Response } from "express";
 import { initializeService } from "../Services/DatabaseRouteService";
 import { AddReplica, CreateDatabase } from "../controllers/DatabasesController";
-
 
 const router = Router();
 
@@ -11,7 +9,7 @@ const router = Router();
 (async () => {
   try {
     // Initialize the service and recover instances
-    await initializeService();
+    //   await initializeService();
   } catch (error) {
     console.error("Failed to initialize database service:", error);
   }
