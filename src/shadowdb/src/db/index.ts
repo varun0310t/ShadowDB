@@ -33,10 +33,10 @@ const defaultReaders = [
 ];
 
 // Initialize default pools in userPools system
-setUserPool('default', defaultWriter, 0);
+setUserPool('default:default:default', defaultWriter, 0);
 
-setUserPool('default', defaultReaders[0], 1);
-setUserPool('default', defaultReaders[1], 2);
+setUserPool('default:default:default', defaultReaders[0], 1);
+setUserPool('default:default:default', defaultReaders[1], 2);
 
 // Test connections
 async function testConnections() {

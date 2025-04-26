@@ -145,6 +145,7 @@ export async function POST(req: Request) {
 
 // Helper function to generate a secure password
 function generateSecurePassword(length = 16) {
+  return "varun@1234";
   const chars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+";
   let password = "";

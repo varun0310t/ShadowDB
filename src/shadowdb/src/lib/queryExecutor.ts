@@ -13,6 +13,7 @@ import {
   queryFailureCounter,
   queryDurationHistogram,
 } from "./monitoring";
+import cluster from "cluster";
 
 function isWriteQuery(query: string): boolean {
   return /^(INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|TRUNCATE)/i.test(
@@ -25,14 +26,15 @@ export async function executeQuery(
   db_name: string, // Now requiring database name
   query: string,
   params: any[] = [],
-  cacheOptions?: CacheOptions
+  cacheOptions?: CacheOptions,
+  ClusterScope: string = "default"
 ): Promise<QueryResult<any>> {
   let pool: Pool | undefined;
   const normalizedQuery = query.trim();
   const queryType = isWriteQuery(normalizedQuery) ? "write" : "read";
 
   // Create a compound key for user-db combinations
-  const poolKey = `${userId}:${db_name}`;
+  const poolKey = `${userId}:${db_name}:${ClusterScope}`;
 
   // Use cache on read queries if enabled.
   if (queryType === "read" && cacheOptions?.cache) {

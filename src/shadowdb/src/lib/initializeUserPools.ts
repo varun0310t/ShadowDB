@@ -10,10 +10,11 @@ export async function initializeUserPool(
   db_name: string | null,
   userId: string,
   dbId?: number,
-  replicaCount: number = 2
+  replicaCount: number = 2,
+  ClusterScope = "default"
 ) {
   // Create a compound key for user-db combinations
-  const poolKey = `${userId}:${db_name}`;
+  const poolKey = `${userId}:${db_name}:${ClusterScope}`;
 
   // Check existing pools for both types
   const existingPools = getUserPool(poolKey);
@@ -113,20 +114,14 @@ export async function initializeUserPool(
       if (result.rows.length > 0) {
         dbDetails = result.rows[0];
       }
-      // If not found but we have dbId, query the DB service directly
-      else if (dbId) {
-        const response = await axios.get(
-          `${DB_SERVICE_URL}/api/databases/${dbId}`
-        );
-        dbDetails = response.data;
-      }
+     
 
       if (!dbDetails) {
         throw new Error("Could not find database details");
       }
 
       console.log(`Creating new pools for isolated database: ${db_name}`);
-
+      console.log("dbDetails", dbDetails);
       // Get connection details from database record
       const host = process.env.DB_SERVICE_HOST || "localhost";
       const port = dbDetails.port;
@@ -141,7 +136,7 @@ export async function initializeUserPool(
         password: dbDetails.password,
         application_name: `isolated-writer-${db_name}`,
       });
-
+     console.log("writerPool", writerPool);
       // Test the connection
       await writerPool.query("SELECT NOW()");
       console.log(`Connected to isolated PostgreSQL writer for ${db_name}`);

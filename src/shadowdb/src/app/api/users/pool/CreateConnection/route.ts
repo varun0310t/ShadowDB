@@ -28,11 +28,18 @@ export async function POST(req: Request) {
       );
     }
 
-    const { tenancy_type, db_name: dbName, access_level, id } = result.rows[0];
+    const {
+      tenancy_type,
+      db_name: dbName,
+      access_level,
+      id,
+      patroni_scope,
+    } = result.rows[0];
     const poolStatus = await initializeUserPool(
       tenancy_type,
       dbName + id,
-      session.user.id
+      session.user.id,
+      patroni_scope
     );
 
     const sanitizedStatus = {
