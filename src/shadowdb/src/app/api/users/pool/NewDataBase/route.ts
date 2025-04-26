@@ -94,7 +94,7 @@ export async function POST(req: Request) {
           db_name,
           "shared",
           session.user.id,
-          "active",
+          "running",
         ];
 
         const dbResult = await client.query(createDbQuery, dbValues);

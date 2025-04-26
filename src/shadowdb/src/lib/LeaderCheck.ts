@@ -17,7 +17,7 @@ async function checkAndUpdateLeader() {
   try {
     // query all the leader port from the database with the scope name
 
-    const query = `SELECT * from databases where is_replica = false`;
+    const query = `SELECT * from databases where is_replica = false and port is not null`;
     const values: string[] = [];
     const result = await defaultReader.query(query, values);
     const leaderPorts: number[] = [];
