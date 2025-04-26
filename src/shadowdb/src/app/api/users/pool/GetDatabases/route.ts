@@ -17,7 +17,7 @@ export async function GET(req: Request) {
     SELECT d.id, d.tenancy_type, d.name as db_name, ud.access_level
     FROM databases d
     JOIN user_databases ud ON d.id = ud.database_id
-    WHERE ud.user_id = $1;
+    WHERE ud.user_id = $1 and d.is_replica = false;
   `;
   const values = [session.user.id];
   const result = await getDefaultReaderPool().query(getallDatabases, values);
