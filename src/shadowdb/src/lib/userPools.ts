@@ -141,9 +141,9 @@ export function setLeaderPoolIndex(index: number): void {
 
 // Get default writer pool
 export function getDefaultWriterPool(): Pool {
-  const defaultKey = "default:default:default";
+  const defaultKey = "default:default:shadowdb";
   const defaultPools = getUserPool(defaultKey);
-  const leaderIdx = scopeLeaderIndex.get("default") || 0;
+  const leaderIdx = scopeLeaderIndex.get("shadowdb") || 0;
 
   const defaultPool = defaultPools?.[leaderIdx];
   if (!defaultPool) {
@@ -155,14 +155,14 @@ export function getDefaultWriterPool(): Pool {
 // Get default reader pool
 let lastReaderIndex = 0;
 export function getDefaultReaderPool(): Pool {
-  const defaultKey = "default:default:default";
+  const defaultKey = "default:default:shadowdb";
   const defaultPools = getUserPool(defaultKey);
 
   if (!defaultPools || defaultPools.length <= 1) {
     throw new Error("Default reader pools not initialized");
   }
 
-  const leaderIdx = scopeLeaderIndex.get("default") || 0;
+  const leaderIdx = scopeLeaderIndex.get("shadowdb") || 0;
   lastReaderIndex = (lastReaderIndex + 1) % defaultPools.length;
 
   // Skip leader index for reads

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { getDefaultWriterPool } from "../../../../../lib/userPools";
-import { checkAndUpdateLeader } from "@/lib/LeaderCheck";
+import { checkAndUpdateLeader,scopeLeaderIndex } from "@/lib/LeaderCheck";
 import axios from "axios";
 
 // DB Service configuration
@@ -18,9 +18,8 @@ export async function POST(req: Request) {
   }
 
   // Parse incoming JSON request body
-  let { tenancy_type, db_name,password } = await req.json();
-  
-  
+  let { tenancy_type, db_name, password } = await req.json();
+
   // Validate tenancy_type
   if (!["shared", "isolated"].includes(tenancy_type)) {
     return NextResponse.json(
@@ -36,6 +35,7 @@ export async function POST(req: Request) {
 
   try {
     await checkAndUpdateLeader();
+    console.log(scopeLeaderIndex);
     const client = await getDefaultWriterPool().connect();
 
     try {
@@ -49,9 +49,9 @@ export async function POST(req: Request) {
         try {
           // Generate a secure password for the database
           if (password === undefined || password === null) {
-             password = generateSecurePassword();
+            password = generateSecurePassword();
           }
-          console.log(DB_SERVICE_URL)
+          console.log(DB_SERVICE_URL);
           // Call DB service to create the container
           const dbServiceResponse = await axios.post(
             `${DB_SERVICE_URL}/api/databases/create`,
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
 
           connectionDetails = dbServiceResponse.data;
           console.log("DB Service created database:", connectionDetails);
-          
+
           // Use the ID from the DB service directly
           dbId = connectionDetails.id;
           console.log("DB Service ID:", dbId);
@@ -90,17 +90,12 @@ export async function POST(req: Request) {
           RETURNING id, name, tenancy_type;
         `;
 
-        const dbValues = [
-          db_name,
-          "shared",
-          session.user.id,
-          "running",
-        ];
+        const dbValues = [db_name, "shared", session.user.id, "running"];
 
         const dbResult = await client.query(createDbQuery, dbValues);
         dbId = dbResult.rows[0].id;
       }
-
+      console.log("here here");
       // Create user-database relationship with admin access
       const createUserDbQuery = `
         INSERT INTO user_databases (user_id, database_id, access_level)
@@ -108,7 +103,7 @@ export async function POST(req: Request) {
         RETURNING *;
       `;
       await client.query(createUserDbQuery, [session.user.id, dbId]);
-
+      console.log("here here 2");
       // Commit transaction
       await client.query("COMMIT");
 
