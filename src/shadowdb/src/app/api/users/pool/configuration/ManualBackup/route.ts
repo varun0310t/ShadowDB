@@ -3,7 +3,9 @@ import { BackupManager } from "@/db/psqlBackup";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { getDefaultReaderPool, getDefaultWriterPool } from "@/lib/userPools";
-
+import axios from "axios";
+import dotenv from "dotenv";
+dotenv.config(); // Loads variables from a .env file (if present)
 // POST: Create a new backup
 export async function POST(req: Request) {
   try {
@@ -14,8 +16,8 @@ export async function POST(req: Request) {
     }
 
     // Parse request body
-    const { databaseName } = await req.json();
-
+    const { databaseName, databaseID } = await req.json();
+console.log("Request body:", databaseName, databaseID);
     if (!databaseName) {
       return NextResponse.json(
         { error: "Database name is required" },
@@ -23,12 +25,26 @@ export async function POST(req: Request) {
       );
     }
     console.log("Database name:", databaseName);
-    // Create backup
-    const backupManager = new BackupManager();
-    const backupId = await backupManager.createBackup(
-      session.user.id,
-      databaseName
+    // Create backup by calling dbservice API
+    console.log(`http://${process.env.DB_SERVICE_HOST}:${process.env.DB_SERVICE_PORT}/api/backup/create`);
+    
+    const backupResponse = await axios.post(
+      `http://${process.env.DB_SERVICE_HOST}:${process.env.DB_SERVICE_PORT}/api/backup/create`,
+      {
+        databaseId: databaseID,
+        userId: session.user.id,
+      }
     );
+    console.log("Backup response:", backupResponse.data);
+    if (backupResponse.status !== 201) {
+      return NextResponse.json(
+        { error: "Failed to create backup" },
+        { status: 500 }
+      );
+    }
+    const backupId = backupResponse.data.id;
+
+    console.log("Backup ID:", backupId);
 
     return NextResponse.json({
       success: true,

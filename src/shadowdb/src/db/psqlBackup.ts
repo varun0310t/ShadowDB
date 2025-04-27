@@ -35,7 +35,7 @@ export class BackupManager {
         await checkAndUpdateLeader();
         console.log("Leader check completed.");
       }
-
+ //
       // Create initial backup record
       const {
         rows: [backupRecord],

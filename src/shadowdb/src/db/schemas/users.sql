@@ -1,4 +1,10 @@
 DROP TABLE IF EXISTS users;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'role') THEN
+    CREATE TYPE role AS ENUM ('owner', 'admin', 'user', 'readonly');
+  END IF;
+END $$;
 
 DO $$ 
 BEGIN
@@ -79,7 +85,7 @@ END $$;
 CREATE INDEX idx_users_provider ON users(provider);
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_status ON users(status) WHERE deleted_at IS NULL;
-CREATE INDEX idx_users_role ON users(role);
+
 CREATE INDEX idx_users_created_at ON users(created_at);
 CREATE INDEX idx_users_updated_at ON users(updated_at);
 

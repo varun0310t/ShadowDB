@@ -13,16 +13,19 @@ BEGIN
   END IF;
 END $$;
 
+drop table if exists backup_records CASCADE;
+
 -- Create backup records table
 CREATE TABLE backup_records (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  database_id INTEGER NOT NULL REFERENCES databases(id) ON DELETE CASCADE,
   database_name VARCHAR(255) NOT NULL,
   
   -- Backup file details
-  file_name VARCHAR(255) NOT NULL,
+  file_name VARCHAR(255),
   file_size BIGINT,
-  file_path VARCHAR(255) NOT NULL,
+  file_path VARCHAR(255) ,
   checksum VARCHAR(64),  -- For integrity verification
   
   -- Backup metadata
@@ -33,8 +36,8 @@ CREATE TABLE backup_records (
   error_message TEXT,
   
   -- Storage details
-  storage_location VARCHAR(255) NOT NULL,  -- Could be 'local', 's3', etc.
-  storage_path TEXT NOT NULL,  -- Full path or URL to backup
+  storage_location VARCHAR(255) ,  -- Could be 'local', 's3', etc.
+  storage_path TEXT ,  -- Full path or URL to backup
   
   -- Audit fields
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,

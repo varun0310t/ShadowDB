@@ -16,6 +16,8 @@ COPY patroni.yml /etc/patroni.yml
 # Set correct permissions for the data directory
 RUN mkdir -p /var/lib/postgresql/data && chown -R postgres:postgres /var/lib/postgresql && chmod 700 /var/lib/postgresql/data
 
+
+
 # Set the PostgreSQL password
 
 

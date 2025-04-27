@@ -1,5 +1,6 @@
 import express from "express";
 import databaseRoutes from "./routes/DatabaseRoute";
+import databaseBackupRoutes from "./routes/DataBaseBackupRoute";
 import { config } from "dotenv";
 
 // Load environment variables
@@ -19,7 +20,7 @@ app.get("/", (req, res) => {
 
 // Mount database routes
 app.use("/api/databases", databaseRoutes);
-
+app.use("/api/backup", databaseBackupRoutes);
 // Error handling middleware
 app.use(
   (

@@ -37,7 +37,7 @@ export const getBackups = async (options: {
   return response.data as BackupResponse;
 };
 
-export const createBackup = async (data: { databaseName: string }) => {
+export const createBackup = async (data: { databaseName: string ,databaseID:number}) => {
   const response = await axios.post(
     "/api/users/pool/configuration/ManualBackup",
     data

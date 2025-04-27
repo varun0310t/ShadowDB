@@ -112,6 +112,7 @@ console.log("selectedDatabase", selectedDatabase);
     try {
       const data = await createBackup({
         databaseName: selectedDatabase.db_name,
+        databaseID: selectedDatabase.id,
       });
 
       if (data.success) {
