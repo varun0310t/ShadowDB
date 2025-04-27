@@ -18,13 +18,13 @@ import { z } from "zod";
 const grantAccessSchema = z.object({
   dbName: z.string().min(1),
   email: z.string().email("Invalid email address format"),
-  accessLevel: z.enum(["admin", "user", "read"])
+  accessLevel: z.enum(["admin", "user", "read"]),
 });
 
 const updateAccessSchema = z.object({
   dbName: z.string().min(1),
   email: z.string().email("Invalid email address format"),
-  accessLevel: z.enum(["admin", "user", "read"])
+  accessLevel: z.enum(["admin", "user", "read"]),
 });
 
 // GET - List all users with access to a specific database
@@ -57,7 +57,11 @@ export async function GET(req: Request) {
     }
 
     // Check if the requesting user has admin access to the database
-    const hasAdminAccess = await CheckIfUserHasAccess(session.user.id, dbName, "admin");
+    const hasAdminAccess = await CheckIfUserHasAccess(
+      session.user.id,
+      dbName,
+      "admin"
+    );
     if (!hasAdminAccess) {
       return NextResponse.json(
         { error: "You don't have permission to view access for this database" },
@@ -70,7 +74,7 @@ export async function GET(req: Request) {
       `SELECT id FROM databases WHERE name = $1`,
       [dbName]
     );
-
+    console.log("dbIdResult", dbIdResult);
     if (dbIdResult.rows.length === 0) {
       return NextResponse.json(
         { error: `Database "${dbName}" not found in the registry` },
@@ -103,9 +107,8 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       database: dbName,
-      users: accessList.rows
+      users: accessList.rows,
     });
-
   } catch (error: any) {
     console.error("Error retrieving database access list:", error);
     return NextResponse.json(
@@ -126,7 +129,7 @@ export async function POST(req: Request) {
 
     // Parse and validate the request body
     const body = await req.json();
-    
+
     try {
       grantAccessSchema.parse(body);
     } catch (validationError: any) {
@@ -135,13 +138,17 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    
+
     const { dbName, email, accessLevel } = body;
 
     // Check if database exists
     const dbExists = await databaseExists(dbName);
     if (!dbExists) {
-      console.log("User does not have admin access to the database:", dbName,session.user.id);
+      console.log(
+        "User does not have admin access to the database:",
+        dbName,
+        session.user.id
+      );
       return NextResponse.json(
         { error: `Database "${dbName}" does not exist` },
         { status: 404 }
@@ -149,9 +156,17 @@ export async function POST(req: Request) {
     }
 
     // Check if the requesting user has admin access to the database
-    const hasAdminAccess = await CheckIfUserHasAccess(session.user.id, dbName, "admin");
+    const hasAdminAccess = await CheckIfUserHasAccess(
+      session.user.id,
+      dbName,
+      "admin"
+    );
     if (!hasAdminAccess) {
-      console.log("User does not have admin access to the database:", dbName,session.user.id);
+      console.log(
+        "User does not have admin access to the database:",
+        dbName,
+        session.user.id
+      );
       return NextResponse.json(
         { error: "You don't have permission to grant access to this database" },
         { status: 403 }
@@ -167,12 +182,12 @@ export async function POST(req: Request) {
         { status: 404 }
       );
     }
-    
+
     const targetUserId = targetUser.id;
 
     // Get database ID
     const dbIdResult = await getDefaultReaderPool().query(
-      `SELECT id, owner_id FROM databases WHERE name = $1`,  /* Use created_by instead of owner_id */
+      `SELECT id, owner_id FROM databases WHERE name = $1` /* Use created_by instead of owner_id */,
       [dbName]
     );
 
@@ -184,10 +199,15 @@ export async function POST(req: Request) {
     }
 
     const dbId = dbIdResult.rows[0].id;
-    const ownerId = dbIdResult.rows[0].owner_id;  /* Use created_by instead of owner_id */
+    const ownerId =
+      dbIdResult.rows[0].owner_id; /* Use created_by instead of owner_id */
 
     // If the created_by is null, we don't need to do owner-specific checks
-    if (ownerId && targetUserId.toString() === ownerId.toString() && accessLevel !== "admin") {
+    if (
+      ownerId &&
+      targetUserId.toString() === ownerId.toString() &&
+      accessLevel !== "admin"
+    ) {
       return NextResponse.json(
         { error: "Cannot change the database owner's access level from admin" },
         { status: 400 }
@@ -203,10 +223,10 @@ export async function POST(req: Request) {
     if (existingAccess.rows.length > 0) {
       // User already has access, return current access level
       return NextResponse.json(
-        { 
-          message: `User ${email} already has access to this database`, 
+        {
+          message: `User ${email} already has access to this database`,
           currentAccess: existingAccess.rows[0].access_level,
-          success: false
+          success: false,
         },
         { status: 200 }
       );
@@ -220,9 +240,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       message: `Access granted to ${email} for database "${dbName}" with role: ${accessLevel}`,
-      success: true
+      success: true,
     });
-
   } catch (error: any) {
     console.error("Error granting database access:", error);
     return NextResponse.json(
@@ -243,7 +262,7 @@ export async function PATCH(req: Request) {
 
     // Parse and validate the request body
     const body = await req.json();
-    
+
     try {
       updateAccessSchema.parse(body);
     } catch (validationError: any) {
@@ -252,7 +271,7 @@ export async function PATCH(req: Request) {
         { status: 400 }
       );
     }
-    
+
     const { dbName, email, accessLevel } = body;
 
     // Check if database exists
@@ -265,10 +284,16 @@ export async function PATCH(req: Request) {
     }
 
     // Check if the requesting user has admin access to the database
-    const hasAdminAccess = await CheckIfUserHasAccess(session.user.id, dbName, "admin");
+    const hasAdminAccess = await CheckIfUserHasAccess(
+      session.user.id,
+      dbName,
+      "admin"
+    );
     if (!hasAdminAccess) {
       return NextResponse.json(
-        { error: "You don't have permission to update access for this database" },
+        {
+          error: "You don't have permission to update access for this database",
+        },
         { status: 403 }
       );
     }
@@ -281,12 +306,12 @@ export async function PATCH(req: Request) {
         { status: 404 }
       );
     }
-    
+
     const targetUserId = targetUser.id;
 
     // Get database ID and owner info
     const dbIdResult = await getDefaultReaderPool().query(
-      `SELECT id, owner_id FROM databases WHERE name = $1`,  /* Use created_by instead of owner_id */
+      `SELECT id, owner_id FROM databases WHERE name = $1` /* Use created_by instead of owner_id */,
       [dbName]
     );
 
@@ -298,10 +323,14 @@ export async function PATCH(req: Request) {
     }
 
     const dbId = dbIdResult.rows[0].id;
-    const ownerId = dbIdResult.rows[0].created_by;  /* Use created_by instead of owner_id */
+    const ownerId =
+      dbIdResult.rows[0].created_by; /* Use created_by instead of owner_id */
 
     // If updating the owner's access, ensure they always have admin privileges
-    if (targetUserId.toString() === ownerId.toString() && accessLevel !== "admin") {
+    if (
+      targetUserId.toString() === ownerId.toString() &&
+      accessLevel !== "admin"
+    ) {
       return NextResponse.json(
         { error: "Cannot change the database owner's access level from admin" },
         { status: 400 }
@@ -327,9 +356,8 @@ export async function PATCH(req: Request) {
     return NextResponse.json({
       message: `Access level updated to "${accessLevel}" for user ${email} on database "${dbName}"`,
       success: true,
-      accessLevel
+      accessLevel,
     });
-
   } catch (error: any) {
     console.error("Error updating database access:", error);
     return NextResponse.json(
@@ -370,10 +398,16 @@ export async function DELETE(req: Request) {
     }
 
     // Check if the requesting user has admin access to the database
-    const hasAdminAccess = await CheckIfUserHasAccess(session.user.id, dbName, "admin");
+    const hasAdminAccess = await CheckIfUserHasAccess(
+      session.user.id,
+      dbName,
+      "admin"
+    );
     if (!hasAdminAccess) {
       return NextResponse.json(
-        { error: "You don't have permission to revoke access for this database" },
+        {
+          error: "You don't have permission to revoke access for this database",
+        },
         { status: 403 }
       );
     }
@@ -386,12 +420,12 @@ export async function DELETE(req: Request) {
         { status: 404 }
       );
     }
-    
+
     const targetUserId = targetUser.id;
 
     // Get database ID and owner info
     const dbIdResult = await getDefaultReaderPool().query(
-      `SELECT id, owner_id FROM databases WHERE name = $1`,  /* Use created_by instead of owner_id */
+      `SELECT id, owner_id FROM databases WHERE name = $1` /* Use created_by instead of owner_id */,
       [dbName]
     );
 
@@ -403,7 +437,8 @@ export async function DELETE(req: Request) {
     }
 
     const dbId = dbIdResult.rows[0].id;
-    const ownerId = dbIdResult.rows[0].created_by;  /* Use created_by instead of owner_id */
+    const ownerId =
+      dbIdResult.rows[0].created_by; /* Use created_by instead of owner_id */
 
     // Prevent revoking the owner's access
     if (targetUserId.toString() === ownerId.toString()) {
@@ -438,9 +473,8 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({
       message: `Access revoked for user ${email} on database "${dbName}"`,
-      success: true
+      success: true,
     });
-
   } catch (error: any) {
     console.error("Error revoking database access:", error);
     return NextResponse.json(

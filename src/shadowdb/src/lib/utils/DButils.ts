@@ -35,15 +35,34 @@ export async function terminateDbConnections(
  * @param dbName Database name to check
  * @returns Boolean indicating if database exists
  */
-export async function databaseExists(dbName: string): Promise<boolean> {
+export async function databaseExists(
+  dbName: string,
+  tenancy_type: "shared" | "isolated" | "all" = "all"
+): Promise<boolean> {
   try {
-    const result = await getDefaultReaderPool().query(
-      `
+    console.log("dbName", dbName);
+    let result;
+    if (tenancy_type === "shared" || tenancy_type === "all") {
+      result = await getDefaultReaderPool().query(
+        `
         SELECT 1 FROM pg_database WHERE datname = $1
       `,
-      [dbName]
-    );
-
+        [dbName]
+      );
+    }
+    if (
+      tenancy_type === "isolated" ||
+      (tenancy_type === "all" && result && result.rowCount === 0)
+    ) {
+      result = await getDefaultReaderPool().query(
+        `
+        SELECT * FROM databases WHERE name = $1 and is_replica = false
+      `,
+        [dbName]
+      );
+    }
+    console.log("result", result);
+    if (!result) return false;
     return (result.rowCount === null ? 0 : result.rowCount) > 0;
   } catch (error) {
     console.error("Error checking if database exists:", error);
@@ -101,12 +120,12 @@ export async function renameDatabase(
     }
 
     // Validate new database name format
-    
+
     if (!newName.match(/^[a-zA-Z0-9_]+$/)) {
       return {
         success: false,
         message: `Invalid database name "${newName}". Only alphanumeric characters and underscores are allowed`,
-        };
+      };
     }
 
     // First terminate all connections
@@ -121,13 +140,14 @@ export async function renameDatabase(
       success: true,
       message: `Database renamed from ${oldName} to ${newName}`,
     };
-
   } catch (error) {
     console.error("Error renaming database:", error);
     return {
-        success: false,
-        message: `Error renaming database: ${error instanceof Error ? error.message : String(error)}`
-      };
+      success: false,
+      message: `Error renaming database: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    };
   }
 }
 
@@ -198,38 +218,38 @@ export async function RenameReferences(
  * @returns Boolean indicating if user has the required access
  */
 export async function CheckIfUserHasAccess(
-    userId: string,
-    dbName: string,
-    requiredAccessLevel?: 'admin' | 'write' | 'read'
-  ): Promise<boolean> {
-    try {
-      if (!userId || !dbName) {
-        return false;
-      }
-  
-      // Query to join databases and user_databases tables to check access
-      let query = `
+  userId: string,
+  dbName: string,
+  requiredAccessLevel?: "admin" | "write" | "read"
+): Promise<boolean> {
+  try {
+    if (!userId || !dbName) {
+      return false;
+    }
+
+    // Query to join databases and user_databases tables to check access
+    let query = `
         SELECT ud.access_level 
         FROM databases d
         JOIN user_databases ud ON d.id = ud.database_id
         WHERE d.name = $1 AND ud.user_id = $2
       `;
-      
-      const params = [dbName, userId];
-  
-      // If specific access level is required, add it to the query
-      if (requiredAccessLevel) {
-        query += ` AND ud.access_level = $3`;
-        params.push(requiredAccessLevel);
-      }
-  
-      const result = await getDefaultReaderPool().query(query, params);
-      
-      // Check if any rows were returned (user has access)
-      return (result.rowCount || 0) > 0;
-    } catch (error) {
-      console.error("Error checking if user has access to database:", error);
-      // Return false on error instead of throwing to make this function more resilient
-      return false;
+
+    const params = [dbName, userId];
+
+    // If specific access level is required, add it to the query
+    if (requiredAccessLevel) {
+      query += ` AND ud.access_level = $3`;
+      params.push(requiredAccessLevel);
     }
+
+    const result = await getDefaultReaderPool().query(query, params);
+
+    // Check if any rows were returned (user has access)
+    return (result.rowCount || 0) > 0;
+  } catch (error) {
+    console.error("Error checking if user has access to database:", error);
+    // Return false on error instead of throwing to make this function more resilient
+    return false;
   }
+}
