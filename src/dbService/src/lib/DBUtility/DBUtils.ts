@@ -31,18 +31,35 @@ export async function terminateDbConnections(
         count: result.rowCount === null ? 0 : result.rowCount,
       };
     } else {
-      const query = `  SELECT pg_terminate_backend(pg_stat_activity.pid)
-        FROM pg_stat_activity
-        WHERE pg_stat_activity.datname = ${dbName}
-        AND pid <> pg_backend_pid();`;
+      // Simplify the query to avoid formatting issues
+      // Use a single line with minimal whitespace
+      const query = `SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='${dbName}' AND pid<>pg_backend_pid();`;
 
-      const cmd = `docker exec ${containerName} psql -u ${query}`;
-      const { stderr, stdout } = await execAsync(cmd);
-      const result = JSON.parse(stdout);
-      return {
-        success: true,
-        count: result.rowCount === null ? 0 : result.rowCount,
-      };
+      // Make sure we connect to the postgres database
+      const cmd = `docker exec ${containerName} psql -U postgres -d postgres -c "${query}"`;
+
+      try {
+        console.log("Executing command:", cmd.replace(/postgresql:\/\/[^:]+:[^@]+@/, 'postgresql://[user]:[pass]@'));
+        const { stderr, stdout } = await execAsync(cmd);
+        
+        console.log("Command output:", stdout);
+        console.log("Command stderr:", stderr);
+        
+        // Check for success indicators in output
+        const count = (stdout.match(/t/g) || []).length;
+        
+        return {
+          success: true,
+          count: count,
+        };
+      } catch (error) {
+        console.error("Failed to execute terminate command:", error);
+        // Return success false but don't throw the error to allow the process to continue
+        return {
+          success: false,
+          count: 0,
+        };
+      }
     }
   } catch (error) {
     console.error("Error terminating database connections:", error);
@@ -160,7 +177,8 @@ export async function renameDatabase(
       );
       console.log("updated name");
     } else {
-      const cmd = `docker exec ${DBInfo.container_name} psql -u ALTER DATABASE "${oldName}" RENAME TO "${newName}`;
+      // Fix the command here - use -c flag and properly quote the command
+      const cmd = `docker exec ${DBInfo.container_name} psql -U postgres -c "ALTER DATABASE \\"${oldName}\\" RENAME TO \\"${newName}\\";"`;
 
       const { stdout } = await execAsync(cmd);
       console.log(stdout);
