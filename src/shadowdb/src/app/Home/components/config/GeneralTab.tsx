@@ -39,7 +39,8 @@ export function GeneralTab({ selectedDatabase, copyToClipboard, refetchDatabases
     mutationFn: () => UpdateDatabaseName({
       tenancy_type: selectedDatabase.tenancy_type,
       Original_DB_Name: originalDbName,
-      New_DB_Name: dbName
+      New_DB_Name: dbName,
+      database_id:selectedDatabase.id
     }),
     onSuccess: async (data) => {
       if (data.RenameResult.success) {

@@ -17,6 +17,7 @@ export const UpdateDatabaseName = async (data: {
   tenancy_type: string;
   Original_DB_Name: string;
   New_DB_Name: string;
+  database_id:number
 }) => {
   const response = await axios.post("/api/users/pool/configuration", data);
   return response.data;
