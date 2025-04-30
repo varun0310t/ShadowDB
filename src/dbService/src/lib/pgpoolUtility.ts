@@ -56,7 +56,7 @@ export async function createPgPoolInstance(options: PgPoolOptions): Promise<{
 
     await execAsync(`docker volume create ${volumeName}`);
 
-    // Get primary and replica nodes
+    // Get primary and replica nodes - we'll still get these for logging purposes
     const { rows: dbRows } = await getDefaultReaderPool().query(
       `SELECT * FROM databases WHERE patroni_scope = $1 AND status = 'running'`,
       [options.patroniScope]
@@ -70,43 +70,160 @@ export async function createPgPoolInstance(options: PgPoolOptions): Promise<{
     }
 
     console.log(`Found primary ${primary.container_name} and ${replicas.length} replicas for PgPool configuration`);
+    console.log(`Configuring PgPool to use HAProxy at ${haproxy.container_name} (write port: ${haproxy.write_port}, read port: ${haproxy.read_port})`);
 
-    // Run PgPool container
+    // First, get HAProxy's IP address for more reliable connections
+    // Fixed: Proper quoting for the Docker inspect command
+    const inspectCmd = `docker inspect --format="{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" ${haproxy.container_name}`;
+    const { stdout: haproxyIp } = await execAsync(inspectCmd);
+    const haproxyIpClean = haproxyIp.trim();
+
+    console.log(`HAProxy IP address: ${haproxyIpClean}`);
+
+    // Test direct connection to HAProxy to verify it's working
+    try {
+      console.log("Testing direct connection to HAProxy write endpoint...");
+      const testCmd = `docker run --rm --network ${DB_CONFIG.networkName} postgres:15 psql "host=${haproxyIpClean} port=${haproxy.write_port} user=${options.dbUser} password=${options.dbPassword} dbname=${options.databaseName}" -c "SELECT version();"`;
+      const { stdout: testResult } = await execAsync(testCmd);
+      console.log("Connection test successful:", testResult);
+    } catch (error) {
+      console.warn("Connection test failed (will continue anyway):", error);
+    }
+    
+    // Create pgpool_passwd file for authentication
+    const tempDir = path.join(os.tmpdir(), `pgpool-${Date.now()}`);
+    fs.mkdirSync(tempDir, { recursive: true });
+    
+    // Create md5 hash of password+username
+    const crypto = require('crypto');
+    const md5Password = 'md5' + crypto.createHash('md5').update(options.dbPassword + options.dbUser).digest('hex');
+    
+    // Create pool_passwd file
+    const poolPasswdPath = path.join(tempDir, 'pool_passwd');
+    fs.writeFileSync(poolPasswdPath, `${options.dbUser}:${md5Password}`);
+    
+    // Create simplified pgpool.conf with just HAProxy connections
+    const pgpoolConfPath = path.join(tempDir, 'pgpool.conf');
+    const pgpoolConf = `
+# Connection settings
+listen_addresses = '*'
+port = 9999
+socket_dir = '/tmp'
+
+# Backend configuration
+backend_hostname0 = '${haproxyIpClean}'
+backend_port0 = ${haproxy.write_port}
+backend_weight0 = 1
+backend_flag0 = 'ALLOW_TO_FAILOVER'
+
+backend_hostname1 = '${haproxyIpClean}'
+backend_port1 = ${haproxy.read_port}
+backend_weight1 = 10
+backend_flag1 = 'ALLOW_TO_FAILOVER'
+
+# Load balancing
+load_balance_mode = on
+
+
+# Health check
+health_check_period = 0
+health_check_timeout = 0
+health_check_user = '${options.dbUser}'
+health_check_password = '${options.dbPassword}'
+health_check_database = '${options.databaseName}'
+
+# Logging - increase for debugging
+log_connections = on
+log_disconnections = on
+log_error_verbosity = verbose
+`;
+console.log("PgPool configuration:", pgpoolConf);
+    fs.writeFileSync(pgpoolConfPath, pgpoolConf);
+    
+    // Create pool_hba.conf
+    const poolHbaPath = path.join(tempDir, 'pool_hba.conf');
+    const poolHba = `
+local   all         all                               trust
+host    all         all         127.0.0.1/32          trust
+host    all         all         ::1/128               trust
+host    all         all         0.0.0.0/0             md5
+`;
+    fs.writeFileSync(poolHbaPath, poolHba);
+    
+    // Create Docker volume with the configuration files
+    await execAsync(`docker run --rm -v ${volumeName}:/etc/pgpool -v ${tempDir}:/tmp alpine sh -c "cp /tmp/pool_passwd /etc/pgpool/ && cp /tmp/pgpool.conf /etc/pgpool/ && cp /tmp/pool_hba.conf /etc/pgpool/ && chmod 600 /etc/pgpool/pool_passwd"`);
+    
+    // Remove temporary directory
+    fs.rmSync(tempDir, { recursive: true, force: true });
+
+    // Run PgPool container with simplified configuration using volume mount
     const cmd = `docker run -d \
       --name ${containerName} \
       --hostname ${containerName} \
       --network ${DB_CONFIG.networkName} \
       --network-alias=${containerName} \
-      -v ${volumeName}:/etc/pgpool \
-      -e PGPOOL_ADMIN_USERNAME=admin \
-      -e PGPOOL_ADMIN_PASSWORD=${options.dbPassword} \
-      -e PGPOOL_SR_CHECK_USER=${options.dbUser} \
-      -e PGPOOL_SR_CHECK_PASSWORD=${options.dbPassword} \
-      -e PGPOOL_HEALTH_CHECK_USER=${options.dbUser} \
-      -e PGPOOL_HEALTH_CHECK_PASSWORD=${options.dbPassword} \
-      -e PGPOOL_POSTGRES_USERNAME=${options.dbUser} \
-      -e PGPOOL_POSTGRES_PASSWORD=${options.dbPassword} \
-      -e PGPOOL_BACKEND_NODES="0:${primary.container_name}:5432,${replicas.map((r, idx) => `${idx + 1}:${r.container_name}:5432`).join(',')}" \
-      -e PGPOOL_POSTGRES_HOSTS_0_HOST=${primary.container_name} \
-      -e PGPOOL_POSTGRES_HOSTS_0_PORT=5432 \
-      -e PGPOOL_POSTGRES_HOSTS_0_DATABASE=${options.databaseName} \
-      -e PGPOOL_POSTGRES_HOSTS_0_USER=${options.dbUser} \
-      -e PGPOOL_POSTGRES_HOSTS_0_PASSWORD=${options.dbPassword} \
-      -e PGPOOL_PORT=9999 \
-      -e PGPOOL_ENABLE_POOL_HBA=yes \
-      -e PGPOOL_ENABLE_POOL_PASSWD=yes \
-      -e PGPOOL_AUTHENTICATION_METHOD=md5 \
-      -e PGPOOL_ENABLE_LOAD_BALANCING=${options.enableLoadBalancing ? 'yes' : 'no'} \
-      -e PGPOOL_LOAD_BALANCE_MODE=${options.enableLoadBalancing ? 'yes' : 'no'} \
-      -e PGPOOL_ENABLE_MEMQCACHE=${options.enableQueryCache ? 'yes' : 'no'} \
-      -e PGPOOL_ENABLE_POOL_PASSFILE=yes \
-      -e PGPOOL_PASSWD_ENCRYPTED_PASSWORD=yes \
-      -e PGPOOL_EXTRA_FLAGS="--hba-file=/etc/pgpool/pool_hba.conf --trust-auth-method=md5" \
+      -v ${volumeName}:/etc/pgpool2 \
       -p ${port}:9999 \
-      bitnami/pgpool:latest`;
+      -e PGPOOL_PARAMS_PORT=9999 \
+      -e PGPOOL_PARAMS_LISTEN_ADDRESSES=* \
+      -e PGPOOL_PARAMS_SOCKET_DIR=/tmp \
+      -e PGPOOL_PARAMS_BACKEND_HOSTNAME0=${haproxyIpClean} \
+      -e PGPOOL_PARAMS_BACKEND_PORT0=${haproxy.write_port} \
+      -e PGPOOL_PARAMS_BACKEND_WEIGHT0=1 \
+      -e PGPOOL_PARAMS_BACKEND_FLAG0=ALLOW_TO_FAILOVER \
+      -e PGPOOL_PARAMS_BACKEND_HOSTNAME1=${haproxyIpClean} \
+      -e PGPOOL_PARAMS_BACKEND_PORT1=${haproxy.read_port} \
+      -e PGPOOL_PARAMS_BACKEND_WEIGHT1=10 \
+      -e PGPOOL_PARAMS_BACKEND_FLAG1=ALLOW_TO_FAILOVER \
+      -e PGPOOL_PARAMS_LOAD_BALANCE_MODE=on \
+      -e PGPOOL_PARAMS_HEALTH_CHECK_PERIOD=10 \
+      -e PGPOOL_PARAMS_HEALTH_CHECK_TIMEOUT=20 \
+      -e PGPOOL_PARAMS_HEALTH_CHECK_USER=${options.dbUser} \
+      -e PGPOOL_PARAMS_HEALTH_CHECK_PASSWORD=${options.dbPassword} \
+      -e PGPOOL_PARAMS_HEALTH_CHECK_DATABASE=${options.databaseName} \
+      -e PGPOOL_PARAMS_HEALTH_CHECK_MAX_RETRIES=3 \
+      -e PGPOOL_PARAMS_HEALTH_CHECK_RETRY_DELAY=1 \
+      -e PGPOOL_PARAMS_CONNECT_TIMEOUT=10000 \
+      -e PGPOOL_PARAMS_CLIENT_IDLE_LIMIT=0 \
+      -e PGPOOL_PARAMS_LOG_CONNECTIONS=on \
+      -e PGPOOL_PARAMS_LOG_DISCONNECTIONS=on \
+      -e PGPOOL_PARAMS_LOG_ERROR_VERBOSITY=verbose \
+      -e PGPOOL_PARAMS_CONNECTION_CACHE=on \
+      -e PGPOOL_PARAMS_NUM_INIT_CHILDREN=100 \
+      -e PGPOOL_PARAMS_MAX_POOL=4 \
+      -e POOL_PASSWD=${options.dbPassword} \
+      -e POSTGRES_USERNAME=${options.dbUser} \
+      -e POSTGRES_PASSWORD=${options.dbPassword} \
+      -e POSTGRES_DB=${options.databaseName} \
+      pgpool/pgpool:latest`;
 
     const { stdout } = await execAsync(cmd);
     const containerId = stdout.trim();
+
+    console.log(`PgPool container started with ID: ${containerId}`);
+
+    // Wait a bit for PgPool to initialize
+    await new Promise(resolve => setTimeout(resolve, 10000));
+
+    // Check PgPool logs
+    const logsCmd = `docker logs ${containerName}`;
+    try {
+      const { stdout: logs } = await execAsync(logsCmd);
+      console.log("PgPool startup logs:", logs);
+    } catch (error) {
+      console.warn("Failed to get PgPool logs:", error);
+    }
+
+    // No need to copy configs since we're using environment variables directly
+    // Try directly connecting to test if PgPool is working
+    try {
+      console.log("Testing PgPool's connection to HAProxy...");
+      const testCmd = `docker exec ${containerName} psql -U ${options.dbUser} -h ${haproxyIpClean} -p ${haproxy.write_port} -d ${options.databaseName} -c "SELECT version();"`;
+      const { stdout: testResult } = await execAsync(testCmd);
+      console.log("PgPool → HAProxy connection test successful:", testResult);
+    } catch (error) {
+      console.warn("PgPool → HAProxy connection test failed:", error);
+    }
 
     // Save instance details to database
     const { rows } = await getDefaultWriterPool().query(
@@ -164,7 +281,6 @@ export async function updatePgPoolConfig(
       `SELECT p.*, 
        (SELECT patroni_scope FROM databases WHERE pgpool_id = p.id LIMIT 1) as patroni_scope,
        (SELECT name FROM databases WHERE pgpool_id = p.id LIMIT 1) as db_name,
-       (SELECT user_name FROM databases WHERE pgpool_id = p.id LIMIT 1) as db_user,
        (SELECT password FROM databases WHERE pgpool_id = p.id LIMIT 1) as db_password
        FROM pgpool_instances p WHERE id = $1`,
       [pgpoolId]
@@ -174,69 +290,11 @@ export async function updatePgPoolConfig(
       throw new Error(`PgPool instance with ID ${pgpoolId} not found`);
     }
 
-    const pgpool = pgpoolRows[0];
+    // For PgPool with HAProxy backend, node changes don't need configuration changes
+    // since HAProxy manages the backend nodes
+    console.log("PgPool configuration updated - HAProxy handles node changes automatically");
 
-    // Get all associated databases
-    const { rows: dbRows } = await getDefaultReaderPool().query(
-      `SELECT * FROM databases WHERE patroni_scope = $1 AND status = 'running'`,
-      [pgpool.patroni_scope]
-    );
-
-    // Separate primary and replicas
-    const primary = dbRows.find(db => !db.is_replica);
-    const replicas = dbRows.filter(db => db.is_replica);
-
-    if (!primary) {
-      throw new Error(`No primary database found for PgPool ID ${pgpoolId}`);
-    }
-
-    // Update node list if needed
-    if (options?.addNode) {
-      console.log(`Adding node ${options.addNode.host} to PgPool configuration`);
-      // We'll refresh from DB so no need to modify lists here
-    }
-
-    if (options?.removeNode) {
-      console.log(`Removing node ${options.removeNode} from PgPool configuration`);
-      // We'll refresh from DB so no need to modify lists here
-    }
-
-    // Generate updated configuration
-    const pgpoolConfig = generatePgPoolConfig({
-      primaryHost: primary.container_name,
-      replicaHosts: replicas.map(r => r.container_name),
-      databaseName: pgpool.db_name,
-      dbUser: pgpool.db_user,
-      dbPassword: pgpool.db_password,
-      enableQueryCache: options?.enableQueryCache ?? pgpool.enable_query_cache,
-      enableLoadBalancing: options?.enableLoadBalancing ?? pgpool.enable_load_balancing,
-      enableConnectionPooling: options?.enableConnectionPooling ?? pgpool.enable_connection_pooling,
-      numNodes: 1 + replicas.length
-    });
-
-    // Write configurations to temporary files
-    const tempDir = path.join(os.tmpdir(), `pgpool-${Date.now()}`);
-    fs.mkdirSync(tempDir, { recursive: true });
-
-    const tempConfigPath = path.join(tempDir, "pgpool.conf");
-    const tempHbaPath = path.join(tempDir, "pool_hba.conf");
-    const tempPasswdPath = path.join(tempDir, "pool_passwd");
-
-    fs.writeFileSync(tempConfigPath, pgpoolConfig.pgpoolConf);
-    fs.writeFileSync(tempHbaPath, pgpoolConfig.poolHbaConf);
-    fs.writeFileSync(tempPasswdPath, pgpoolConfig.poolPasswd);
-
-    // Copy configurations to volume
-    await execAsync(`docker run --rm -v ${pgpool.volume_name}:/etc/pgpool -v ${tempDir}:/tmp/config alpine sh -c "cp /tmp/config/* /etc/pgpool/ && chmod 644 /etc/pgpool/pgpool.conf /etc/pgpool/pool_hba.conf && chmod 600 /etc/pgpool/pool_passwd"`);
-
-    // Clean up temporary files
-    fs.rmSync(tempDir, { recursive: true, force: true });
-
-    // Reload PgPool configuration (SIGHUP for reload)
-    const reloadCmd = `docker exec ${pgpool.container_name} kill -SIGHUP 1`;
-    await execAsync(reloadCmd);
-
-    // Update database record if options changed
+    // We only need to update settings in the database
     if (options?.enableQueryCache !== undefined || 
         options?.enableLoadBalancing !== undefined ||
         options?.enableConnectionPooling !== undefined) {
@@ -248,9 +306,9 @@ export async function updatePgPoolConfig(
          updated_at = NOW()
          WHERE id = $4`,
         [
-          options?.enableQueryCache ?? pgpool.enable_query_cache,
-          options?.enableLoadBalancing ?? pgpool.enable_load_balancing,
-          options?.enableConnectionPooling ?? pgpool.enable_connection_pooling,
+          options?.enableQueryCache ?? pgpoolRows[0].enable_query_cache,
+          options?.enableLoadBalancing ?? pgpoolRows[0].enable_load_balancing,
+          options?.enableConnectionPooling ?? pgpoolRows[0].enable_connection_pooling,
           pgpoolId
         ]
       );
@@ -261,138 +319,4 @@ export async function updatePgPoolConfig(
     console.error("Failed to update PgPool configuration:", error);
     return false;
   }
-}
-
-function generatePgPoolConfig(options: {
-  primaryHost: string;
-  replicaHosts: string[];
-  databaseName: string;
-  dbUser: string;
-  dbPassword: string;
-  enableQueryCache: boolean;
-  enableLoadBalancing: boolean;
-  enableConnectionPooling: boolean;
-  numNodes: number;
-}): {
-  pgpoolConf: string;
-  poolHbaConf: string;
-  poolPasswd: string;
-} {
-  // Build backend configuration
-  let backendConfig = '';
-  let hostList = [options.primaryHost, ...options.replicaHosts];
-
-  for (let i = 0; i < hostList.length; i++) {
-    backendConfig += `
-# Configuration for node ${i} (${i === 0 ? 'Primary' : 'Replica'})
-backend_hostname${i} = '${hostList[i]}'
-backend_port${i} = 5432
-backend_weight${i} = ${i === 0 ? 1 : 10}  # Weight for load balancing - higher for replicas
-backend_data_directory${i} = '/var/lib/postgresql/data'
-backend_flag${i} = 'ALLOW_TO_FAILOVER'
-`;
-  }
-
-  // PgPool-II main configuration
-  const pgpoolConf = `# pgpool.conf - PgPool-II configuration file
-
-# Connection settings
-listen_addresses = '*'
-port = 9999
-socket_dir = '/tmp'
-listen_backlog_multiplier = 2
-serialize_accept = off
-reserved_connections = 0
-
-# Backend nodes configuration
-num_init_children = 32
-max_pool = 4
-child_life_time = 300
-child_max_connections = 0
-connection_life_time = 0
-client_idle_limit = 0
-
-# Backend health checking
-health_check_period = 10
-health_check_timeout = 20
-health_check_user = '${options.dbUser}'
-health_check_password = '${options.dbPassword}'
-health_check_database = '${options.databaseName}'
-health_check_max_retries = 3
-health_check_retry_delay = 1
-connect_timeout = 10000
-
-# Authentication
-enable_pool_hba = on
-pool_passwd = 'pool_passwd'
-authentication_timeout = 60
-
-# Streaming replication configuration
-sr_check_period = 10
-sr_check_user = '${options.dbUser}'
-sr_check_password = '${options.dbPassword}'
-sr_check_database = '${options.databaseName}'
-delay_threshold = 10000000
-
-# Load balancing mode
-load_balance_mode = ${options.enableLoadBalancing ? 'on' : 'off'}
-${options.enableLoadBalancing ? `
-black_function_list = ''
-white_function_list = ''
-black_query_pattern_list = ''
-white_query_pattern_list = ''
-database_redirect_preference_list = ''
-app_name_redirect_preference_list = ''
-allow_sql_comments = off
-disable_load_balance_on_write = 'transaction'` : ''}
-
-# Connection pooling
-connection_cache = ${options.enableConnectionPooling ? 'on' : 'off'}
-reset_query_list = 'ABORT; DISCARD ALL'
-replicate_select = off
-
-# Memory query cache
-memory_cache_enabled = ${options.enableQueryCache ? 'on' : 'off'}
-${options.enableQueryCache ? `
-memqcache_method = 'shmem'
-memqcache_expire = 60
-memqcache_auto_cache_invalidation = on
-memqcache_maxcache = 409600
-memqcache_cache_block_size = 1048576
-memqcache_oiddir = '/etc/pgpool/cache'
-white_memqcache_table_list = ''
-black_memqcache_table_list = ''` : ''}
-
-# Logging
-log_destination = 'stderr'
-log_line_prefix = '%t: pid %p: '
-log_connections = on
-log_disconnections = off
-log_hostname = on
-log_statement = off
-log_per_node_statement = off
-log_client_messages = off
-log_standby_delay = 'none'
-
-${backendConfig}
-`;
-
-  // pool_hba.conf for client authentication
-  const poolHbaConf = `# TYPE  DATABASE    USER        CIDR-ADDRESS          METHOD
-local   all         all                               trust
-host    all         all         127.0.0.1/32          md5
-host    all         all         ::1/128               md5
-host    all         all         0.0.0.0/0             md5
-`;
-
-  // pool_passwd for authentication
-  // Note: In production, you would use a more secure method to generate this
-  // This is just a placeholder that would need to be replaced with actual MD5 hashed password
-  const poolPasswd = `${options.dbUser}:md5${require('crypto').createHash('md5').update(options.dbPassword + options.dbUser).digest('hex')}`;
-
-  return {
-    pgpoolConf,
-    poolHbaConf,
-    poolPasswd
-  };
 }
