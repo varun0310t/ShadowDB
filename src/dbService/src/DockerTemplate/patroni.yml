@@ -31,10 +31,16 @@ bootstrap:
         hot_standby_feedback: on    # Added
         wal_log_hints: on  # Add this line
       pg_hba:
-        - "local all all trust"     # Changed from md5 to trust
-        - "local all postgres trust"  
-        - "host replication replicator 0.0.0.0/0 md5"    # Changed from trust to md5
-        - "host all all 0.0.0.0/0 md5"
+          - "local all all trust"
+          - "local all postgres trust"
+        # Allow replication
+          - "host replication replicator 0.0.0.0/0 md5"
+          - "host replication all 0.0.0.0/0 md5"
+        # Allow pgpool connections with md5 auth
+          - "host all postgres 0.0.0.0/0 md5"
+          - "host all all 0.0.0.0/0 md5"
+        # Add explicit entry for pgpool user if you create one
+          - "host all pgpool 0.0.0.0/0 md5"
 
 postgresql:
   listen: ${PATRONI_POSTGRESQL_LISTEN}

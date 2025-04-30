@@ -35,7 +35,12 @@ CREATE TABLE databases (
   patroni_scope VARCHAR(255),       -- Unique scope identifier for Patroni cluster
   patroni_port INTEGER,             -- Port for Patroni REST API
   parent_id INTEGER REFERENCES databases(id), -- Reference to primary if this is a replica
-  is_replica BOOLEAN DEFAULT false  -- Whether this is a replica instance
+  is_replica BOOLEAN DEFAULT false,  -- Whether this is a replica instance
+
+  -- reference to the haproxy instance and querycacher instance
+  haproxy_id INTEGER REFERENCES haproxy_instances(id) ON DELETE CASCADE,
+  querycacher_id INTEGER REFERENCES querycacher_instances(id) ON DELETE CASCADE,
+  pgpool_id INTEGER REFERENCES pgpool_instances(id) ON DELETE SET NULL
 );
 
 -- Partial unique index for shared databases only

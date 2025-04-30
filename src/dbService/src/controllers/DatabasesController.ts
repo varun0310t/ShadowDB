@@ -6,8 +6,11 @@ import { findAvailablePort } from "../lib/PortUitlity/utils";
 import { Request, Response } from "express";
 import { IsPatroniReady } from "../lib/PatroniUitlity/Uitls";
 import axios from "axios";
+import { createHAProxyInstance, updateHAProxyConfig } from "../lib/Haproxyutility";
+import { createQueryCacherInstance } from "../lib/QueryCacherUtility";
+import { createPgPoolInstance,updatePgPoolConfig } from "../lib/pgpoolUtility";
 const execAsync = promisify(exec);
-
+//
 export const CreateDatabase = async (req: Request, res: Response) => {
   try {
     const { userId, databaseName, password } = req.body;
@@ -175,16 +178,87 @@ export const CreateDatabase = async (req: Request, res: Response) => {
       [instanceId]
     );
 
-    res.status(201).json({
-      id: instanceId,
-      userId,
-      databaseName,
-      containerName,
-      port: dbPort,
-      patroniPort,
-      patroniScope,
-      status: "running",
-    });
+    // Create HAProxy for this database cluster
+    console.log(`Creating HAProxy for database cluster ${patroniScope}`);
+    try {
+      const haproxyInstance = await createHAProxyInstance({
+        clusterName: patroniScope,
+        patroniScope,
+        primaryContainerName: containerName,
+        // Replicas will be added later when created
+      });
+/* 
+      console.log(`Created HAProxy instance with ID ${haproxyInstance.id}`);
+      console.log(`Write port: ${haproxyInstance.writePort} read port: ${haproxyInstance.readPort}`);
+
+      // Create QueryCacher for this database cluster
+      console.log(`Creating QueryCacher for database cluster ${patroniScope}`);
+      const querycacherInstance = await createQueryCacherInstance({
+        clusterName: patroniScope,
+        haproxyId: haproxyInstance.id,
+        dbName: databaseName,
+        dbPassword: password,
+        cacheSize: '256MB', // Default size
+        ttl: 60, // Default TTL in seconds
+      });
+ */
+/*       console.log(`Created QueryCacher instance with ID ${querycacherInstance.id}`);
+      console.log(`QueryCacher port: ${querycacherInstance.port}`);
+ */
+      // After creating HAProxy
+      console.log("Setting up PgPool-II instance...");
+      const pgpoolInstance = await createPgPoolInstance({
+        clusterName: patroniScope,
+        databaseName,
+        patroniScope,
+        haproxyId: haproxyInstance.id,
+        dbUser: "postgres", // or whatever user you're using
+        dbPassword: password,
+        enableQueryCache: true,
+        enableLoadBalancing: true,
+        enableConnectionPooling: true
+      });
+      
+      // Add PgPool info to response
+      res.status(201).json({
+        id: instanceId,
+        userId,
+        databaseName,
+        containerName,
+        port: dbPort,
+        patroniPort,
+        patroniScope,
+        status: "running",
+        haproxy: {
+          id: haproxyInstance.id,
+          writePort: haproxyInstance.writePort,
+          readPort: haproxyInstance.readPort
+        },
+        pgpool: {
+          id: pgpoolInstance.id,
+          port: pgpoolInstance.port
+        },
+    /*     querycacher: querycacherInstance ? {
+          id: querycacherInstance.id,
+          port: querycacherInstance.port
+        } : null */
+      });
+    } catch (haproxyError:any) {
+      console.error("Failed to create HAProxy or QueryCacher:", haproxyError);
+      
+      // Still return success for the database creation
+      res.status(201).json({
+        id: instanceId,
+        userId,
+        databaseName,
+        containerName,
+        port: dbPort,
+        patroniPort,
+        patroniScope,
+        status: "running",
+        haproxyError: `Failed to create HAProxy: ${haproxyError.message}`
+      });
+    }
   } catch (error) {
     console.error("Failed to create database instance:", error);
     res.status(500).json({ error: "Failed to create database instance" });
@@ -418,6 +492,97 @@ export const AddReplica = async (req: Request, res: Response) => {
       console.error("Failed to check Patroni config:", error);
     }
 
+    // Inside the AddReplica function, add this after the replica is created and marked as "running"
+    // (around line 388, after "UPDATE databases SET status = 'running' WHERE id = $1")
+
+    // Update HAProxy configuration to include the new replica
+    console.log(`Updating HAProxy configuration to include new replica ${containerName}`);
+    try {
+      // Get the HAProxy ID for this cluster
+      const { rows: haproxyRows } = await getDefaultReaderPool().query(
+        `SELECT h.id 
+         FROM haproxy_instances h 
+         JOIN databases d ON h.id = d.haproxy_id 
+         WHERE d.id = $1`,
+        [primary.id]
+      );
+
+      if (haproxyRows.length > 0) {
+        const haproxyId = haproxyRows[0].id;
+        
+        // Update HAProxy configuration
+        await updateHAProxyConfig(haproxyId, {
+          addReplica: containerName
+        });
+        
+        console.log(`Successfully updated HAProxy configuration to include replica ${containerName}`);
+        
+        // Include HAProxy info in response
+        const { rows: haproxyInfoRows } = await getDefaultReaderPool().query(
+          `SELECT * FROM haproxy_instances WHERE id = $1`,
+          [haproxyId]
+        );
+        
+        const { rows: querycacherRows } = await getDefaultReaderPool().query(
+          `SELECT * FROM querycacher_instances WHERE haproxy_id = $1`,
+          [haproxyId]
+        );
+        
+        // After updating HAProxy
+        if (haproxyInfoRows.length > 0) {
+          console.log("Updating PgPool-II configuration...");
+          const { rows: pgpoolRows } = await getDefaultReaderPool().query(
+            `SELECT id FROM pgpool_instances WHERE haproxy_id = $1`,
+            [haproxyInfoRows[0].id]
+          );
+          
+          if (pgpoolRows.length > 0) {
+            await updatePgPoolConfig(pgpoolRows[0].id, {
+              addNode: { 
+                host: containerName,
+                isReplica: true
+              }
+            });
+          }
+        }
+        
+        // In the response, include PgPool info if available
+        const { rows: pgpoolInfoRows } = await getDefaultReaderPool().query(
+          `SELECT * FROM pgpool_instances WHERE haproxy_id = $1`,
+          [haproxyInfoRows[0].id]
+        );
+        
+        res.status(201).json({
+          id: replicaRows[0].id,
+          primaryId: primary.id,
+          databaseName: primary.name,
+          containerName,
+          port: dbPort,
+          patroniPort,
+          patroniScope: primary.patroni_scope,
+          status: "running",
+          isReplica: true,
+          haproxy: haproxyInfoRows.length > 0 ? {
+            id: haproxyInfoRows[0].id,
+            writePort: haproxyInfoRows[0].write_port,
+            readPort: haproxyInfoRows[0].read_port
+          } : null,
+          pgpool: pgpoolInfoRows.length > 0 ? {
+            id: pgpoolInfoRows[0].id,
+            port: pgpoolInfoRows[0].port
+          } : null,
+          querycacher: querycacherRows.length > 0 ? {
+            id: querycacherRows[0].id,
+            port: querycacherRows[0].port,
+          } : null
+        });
+        return;
+      }
+    } catch (haproxyError) {
+      console.error("Failed to update HAProxy configuration:", haproxyError);
+    }
+
+    // Default response if HAProxy update fails
     res.status(201).json({
       id: replicaRows[0].id,
       primaryId: primary.id,
