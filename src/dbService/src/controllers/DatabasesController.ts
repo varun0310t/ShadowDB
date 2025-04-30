@@ -96,6 +96,7 @@ export const CreateDatabase = async (req: Request, res: Response) => {
     console.log(
       `PostgreSQL instance ${containerName} is ready. Creating database ${databaseName}`
     );
+    let replicaResponse: any = null;
     //add one replica to the primary instance by calling the addreplica endpoint
     try {
       console.log(`Automatically creating a replica for database ${databaseName} (ID: ${instanceId})...`);
@@ -107,7 +108,7 @@ export const CreateDatabase = async (req: Request, res: Response) => {
         }
       } as Request;
       
-      let replicaResponse: any = null;
+      
       
       const mockRes = {
         status: (code: number) => {
@@ -185,7 +186,7 @@ export const CreateDatabase = async (req: Request, res: Response) => {
         clusterName: patroniScope,
         patroniScope,
         primaryContainerName: containerName,
-        // Replicas will be added later when created
+        replicaContainerNames:[replicaResponse.id ? replicaResponse.containerName : null], 
       });
 /* 
       console.log(`Created HAProxy instance with ID ${haproxyInstance.id}`);
@@ -218,7 +219,7 @@ export const CreateDatabase = async (req: Request, res: Response) => {
         enableLoadBalancing: true,
         enableConnectionPooling: true
       });
-      
+      console.log(`Created PgPool-II instance with ID ${pgpoolInstance.id}`);
       // Add PgPool info to response
       res.status(201).json({
         id: instanceId,
