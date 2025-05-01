@@ -21,13 +21,13 @@ export function HAProxyWriteConnection({
   }:${selectedDatabase.db_password || "password"}@${
     connectionConfig?.hostname ||
     `${selectedDatabase.db_name}-pgpool.shadowdb.com`
-  }:${selectedDatabase.haproxy?.write_port || 5000}/${
+  }:${connectionConfig?.haproxy?.write_port || 5000}/${
     selectedDatabase.db_name
   }`;
 
   const connectionAttributes = {
     host: `${selectedDatabase.db_name}-write.shadowdb.com`,
-    port: `${selectedDatabase.haproxy?.write_port || 5000}`,
+    port: `${connectionConfig?.haproxy?.write_port || 5000}`,
     dbname: selectedDatabase.db_name,
     user: selectedDatabase.db_user || "postgres",
     password: selectedDatabase.db_password || "password",

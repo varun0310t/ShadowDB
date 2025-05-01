@@ -26,5 +26,9 @@ export interface ConnectionConfigType {
     enable_connection_pooling: boolean;
     enable_query_cache: boolean;
   };
+  haproxy: {
+    write_port: number;
+    read_port: number;
+  };
   all_db_pools?: any[];
 }

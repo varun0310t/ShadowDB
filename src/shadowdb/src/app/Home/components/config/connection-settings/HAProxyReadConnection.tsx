@@ -21,13 +21,13 @@ export function HAProxyReadConnection({
   }:${selectedDatabase.db_password || "password"}@${
     connectionConfig?.hostname ||
     `${selectedDatabase.db_name}-pgpool.shadowdb.com`
-  }:${selectedDatabase.haproxy?.read_port || 5001}/${
+  }:${connectionConfig?.haproxy?.read_port || 5001}/${
     selectedDatabase.db_name
   }`;
 
   const connectionAttributes = {
     host: `${selectedDatabase.db_name}-read.shadowdb.com`,
-    port: `${selectedDatabase.haproxy?.read_port || 5001}`,
+    port: `${connectionConfig?.haproxy?.read_port || 5001}`,
     dbname: selectedDatabase.db_name,
     user: selectedDatabase.db_user || "postgres",
     password: selectedDatabase.db_password || "password",
