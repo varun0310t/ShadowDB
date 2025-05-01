@@ -213,6 +213,7 @@ console.log("selectedDatabase", selectedDatabase);
             <Switch
               checked={isBackupEnabled}
               onCheckedChange={setIsBackupEnabled}
+              className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
             />
           </div>
 

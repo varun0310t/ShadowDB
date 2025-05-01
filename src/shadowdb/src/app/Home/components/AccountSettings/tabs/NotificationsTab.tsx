@@ -16,19 +16,19 @@ export function NotificationsTab() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="email-security">Security Alerts</Label>
-              <Switch id="email-security" defaultChecked />
+              <Switch id="email-security" defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="email-updates">Product Updates</Label>
-              <Switch id="email-updates" defaultChecked />
+              <Switch id="email-updates" defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="email-marketing">Marketing</Label>
-              <Switch id="email-marketing" />
+              <Switch id="email-marketing" className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800" />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="email-usage">Usage Reports</Label>
-              <Switch id="email-usage" defaultChecked />
+              <Switch id="email-usage" defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
             </div>
           </div>
         </div>
@@ -38,15 +38,15 @@ export function NotificationsTab() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="app-security">Security Alerts</Label>
-              <Switch id="app-security" defaultChecked />
+              <Switch id="app-security" defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="app-updates">Product Updates</Label>
-              <Switch id="app-updates" defaultChecked />
+              <Switch id="app-updates" defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="app-usage">Usage Alerts</Label>
-              <Switch id="app-usage" defaultChecked />
+              <Switch id="app-usage" defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
             </div>
           </div>
         </div>

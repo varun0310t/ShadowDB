@@ -87,7 +87,7 @@ export function PerformanceTab() {
                 Cache frequently executed queries
               </p>
             </div>
-            <Switch defaultChecked />
+            <Switch defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
           </div>
 
           <div className="flex items-center justify-between">
@@ -97,7 +97,7 @@ export function PerformanceTab() {
                 Automatically clean up and optimize storage
               </p>
             </div>
-            <Switch defaultChecked />
+            <Switch defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
           </div>
 
           <div className="space-y-2">

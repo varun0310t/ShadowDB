@@ -296,7 +296,7 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
               <DialogTrigger asChild>
                 <Button 
                   variant="outline" 
-                  className="border-gray-700 text-gray-200 hover:text-white"
+                  className="border-gray-700 text-gray-800 hover:text-black"
                 >
                   <UserPlus className="h-4 w-4 mr-2" /> Add User
                 </Button>
@@ -492,7 +492,7 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
                 Restrict access to specific IP addresses
               </p>
             </div>
-            <Switch defaultChecked />
+            <Switch defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
           </div>
 
           <div className="space-y-2">
@@ -518,7 +518,7 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="ml-2 h-8 border-gray-800 text-gray-300"
+                  className="ml-2 h-8 border-gray-800 text-gray-800 hover:text-black"
                 >
                   <Plus className="h-3 w-3" />
                 </Button>
@@ -533,7 +533,7 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
                 Enforce strong database passwords
               </p>
             </div>
-            <Switch defaultChecked />
+            <Switch defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
           </div>
 
           <div className="flex items-center justify-between">
@@ -543,7 +543,7 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
                 Log all database access and changes
               </p>
             </div>
-            <Switch defaultChecked />
+            <Switch defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
           </div>
         </CardContent>
       </Card>
@@ -612,7 +612,7 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
                 Encrypt stored database files
               </p>
             </div>
-            <Switch defaultChecked />
+            <Switch defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
           </div>
 
           <div className="flex items-center justify-between">
@@ -622,7 +622,7 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
                 Encrypt all network traffic
               </p>
             </div>
-            <Switch defaultChecked />
+            <Switch defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
           </div>
 
           <div className="space-y-2">

@@ -209,7 +209,7 @@ export function ProfileTab({ userData, onUpdate }: ProfileTabProps) {
               <Label>Dark Mode</Label>
               <p className="text-gray-200">Use dark theme across the application</p>
             </div>
-            <Switch defaultChecked />
+            <Switch defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
           </div>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">

@@ -6,6 +6,17 @@ export interface DatabaseEntry {
   region?: string;
   created_at?: string;
   status?: "active" | "inactive" | "maintenance";
+  db_user?:string;
+  db_password?: string;
+  haproxy?:{
+    write_port?: number;
+    read_port?: number;
+  };
+  pgpool?:{
+    port?: number;
+    enable_query_cache?: boolean;
+    enable_connection_pooling?: boolean;
+  }
 }
 
 export interface TokenType {
