@@ -52,7 +52,7 @@ function PostgresConnectionItem({
   copyToClipboard,
 }: PostgresConnectionItemProps) {
   const connectionString = `postgresql://${
-    selectedDatabase.db_user || "postgres"
+    connectionConfig?.role_user || "postgres"
   }:${selectedDatabase.db_password || "password"}@${
     connectionConfig.hostname ||
     `${pool.db_name}-pgpool.shadowdb.com`
@@ -64,7 +64,7 @@ function PostgresConnectionItem({
     host: connectionConfig.hostname || `${pool.db_name}-pgpool.shadowdb.com`,
     port: `${pool.port || 9999}`,
     dbname: pool.db_name,
-    user: selectedDatabase.db_user || "postgres",
+    user: connectionConfig?.role_user|| "postgres",
     password: selectedDatabase.db_password || "password",
     sslmode: "require",
   };

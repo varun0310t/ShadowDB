@@ -17,7 +17,7 @@ export function HAProxyWriteConnection({
   copyToClipboard,
 }: HAProxyWriteConnectionProps) {
   const connectionString = `postgresql://${
-    selectedDatabase.db_user || "postgres"
+    connectionConfig?.role_user || "postgres"
   }:${selectedDatabase.db_password || "password"}@${
     connectionConfig?.hostname ||
     `${selectedDatabase.db_name}-pgpool.shadowdb.com`
@@ -29,7 +29,7 @@ export function HAProxyWriteConnection({
     host: `${selectedDatabase.db_name}-write.shadowdb.com`,
     port: `${connectionConfig?.haproxy?.write_port || 5000}`,
     dbname: selectedDatabase.db_name,
-    user: selectedDatabase.db_user || "postgres",
+    user: connectionConfig?.role_user || "postgres",
     password: selectedDatabase.db_password || "password",
     sslmode: "require",
   };

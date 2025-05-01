@@ -6,16 +6,20 @@ import { findAvailablePort } from "../lib/PortUitlity/utils";
 import { Request, Response } from "express";
 import { IsPatroniReady } from "../lib/PatroniUitlity/Uitls";
 import axios from "axios";
-import { createHAProxyInstance, updateHAProxyConfig } from "../lib/Haproxyutility";
+import {
+  createHAProxyInstance,
+  updateHAProxyConfig,
+} from "../lib/Haproxyutility";
 import { createQueryCacherInstance } from "../lib/QueryCacherUtility";
-import { createPgPoolInstance,updatePgPoolConfig } from "../lib/pgpoolUtility";
+import { createPgPoolInstance, updatePgPoolConfig } from "../lib/pgpoolUtility";
 const execAsync = promisify(exec);
 //
 export const CreateDatabase = async (req: Request, res: Response) => {
   try {
-    const { userId, databaseName, password } = req.body;
+    const { userId, databaseName, password, userEmail, role_password } =
+      req.body;
 
-    if (!userId || !databaseName || !password) {
+    if (!userId || !databaseName || !password || !userEmail || !role_password) {
       res.status(400).json({
         error: "Missing required fields: userId, databaseName, password",
       });
@@ -99,17 +103,17 @@ export const CreateDatabase = async (req: Request, res: Response) => {
     let replicaResponse: any = null;
     //add one replica to the primary instance by calling the addreplica endpoint
     try {
-      console.log(`Automatically creating a replica for database ${databaseName} (ID: ${instanceId})...`);
-      
+      console.log(
+        `Automatically creating a replica for database ${databaseName} (ID: ${instanceId})...`
+      );
+
       // Create a mock request and response for calling AddReplica directly
       const mockReq = {
         body: {
-          databaseId: instanceId
-        }
+          databaseId: instanceId,
+        },
       } as Request;
-      
-      
-      
+
       const mockRes = {
         status: (code: number) => {
           return {
@@ -117,24 +121,32 @@ export const CreateDatabase = async (req: Request, res: Response) => {
               console.log(`Replica creation completed with status ${code}`);
               replicaResponse = data;
               return data;
-            }
+            },
           };
-        }
+        },
       } as unknown as Response;
-      
+
       // Call AddReplica directly without creating a new HTTP request
       await AddReplica(mockReq, mockRes);
-      
+
       if (replicaResponse && replicaResponse.id) {
-        console.log(`Successfully created replica with ID: ${replicaResponse.id}`);
+        console.log(
+          `Successfully created replica with ID: ${replicaResponse.id}`
+        );
         console.log(`Replica is running on port: ${replicaResponse.port}`);
       } else {
         console.warn("Replica creation did not return expected response");
       }
     } catch (error) {
-      console.error(`Failed to create replica: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(
+        `Failed to create replica: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
       // Continue execution even if replica creation fails
-      console.log("Continuing without replica - it can be added later manually");
+      console.log(
+        "Continuing without replica - it can be added later manually"
+      );
     }
     // Create the database with timeout protection
     try {
@@ -159,19 +171,32 @@ export const CreateDatabase = async (req: Request, res: Response) => {
       console.error(`Failed to create database: ${error} ${error.message}`);
       // Continue execution even if database creation fails
     }
+// Replace lines 178-193 (role creation and privilege granting) with this:
+try {
+  // Create role with a single-line command
+  const createRoleCmd = `docker exec -e PGPASSWORD="${password}" ${containerName} psql -U postgres -c "CREATE ROLE \\\"${userEmail}\\\" WITH LOGIN PASSWORD '${role_password}'; GRANT CONNECT ON DATABASE ${databaseName} TO \\\"${userEmail}\\\";"`;
+  
+  const { stdout: createOutput, stderr: createError } = await execAsync(createRoleCmd);
+  console.log(`Role creation output: ${createOutput}`);
+  if (createError) console.log(`Role creation stderr: ${createError}`);
+  
+  // Grant privileges with a single-line command
+  const grantPrivilegesCmd = `docker exec -e PGPASSWORD="${password}" ${containerName} psql -U postgres -d ${databaseName} -c "GRANT ALL PRIVILEGES ON SCHEMA public TO \\\"${userEmail}\\\"; GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \\\"${userEmail}\\\"; GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO \\\"${userEmail}\\\"; GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO \\\"${userEmail}\\\"; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO \\\"${userEmail}\\\"; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO \\\"${userEmail}\\\"; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON FUNCTIONS TO \\\"${userEmail}\\\";"`;
+  
+  const { stdout: roleOutput, stderr } = await execAsync(grantPrivilegesCmd);
+  console.log(`Role privileges output: ${roleOutput}, stderr: ${stderr}`);
+  
+  // Add verification step with a simplified approach
+  const verifyRoleCmd = `docker exec -e PGPASSWORD="${password}" ${containerName} psql -U postgres -c "SELECT 1 FROM pg_roles WHERE rolname='${userEmail}';"`;
+  const { stdout: verificationOutput } = await execAsync(verifyRoleCmd);
+  console.log(`Role verification: ${verificationOutput}`);
+} catch (error) {
+  console.error(`Failed to create role: ${error instanceof Error ? error.message : String(error)}`);
+}
 
     console.log(
       `PostgreSQL instance ${containerName} is ready. Moving past database creation.`
     );
-    // Check if PostgreSQL is ready
-    // After IsPatroniReady but before updating status
-    try {
-      const logsCmd = `docker logs ${containerName} | grep -E "basebackup|replication|slot"`;
-      const { stdout: logs } = await execAsync(logsCmd);
-      console.log("Relevant PostgreSQL logs:", logs);
-    } catch (error) {
-      console.error("Failed to check logs:", error);
-    }
 
     // Update status
     await getDefaultWriterPool().query(
@@ -186,9 +211,11 @@ export const CreateDatabase = async (req: Request, res: Response) => {
         clusterName: patroniScope,
         patroniScope,
         primaryContainerName: containerName,
-        replicaContainerNames:[replicaResponse.id ? replicaResponse.containerName : null], 
+        replicaContainerNames: [
+          replicaResponse.id ? replicaResponse.containerName : null,
+        ],
       });
-/* 
+      /* 
       console.log(`Created HAProxy instance with ID ${haproxyInstance.id}`);
       console.log(`Write port: ${haproxyInstance.writePort} read port: ${haproxyInstance.readPort}`);
 
@@ -203,7 +230,7 @@ export const CreateDatabase = async (req: Request, res: Response) => {
         ttl: 60, // Default TTL in seconds
       });
  */
-/*       console.log(`Created QueryCacher instance with ID ${querycacherInstance.id}`);
+      /*       console.log(`Created QueryCacher instance with ID ${querycacherInstance.id}`);
       console.log(`QueryCacher port: ${querycacherInstance.port}`);
  */
       // After creating HAProxy
@@ -213,11 +240,11 @@ export const CreateDatabase = async (req: Request, res: Response) => {
         databaseName,
         patroniScope,
         haproxyId: haproxyInstance.id,
-        dbUser: "postgres", // or whatever user you're using
-        dbPassword: password,
+        dbUser: userEmail, // or whatever user you're using
+        dbPassword: role_password,
         enableQueryCache: true,
         enableLoadBalancing: true,
-        enableConnectionPooling: true
+        enableConnectionPooling: true,
       });
       console.log(`Created PgPool-II instance with ID ${pgpoolInstance.id}`);
       // Add PgPool info to response
@@ -233,20 +260,20 @@ export const CreateDatabase = async (req: Request, res: Response) => {
         haproxy: {
           id: haproxyInstance.id,
           writePort: haproxyInstance.writePort,
-          readPort: haproxyInstance.readPort
+          readPort: haproxyInstance.readPort,
         },
         pgpool: {
           id: pgpoolInstance.id,
-          port: pgpoolInstance.port
+          port: pgpoolInstance.port,
         },
-    /*     querycacher: querycacherInstance ? {
+        /*     querycacher: querycacherInstance ? {
           id: querycacherInstance.id,
           port: querycacherInstance.port
         } : null */
       });
-    } catch (haproxyError:any) {
+    } catch (haproxyError: any) {
       console.error("Failed to create HAProxy or QueryCacher:", haproxyError);
-      
+
       // Still return success for the database creation
       res.status(201).json({
         id: instanceId,
@@ -257,7 +284,7 @@ export const CreateDatabase = async (req: Request, res: Response) => {
         patroniPort,
         patroniScope,
         status: "running",
-        haproxyError: `Failed to create HAProxy: ${haproxyError.message}`
+        haproxyError: `Failed to create HAProxy: ${haproxyError.message}`,
       });
     }
   } catch (error) {
@@ -497,7 +524,9 @@ export const AddReplica = async (req: Request, res: Response) => {
     // (around line 388, after "UPDATE databases SET status = 'running' WHERE id = $1")
 
     // Update HAProxy configuration to include the new replica
-    console.log(`Updating HAProxy configuration to include new replica ${containerName}`);
+    console.log(
+      `Updating HAProxy configuration to include new replica ${containerName}`
+    );
     try {
       // Get the HAProxy ID for this cluster
       const { rows: haproxyRows } = await getDefaultReaderPool().query(
@@ -510,25 +539,27 @@ export const AddReplica = async (req: Request, res: Response) => {
 
       if (haproxyRows.length > 0) {
         const haproxyId = haproxyRows[0].id;
-        
+
         // Update HAProxy configuration
         await updateHAProxyConfig(haproxyId, {
-          addReplica: containerName
+          addReplica: containerName,
         });
-        
-        console.log(`Successfully updated HAProxy configuration to include replica ${containerName}`);
-        
+
+        console.log(
+          `Successfully updated HAProxy configuration to include replica ${containerName}`
+        );
+
         // Include HAProxy info in response
         const { rows: haproxyInfoRows } = await getDefaultReaderPool().query(
           `SELECT * FROM haproxy_instances WHERE id = $1`,
           [haproxyId]
         );
-        
+
         const { rows: querycacherRows } = await getDefaultReaderPool().query(
           `SELECT * FROM querycacher_instances WHERE haproxy_id = $1`,
           [haproxyId]
         );
-        
+
         // After updating HAProxy
         if (haproxyInfoRows.length > 0) {
           console.log("Updating PgPool-II configuration...");
@@ -536,23 +567,23 @@ export const AddReplica = async (req: Request, res: Response) => {
             `SELECT id FROM pgpool_instances WHERE haproxy_id = $1`,
             [haproxyInfoRows[0].id]
           );
-          
+
           if (pgpoolRows.length > 0) {
             await updatePgPoolConfig(pgpoolRows[0].id, {
-              addNode: { 
+              addNode: {
                 host: containerName,
-                isReplica: true
-              }
+                isReplica: true,
+              },
             });
           }
         }
-        
+
         // In the response, include PgPool info if available
         const { rows: pgpoolInfoRows } = await getDefaultReaderPool().query(
           `SELECT * FROM pgpool_instances WHERE haproxy_id = $1`,
           [haproxyInfoRows[0].id]
         );
-        
+
         res.status(201).json({
           id: replicaRows[0].id,
           primaryId: primary.id,
@@ -563,19 +594,28 @@ export const AddReplica = async (req: Request, res: Response) => {
           patroniScope: primary.patroni_scope,
           status: "running",
           isReplica: true,
-          haproxy: haproxyInfoRows.length > 0 ? {
-            id: haproxyInfoRows[0].id,
-            writePort: haproxyInfoRows[0].write_port,
-            readPort: haproxyInfoRows[0].read_port
-          } : null,
-          pgpool: pgpoolInfoRows.length > 0 ? {
-            id: pgpoolInfoRows[0].id,
-            port: pgpoolInfoRows[0].port
-          } : null,
-          querycacher: querycacherRows.length > 0 ? {
-            id: querycacherRows[0].id,
-            port: querycacherRows[0].port,
-          } : null
+          haproxy:
+            haproxyInfoRows.length > 0
+              ? {
+                  id: haproxyInfoRows[0].id,
+                  writePort: haproxyInfoRows[0].write_port,
+                  readPort: haproxyInfoRows[0].read_port,
+                }
+              : null,
+          pgpool:
+            pgpoolInfoRows.length > 0
+              ? {
+                  id: pgpoolInfoRows[0].id,
+                  port: pgpoolInfoRows[0].port,
+                }
+              : null,
+          querycacher:
+            querycacherRows.length > 0
+              ? {
+                  id: querycacherRows[0].id,
+                  port: querycacherRows[0].port,
+                }
+              : null,
         });
         return;
       }

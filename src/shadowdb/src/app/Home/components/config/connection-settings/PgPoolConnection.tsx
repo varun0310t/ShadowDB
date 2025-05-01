@@ -19,7 +19,7 @@ export function PgPoolConnection({
   copyToClipboard,
 }: PgPoolConnectionProps) {
   const connectionString = `postgresql://${
-    selectedDatabase.db_user || "postgres"
+    connectionConfig?.role_user || "postgres"
   }:${selectedDatabase.db_password || "password"}@${
     connectionConfig?.hostname ||
     `${selectedDatabase.db_name}-pgpool.shadowdb.com`
@@ -33,7 +33,7 @@ export function PgPoolConnection({
     host: connectionConfig?.hostname || `${selectedDatabase.db_name}-pgpool.shadowdb.com`,
     port: `${isLoading ? selectedDatabase.pgpool?.port || 9999 : connectionConfig?.pgpool?.port || 9999}`,
     dbname: selectedDatabase.db_name,
-    user: selectedDatabase.db_user || "postgres",
+    user: connectionConfig?.role_user || "postgres",
     password: selectedDatabase.db_password || "password",
     sslmode: "require",
   };

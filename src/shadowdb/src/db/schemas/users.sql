@@ -68,6 +68,9 @@ CREATE TABLE users (
   updated_by INTEGER REFERENCES users(id),
   deleted_at TIMESTAMPTZ,
 
+  --role password for database access
+  role_password varchar(255), 
+
   -- Unique constraints
   CONSTRAINT unique_email_per_provider UNIQUE (email, provider),
   CONSTRAINT unique_provider_id UNIQUE (provider_id, provider)

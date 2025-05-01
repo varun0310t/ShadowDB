@@ -17,7 +17,7 @@ export function HAProxyReadConnection({
   copyToClipboard,
 }: HAProxyReadConnectionProps) {
   const connectionString = `postgresql://${
-    selectedDatabase.db_user || "postgres"
+    connectionConfig?.role_user || "postgres"
   }:${selectedDatabase.db_password || "password"}@${
     connectionConfig?.hostname ||
     `${selectedDatabase.db_name}-pgpool.shadowdb.com`
@@ -29,7 +29,7 @@ export function HAProxyReadConnection({
     host: `${selectedDatabase.db_name}-read.shadowdb.com`,
     port: `${connectionConfig?.haproxy?.read_port || 5001}`,
     dbname: selectedDatabase.db_name,
-    user: selectedDatabase.db_user || "postgres",
+    user: connectionConfig?.role_user || "postgres",
     password: selectedDatabase.db_password || "password",
     sslmode: "require",
   };

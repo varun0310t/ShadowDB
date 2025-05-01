@@ -21,6 +21,7 @@ export interface DatabaseEntry {
 
 export interface ConnectionConfigType {
   hostname: string;
+  role_user: string;
   pgpool: {
     port: number;
     enable_connection_pooling: boolean;

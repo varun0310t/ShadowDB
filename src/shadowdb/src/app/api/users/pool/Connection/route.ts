@@ -157,6 +157,7 @@ export async function GET(req: Request) {
       db_name: dbName,
       access_level: access_level,
       patroni_scope: patroni_scope,
+      role_user:session.user.email,
       hostname: process.env.DB_Service_Host || "localhost",
       haproxy: {
         write_port: resultforhaproxy.rows[0].write_port,

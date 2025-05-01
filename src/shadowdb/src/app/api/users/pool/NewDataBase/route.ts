@@ -43,7 +43,12 @@ export async function POST(req: Request) {
 
       let dbId;
       let connectionDetails = null;
-
+      const userdetailsquery= `SELECT * FROM users WHERE id = $1`;
+      const userdetailsvalues = [session.user.id];
+      const {rows} = await client.query(userdetailsquery, userdetailsvalues);
+      const userdetails = rows[0];
+      const userEmail = userdetails.email;
+      const role_password=  userdetails.role_password;
       if (tenancy_type === "isolated") {
         // For isolated databases, just call the DB service
         try {
@@ -59,6 +64,8 @@ export async function POST(req: Request) {
               userId: session.user.id,
               databaseName: db_name,
               password: password,
+              userEmail: userEmail,
+              role_password: role_password,
             }
           );
 
