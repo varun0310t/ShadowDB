@@ -32,9 +32,27 @@ export async function terminateDbConnections(
 
 /**
  * Checks if a database exists
- * @param dbName Database name to check
+ * @param database_id Database id to check
  * @returns Boolean indicating if database exists
  */
+export async function databaseInfobyId(
+  dbId: string
+): Promise<{ success: boolean; message: string; dbInfo?: any }> {
+  try {
+    const result = await getDefaultReaderPool().query(
+      `SELECT * FROM databases WHERE id = $1`,
+      [dbId]
+    );
+    if (result.rowCount === 0) {
+      return { success: false, message: "Database not found" };
+    }
+    return { success: true, message: "Database found", dbInfo: result.rows[0] };
+  } catch (error) {
+    console.error("Error fetching database info:", error);
+    return { success: false, message: "Error fetching database info" };
+  }
+}
+
 export async function databaseExists(
   dbName: string,
   tenancy_type: "shared" | "isolated" | "all" = "all"
@@ -219,11 +237,11 @@ export async function RenameReferences(
  */
 export async function CheckIfUserHasAccess(
   userId: string,
-  dbName: string,
+  database_id: string,
   requiredAccessLevel?: "admin" | "write" | "read"
 ): Promise<boolean> {
   try {
-    if (!userId || !dbName) {
+    if (!userId || !database_id) {
       return false;
     }
 
@@ -232,10 +250,10 @@ export async function CheckIfUserHasAccess(
         SELECT ud.access_level 
         FROM databases d
         JOIN user_databases ud ON d.id = ud.database_id
-        WHERE d.name = $1 AND ud.user_id = $2
+        WHERE d.id = $1 AND ud.user_id = $2
       `;
 
-    const params = [dbName, userId];
+    const params = [database_id, userId];
 
     // If specific access level is required, add it to the query
     if (requiredAccessLevel) {

@@ -10,15 +10,18 @@ import {
   terminateDbConnections,
   CheckIfUserHasAccess,
   databaseExists,
+  databaseInfobyId,
 } from "../../../../../lib/utils/DButils";
 import { findUserByEmail } from "../../../../../lib/utils/UserUtils";
 import { z } from "zod";
+import axios from "axios";
 
 // Schema validation for request bodies
 const grantAccessSchema = z.object({
   dbName: z.string().min(1),
   email: z.string().email("Invalid email address format"),
   accessLevel: z.enum(["admin", "user", "read"]),
+  database_id: z.number(),
 });
 
 const updateAccessSchema = z.object({
@@ -139,11 +142,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const { dbName, email, accessLevel } = body;
+    const { dbName, email, accessLevel, database_id } = body;
 
     // Check if database exists
-    const dbExists = await databaseExists(dbName);
-    if (!dbExists) {
+    const dbExists = await databaseInfobyId(database_id);
+    if (!dbExists.success) {
       console.log(
         "User does not have admin access to the database:",
         dbName,
@@ -158,7 +161,7 @@ export async function POST(req: Request) {
     // Check if the requesting user has admin access to the database
     const hasAdminAccess = await CheckIfUserHasAccess(
       session.user.id,
-      dbName,
+      database_id,
       "admin"
     );
     if (!hasAdminAccess) {
@@ -187,8 +190,8 @@ export async function POST(req: Request) {
 
     // Get database ID
     const dbIdResult = await getDefaultReaderPool().query(
-      `SELECT id, owner_id FROM databases WHERE name = $1` /* Use created_by instead of owner_id */,
-      [dbName]
+      "select * from databases where id=$1",
+      [database_id]
     );
 
     if (dbIdResult.rows.length === 0) {
@@ -199,9 +202,7 @@ export async function POST(req: Request) {
     }
 
     const dbId = dbIdResult.rows[0].id;
-    const ownerId =
-      dbIdResult.rows[0].owner_id; /* Use created_by instead of owner_id */
-
+    const ownerId = dbIdResult.rows[0].owner_id;
     // If the created_by is null, we don't need to do owner-specific checks
     if (
       ownerId &&
@@ -231,17 +232,25 @@ export async function POST(req: Request) {
         { status: 200 }
       );
     }
-
-    // Grant access by inserting into user_databases table
-    await getDefaultWriterPool().query(
-      `INSERT INTO user_databases (user_id, database_id, access_level) VALUES ($1, $2, $3)`,
-      [targetUserId, dbId, accessLevel]
+    //create role for user in that database
+    const result = await axios.post(
+      `${process.env.DB_Service_url}/api/roles/create`,
+      { database_id, userID: targetUserId }
     );
+    if (result.status === 201) {
+      // Grant access by inserting into user_databases table
+      await getDefaultWriterPool().query(
+        `INSERT INTO user_databases (user_id, database_id, access_level) VALUES ($1, $2, $3)`,
+        [targetUserId, dbId, accessLevel]
+      );
 
-    return NextResponse.json({
-      message: `Access granted to ${email} for database "${dbName}" with role: ${accessLevel}`,
-      success: true,
-    });
+      return NextResponse.json({
+        message: `Access granted to ${email} for database "${dbName}" with role: ${accessLevel}`,
+        success: true,
+      });
+    } else {
+      throw new Error("could not create new role");
+    }
   } catch (error: any) {
     console.error("Error granting database access:", error);
     return NextResponse.json(
@@ -324,7 +333,7 @@ export async function PATCH(req: Request) {
 
     const dbId = dbIdResult.rows[0].id;
     const ownerId =
-      dbIdResult.rows[0].created_by; /* Use created_by instead of owner_id */
+      dbIdResult.rows[0].owner_id; /* Use  instead of owner_id */
 
     // If updating the owner's access, ensure they always have admin privileges
     if (
@@ -438,7 +447,7 @@ export async function DELETE(req: Request) {
 
     const dbId = dbIdResult.rows[0].id;
     const ownerId =
-      dbIdResult.rows[0].created_by; /* Use created_by instead of owner_id */
+      dbIdResult.rows[0].owner_id; /* Use created_by instead of owner_id */
 
     // Prevent revoking the owner's access
     if (targetUserId.toString() === ownerId.toString()) {
