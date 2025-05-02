@@ -84,7 +84,7 @@ export function setLeaderPoolIndex(index: number): void {
 // Fix the getDefaultWriterPool function
 export function getDefaultWriterPool(): Pool {
   const defaultPool = getUserPool("default")?.[leaderPoolIndex.value];
-  console.log(userPools);
+  
   if (!defaultPool) {
     throw new Error("Default writer pool not initialized");
   }

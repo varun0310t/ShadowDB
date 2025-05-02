@@ -40,7 +40,13 @@ CREATE TABLE databases (
   -- reference to the haproxy instance and querycacher instance
   haproxy_id INTEGER REFERENCES haproxy_instances(id) ON DELETE CASCADE,
   querycacher_id INTEGER REFERENCES querycacher_instances(id) ON DELETE CASCADE,
-  pgpool_id INTEGER REFERENCES pgpool_instances(id) ON DELETE SET NULL
+  pgpool_id INTEGER REFERENCES pgpool_instances(id) ON DELETE SET NULL,
+
+  --strogae related fields
+  max_size_mb INTEGER DEFAULT 512,
+  current_size_mb INTEGER default 10,
+  last_size_check TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  read_only BOOLEAN DEFAULT false -- Whether the database is read-only
 );
 
 -- Partial unique index for shared databases only

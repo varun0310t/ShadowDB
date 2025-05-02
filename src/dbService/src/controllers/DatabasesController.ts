@@ -171,29 +171,36 @@ export const CreateDatabase = async (req: Request, res: Response) => {
       console.error(`Failed to create database: ${error} ${error.message}`);
       // Continue execution even if database creation fails
     }
-// Replace lines 178-193 (role creation and privilege granting) with this:
-try {
-  // Create role with a single-line command
-  const createRoleCmd = `docker exec -e PGPASSWORD="${password}" ${containerName} psql -U postgres -c "CREATE ROLE \\\"${userEmail}\\\" WITH LOGIN PASSWORD '${role_password}'; GRANT CONNECT ON DATABASE ${databaseName} TO \\\"${userEmail}\\\";"`;
-  
-  const { stdout: createOutput, stderr: createError } = await execAsync(createRoleCmd);
-  console.log(`Role creation output: ${createOutput}`);
-  if (createError) console.log(`Role creation stderr: ${createError}`);
-  
-  // Grant privileges with a single-line command
-  const grantPrivilegesCmd = `docker exec -e PGPASSWORD="${password}" ${containerName} psql -U postgres -d ${databaseName} -c "GRANT ALL PRIVILEGES ON SCHEMA public TO \\\"${userEmail}\\\"; GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \\\"${userEmail}\\\"; GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO \\\"${userEmail}\\\"; GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO \\\"${userEmail}\\\"; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO \\\"${userEmail}\\\"; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO \\\"${userEmail}\\\"; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON FUNCTIONS TO \\\"${userEmail}\\\";"`;
-  
-  const { stdout: roleOutput, stderr } = await execAsync(grantPrivilegesCmd);
-  console.log(`Role privileges output: ${roleOutput}, stderr: ${stderr}`);
-  
-  // Add verification step with a simplified approach
-  const verifyRoleCmd = `docker exec -e PGPASSWORD="${password}" ${containerName} psql -U postgres -c "SELECT 1 FROM pg_roles WHERE rolname='${userEmail}';"`;
-  const { stdout: verificationOutput } = await execAsync(verifyRoleCmd);
-  console.log(`Role verification: ${verificationOutput}`);
-} catch (error) {
-  console.error(`Failed to create role: ${error instanceof Error ? error.message : String(error)}`);
-}
+    // Replace lines 178-193 (role creation and privilege granting) with this:
+    try {
+      // Create role with a single-line command
+      const createRoleCmd = `docker exec -e PGPASSWORD="${password}" ${containerName} psql -U postgres -c "CREATE ROLE \\\"${userEmail}\\\" WITH LOGIN PASSWORD '${role_password}'; GRANT CONNECT ON DATABASE ${databaseName} TO \\\"${userEmail}\\\";"`;
 
+      const { stdout: createOutput, stderr: createError } = await execAsync(
+        createRoleCmd
+      );
+      console.log(`Role creation output: ${createOutput}`);
+      if (createError) console.log(`Role creation stderr: ${createError}`);
+
+      // Grant privileges with a single-line command
+      const grantPrivilegesCmd = `docker exec -e PGPASSWORD="${password}" ${containerName} psql -U postgres -d ${databaseName} -c "GRANT ALL PRIVILEGES ON SCHEMA public TO \\\"${userEmail}\\\"; GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \\\"${userEmail}\\\"; GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO \\\"${userEmail}\\\"; GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO \\\"${userEmail}\\\"; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO \\\"${userEmail}\\\"; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO \\\"${userEmail}\\\"; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON FUNCTIONS TO \\\"${userEmail}\\\";"`;
+
+      const { stdout: roleOutput, stderr } = await execAsync(
+        grantPrivilegesCmd
+      );
+      console.log(`Role privileges output: ${roleOutput}, stderr: ${stderr}`);
+
+      // Add verification step with a simplified approach
+      const verifyRoleCmd = `docker exec -e PGPASSWORD="${password}" ${containerName} psql -U postgres -c "SELECT 1 FROM pg_roles WHERE rolname='${userEmail}';"`;
+      const { stdout: verificationOutput } = await execAsync(verifyRoleCmd);
+      console.log(`Role verification: ${verificationOutput}`);
+    } catch (error) {
+      console.error(
+        `Failed to create role: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
     console.log(
       `PostgreSQL instance ${containerName} is ready. Moving past database creation.`
     );
