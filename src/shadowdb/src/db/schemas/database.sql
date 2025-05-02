@@ -46,7 +46,11 @@ CREATE TABLE databases (
   max_size_mb INTEGER DEFAULT 512,
   current_size_mb INTEGER default 10,
   last_size_check TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-  read_only BOOLEAN DEFAULT false -- Whether the database is read-only
+  read_only BOOLEAN DEFAULT false, -- Whether the database is read-only
+
+  --resoures related fields
+  cpu_limit INTEGER DEFAULT 1, -- CPU limit for the database instance
+  memory_limit INTEGER DEFAULT 512 -- Memory limit for the database instance (in MB)
 );
 
 -- Partial unique index for shared databases only

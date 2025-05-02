@@ -4,6 +4,7 @@ import databaseBackupRoutes from "./routes/DataBaseBackupRoute";
 import databaseConfgirationRoute from "./routes/DatabaseconfigurationRoute";
 import roleRoute from "./routes/RoleRoute";
 import storageRoute from "./routes/StorageRoute";
+import ResourceRoute from "./routes/ResourceRoute";
 import { config } from "dotenv";
 
 // Load environment variables
@@ -27,6 +28,7 @@ app.use("/api/backup", databaseBackupRoutes);
 app.use("/api/configuration", databaseConfgirationRoute);
 app.use("/api/roles", roleRoute);
 app.use("/api/storage", storageRoute);
+app.use("/api/resource", ResourceRoute);
 // Error handling middleware
 app.use(
   (

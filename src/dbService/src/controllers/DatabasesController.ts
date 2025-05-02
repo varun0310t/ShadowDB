@@ -44,6 +44,8 @@ export const CreateDatabase = async (req: Request, res: Response) => {
     const cmd = `docker run -d \
       --name ${containerName} \
       --hostname ${containerName} \
+      --cpus="1" \
+      --memory="512m" \
       --network ${DB_CONFIG.networkName} \
       --network-alias=${containerName} \
       -v ${volumeName}:${DB_CONFIG.volumeBasePath} \
@@ -397,6 +399,8 @@ export const AddReplica = async (req: Request, res: Response) => {
     const cmd = `docker run -d \
       --name ${containerName} \
       --hostname ${containerName} \
+      --cpus="1" \
+      --memory="512m" \
       --network ${DB_CONFIG.networkName} \
       --network-alias=${containerName} \
       --add-host ${primary.container_name}:${primaryIPAddress} \
