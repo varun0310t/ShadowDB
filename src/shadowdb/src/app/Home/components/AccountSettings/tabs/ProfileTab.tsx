@@ -198,7 +198,7 @@ export function ProfileTab({ userData, onUpdate }: ProfileTabProps) {
         </CardContent>
       </Card>
 
-      <Card className="bg-[#151923] border-gray-800">
+  {/*     <Card className="bg-[#151923] border-gray-800">
         <CardHeader>
           <CardTitle>Account Preferences</CardTitle>
           <CardDescription>Manage your account settings</CardDescription>
@@ -226,7 +226,7 @@ export function ProfileTab({ userData, onUpdate }: ProfileTabProps) {
             <Button variant="outline" size="sm" className="border-gray-700">Change</Button>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   )
 }

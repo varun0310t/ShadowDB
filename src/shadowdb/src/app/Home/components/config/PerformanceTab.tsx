@@ -10,7 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
-
+import { FeaturePreview } from "@/components/ComingSoonToopTipWrapper";
 import {
   Card,
   CardContent,
@@ -302,51 +302,55 @@ export function PerformanceTab({
           </div>
         </CardContent>
         <CardContent className="space-y-6">
-=
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <Label className="text-gray-200">Storage Usage</Label>
-            <span className="text-sm font-medium text-gray-200">
-              {storageData?.storageData?.storage?.current_storage || 0} / {storageValue} MB (
-              {Math.round(
-                ((storageData?.storageData?.storage?.current_storage || 0) / storageValue) *
-                  100
-              ) || 0}
-              %)
-            </span>
-          </div>
-         
-          {/* Storage Usage Bar */}
-          <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full ${
-                (storageData?.storageData?.storage?.current_storage || 0) / storageValue >
-                0.8
-                  ? "bg-red-500"
-                  : (storageData?.storageData?.storage?.current_storage || 0) /
-                      storageValue >
-                    0.6
-                  ? "bg-yellow-500"
-                  : "bg-green-500"
-              }`}
-              style={{
-                width: `${Math.min(
+          =
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <Label className="text-gray-200">Storage Usage</Label>
+              <span className="text-sm font-medium text-gray-200">
+                {storageData?.storageData?.storage?.current_storage || 0} /{" "}
+                {storageValue} MB (
+                {Math.round(
                   ((storageData?.storageData?.storage?.current_storage || 0) /
                     storageValue) *
-                    100,
-                  100
-                )}%`,
-              }}
-            />
-          </div>
+                    100
+                ) || 0}
+                %)
+              </span>
+            </div>
 
-          <p className="text-xs text-gray-400">
-            Current storage usage. When usage approaches the limit, consider
-            increasing capacity or cleaning up old data.
-          </p>
-        </div>
+            {/* Storage Usage Bar */}
+            <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full ${
+                  (storageData?.storageData?.storage?.current_storage || 0) /
+                    storageValue >
+                  0.8
+                    ? "bg-red-500"
+                    : (storageData?.storageData?.storage?.current_storage ||
+                        0) /
+                        storageValue >
+                      0.6
+                    ? "bg-yellow-500"
+                    : "bg-green-500"
+                }`}
+                style={{
+                  width: `${Math.min(
+                    ((storageData?.storageData?.storage?.current_storage || 0) /
+                      storageValue) *
+                      100,
+                    100
+                  )}%`,
+                }}
+              />
+            </div>
+
+            <p className="text-xs text-gray-400">
+              Current storage usage. When usage approaches the limit, consider
+              increasing capacity or cleaning up old data.
+            </p>
+          </div>
         </CardContent>
-   
+
         {hasChanges && (
           <CardFooter>
             <Button
@@ -382,10 +386,13 @@ export function PerformanceTab({
                 Cache frequently executed queries
               </p>
             </div>
-            <Switch
-              defaultChecked
-              className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
-            />
+            <FeaturePreview message="caching is by default enabled and can't be disabled curently">
+              <Switch
+                disabled={true}
+                checked={true}
+                className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
+              />
+            </FeaturePreview>
           </div>
 
           <div className="flex items-center justify-between">
@@ -395,21 +402,27 @@ export function PerformanceTab({
                 Automatically clean up and optimize storage
               </p>
             </div>
-            <Switch
-              defaultChecked
-              className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
-            />
+            <FeaturePreview>
+              <Switch
+                disabled={true}
+                checked={false}
+                className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
+              />
+            </FeaturePreview>
           </div>
 
           <div className="space-y-2">
             <Label className="text-gray-200">Query Timeout (seconds)</Label>
-            <Input
-              type="number"
-              defaultValue="30"
-              min="1"
-              max="3600"
-              className="bg-[#0B0F17] border-gray-800 w-full md:w-1/3 text-white"
-            />
+            <FeaturePreview>
+              <Input
+                type="number"
+                defaultValue="30"
+                min="1"
+                max="3600"
+                disabled={true}
+                className="bg-[#0B0F17] border-gray-800 w-full md:w-1/3 text-white"
+              />
+            </FeaturePreview>
           </div>
         </CardContent>
       </Card>

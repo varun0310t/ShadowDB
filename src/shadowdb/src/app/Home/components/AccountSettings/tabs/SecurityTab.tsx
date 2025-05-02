@@ -107,7 +107,7 @@ export function SecurityTab() {
         </CardContent>
       </Card>
 
-      <Card className="bg-[#151923] border-gray-800">
+     {/*  <Card className="bg-[#151923] border-gray-800">
         <CardHeader>
           <CardTitle>Two-Factor Authentication</CardTitle>
           <CardDescription>Add an extra layer of security to your account</CardDescription>
@@ -135,7 +135,7 @@ export function SecurityTab() {
             <Button variant="outline" size="sm" className="border-gray-700">Manage</Button>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   )
 }

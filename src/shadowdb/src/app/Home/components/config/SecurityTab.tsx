@@ -65,6 +65,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { FeaturePreview } from "@/components/ComingSoonToopTipWrapper";
 
 // Define interface for user access data
 interface AccessUser {
@@ -492,7 +493,9 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
                 Restrict access to specific IP addresses
               </p>
             </div>
-            <Switch defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
+            <FeaturePreview>
+            <Switch checked={false} disabled={true} className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
+            </FeaturePreview>
           </div>
 
           <div className="space-y-2">
@@ -526,7 +529,7 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2">
+  {/*         <div className="flex items-center justify-between pt-2">
             <div className="space-y-0.5">
               <Label className="text-gray-200">Password Policy</Label>
               <p className="text-sm text-gray-400">
@@ -534,9 +537,9 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
               </p>
             </div>
             <Switch defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
-          </div>
+          </div> */}
 
-          <div className="flex items-center justify-between">
+       {/*    <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label className="text-gray-200">Audit Logging</Label>
               <p className="text-sm text-gray-400">
@@ -544,7 +547,7 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
               </p>
             </div>
             <Switch defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
-          </div>
+          </div> */}
         </CardContent>
       </Card>
 
@@ -596,7 +599,7 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
+{/* 
       <Card className="bg-[#151923] border-gray-800">
         <CardHeader>
           <CardTitle className="text-white">Encryption</CardTitle>
@@ -640,7 +643,7 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
             </Select>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 }

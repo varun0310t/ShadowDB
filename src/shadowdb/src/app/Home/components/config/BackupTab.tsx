@@ -37,7 +37,7 @@ import {
   PaginationState,
 } from "@/client/lib/services/BackupService";
 import { DatabaseEntry } from "../types/DatabaseTypes";
-
+import { FeaturePreview } from "@/components/ComingSoonToopTipWrapper";
 interface BackupTabProps {
   selectedDatabase: DatabaseEntry;
 }
@@ -210,16 +210,21 @@ console.log("selectedDatabase", selectedDatabase);
                 Schedule regular database backups
               </p>
             </div>
+            <FeaturePreview message="Use Manual Backups for now this feature might be available in the future">
             <Switch
-              checked={isBackupEnabled}
+              checked={false&&isBackupEnabled}
               onCheckedChange={setIsBackupEnabled}
+              disabled={true}
               className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
             />
+            </FeaturePreview>
           </div>
 
           <div className="space-y-2">
             <Label className="text-gray-200">Backup Frequency</Label>
-            <Select value={frequency} onValueChange={setFrequency}>
+            <FeaturePreview message="Use Manual Backups for now this feature might be available in the future">
+            <Select value={frequency} onValueChange={setFrequency} disabled={true} >
+              
               <SelectTrigger className="bg-[#0B0F17] border-gray-800 w-full md:w-1/3 text-white">
                 <SelectValue placeholder="Select frequency" />
               </SelectTrigger>
@@ -229,18 +234,22 @@ console.log("selectedDatabase", selectedDatabase);
                 <SelectItem value="weekly">Weekly</SelectItem>
               </SelectContent>
             </Select>
+            </FeaturePreview>
           </div>
 
           <div className="space-y-2">
             <Label className="text-gray-200">Retention Period (days)</Label>
+            <FeaturePreview message="Use Manual Backups for now this feature might be available in the future">
             <Input
               type="number"
               value={retention}
               onChange={(e) => setRetention(e.target.value)}
               min="1"
               max="365"
+              disabled={true}
               className="bg-[#0B0F17] border-gray-800 w-full md:w-1/3 text-white"
             />
+            </FeaturePreview>
           </div>
 
           <div className="pt-4">

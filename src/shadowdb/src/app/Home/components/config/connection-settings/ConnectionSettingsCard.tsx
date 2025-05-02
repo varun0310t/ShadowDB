@@ -10,7 +10,7 @@ import  {HAProxyWriteConnection } from "./HAProxyWriteConnection";
 import { HAProxyReadConnection } from "./HAProxyReadConnection";
 import { PgPoolConnection } from "./PgPoolConnection";
 import { NativePostgresConnections } from "./NativePostgresConnections";
-
+import { FeaturePreview } from "@/components/ComingSoonToopTipWrapper";
 interface ConnectionSettingsCardProps {
   selectedDatabase: DatabaseEntry;
   connectionConfig?: ConnectionConfigType;
@@ -25,7 +25,7 @@ export function ConnectionSettingsCard({
   copyToClipboard,
 }: ConnectionSettingsCardProps) {
   // Add state for PgPool settings
-  const [sslEnforced, setSslEnforced] = useState(true);
+  const [sslEnforced, setSslEnforced] = useState(false);
   const [connectionPooling, setConnectionPooling] = useState(
     selectedDatabase.pgpool?.enable_connection_pooling || false
   );
@@ -199,11 +199,15 @@ export function ConnectionSettingsCard({
               Require SSL/TLS for all connections
             </p>
           </div>
+          <FeaturePreview>
           <Switch
             checked={sslEnforced}
             onCheckedChange={handleSslEnforcementChange}
+            disabled={true}
+            
             className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-black"
           />
+          </FeaturePreview>
         </div>
 
         <div className="flex items-center justify-between">
@@ -213,6 +217,7 @@ export function ConnectionSettingsCard({
               Optimize connection management via PgPool
             </p>
           </div>
+          <FeaturePreview>
           <Switch
             checked={
               isLoading
@@ -221,8 +226,9 @@ export function ConnectionSettingsCard({
             }
             onCheckedChange={handleConnectionPoolingChange}
             className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-black"
-            disabled={isLoading || updateConnectionPoolingMutation.isPending}
+            disabled={true||isLoading || updateConnectionPoolingMutation.isPending}
           />
+          </FeaturePreview>
         </div>
 
         <div className="flex items-center justify-between">
@@ -232,6 +238,7 @@ export function ConnectionSettingsCard({
               Cache read queries to improve performance
             </p>
           </div>
+          <FeaturePreview>
           <Switch
             checked={
               isLoading
@@ -240,8 +247,9 @@ export function ConnectionSettingsCard({
             }
             onCheckedChange={handleQueryCachingChange}
             className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-black"
-            disabled={isLoading || updateQueryCachingMutation.isPending}
+            disabled={true||isLoading || updateQueryCachingMutation.isPending}
           />
+          </FeaturePreview>
         </div>
       </CardContent>
     </Card>

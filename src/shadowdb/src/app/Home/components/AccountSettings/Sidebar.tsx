@@ -19,7 +19,7 @@ export function Sidebar({ activeTab, setActiveTab, userData, loading }: SidebarP
     { icon: <User size={18} />, title: "Profile", id: "profile" },
     { icon: <Shield size={18} />, title: "Security", id: "security" },
     { icon: <Bell size={18} />, title: "Notifications", id: "notifications" },
-    { icon: <CreditCard size={18} />, title: "Billing", id: "billing" },
+
     { icon: <Key size={18} />, title: "API Keys", id: "api" },
   ]
 
