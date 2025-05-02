@@ -39,9 +39,17 @@ export const updateContainerResourceLimit = async (
   const containerName = db.container_name;
   const password = db.password;
 
+  //get replicas container name
+  const replicas = await getDefaultReaderPool().query(
+    `SELECT container_name FROM databases WHERE parent_id = $1`,
+    [database_id]
+  );
+
   // Update container resource limits using Docker command
 
-  const updateCmd = `docker update --cpus=${cpu_limit} --memory=${memory_limit}m ${containerName}`;
+  const updateCmd = `docker update --cpus=${cpu_limit} --memory=${memory_limit}m --memory=${memory_limit}m --memory-swap=${
+    memory_limit * 2
+  }m ${containerName}`;
   try {
     await execAsync(updateCmd);
   } catch (error) {
@@ -51,6 +59,29 @@ export const updateContainerResourceLimit = async (
       .json({ error: "Failed to update container resource limits" });
     return;
   }
+
+  // Update replicas resource limits if any
+  if (replicas.rows.length > 0) {
+    for (const replica of replicas.rows) {
+      const replicaContainerName = replica.container_name;
+      const updateReplicaCmd = `docker update --cpus=${cpu_limit} --memory=${memory_limit}m --memory-swap=${
+        memory_limit * 2
+      }m ${replicaContainerName}`;
+      try {
+        await execAsync(updateReplicaCmd);
+      } catch (error) {
+        console.error(
+          "Error updating replica container resource limits:",
+          error
+        );
+        res.status(500).json({
+          error: `Failed to update replica container resource limits for ${replicaContainerName}`,
+        });
+        return;
+      }
+    }
+  }
+
   // Update database resource limits in our database
   await getDefaultWriterPool().query(
     "UPDATE databases SET cpu_limit = $1, memory_limit = $2 WHERE id = $3",

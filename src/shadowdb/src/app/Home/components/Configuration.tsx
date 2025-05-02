@@ -332,7 +332,7 @@ export default function DatabaseConfiguration({
 
         {/* Performance Settings */}
         <TabsContent value="performance" className="space-y-4">
-          <PerformanceTab />
+          <PerformanceTab  selectedDatabase={selectedDatabase}/>
         </TabsContent>
 
         {/* Backup & Recovery */}
