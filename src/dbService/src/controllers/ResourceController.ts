@@ -79,6 +79,15 @@ export const updateContainerResourceLimit = async (
         });
         return;
       }
+
+      //update replicas database resource limits in our database
+      await getDefaultWriterPool().query(
+        "UPDATE databases SET cpu_limit = $1, memory_limit = $2 WHERE container_name = $3",
+        [cpu_limit, memory_limit, replicaContainerName]
+      );
+      console.log(
+        `Container resource limits updated successfully for replica ${replicaContainerName}`
+      );
     }
   }
 

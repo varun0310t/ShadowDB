@@ -28,64 +28,72 @@ interface PerformanceTabProps {
   refetchDatabases?: () => Promise<any>;
 }
 
-export function PerformanceTab({ selectedDatabase, refetchDatabases }: PerformanceTabProps) {
+export function PerformanceTab({
+  selectedDatabase,
+  refetchDatabases,
+}: PerformanceTabProps) {
   const queryClient = useQueryClient();
   const databaseId = selectedDatabase?.id;
-  
+
   // State for resource values
   const [cpuValue, setCpuValue] = useState<number>(1);
   const [memoryValue, setMemoryValue] = useState<number>(1);
   const [storageValue, setStorageValue] = useState<number>(100);
-  
+
   // Original values for comparison
   const [originalValues, setOriginalValues] = useState({
     cpu: 1,
     memory: 1,
-    storage: 100
+    storage: 100,
   });
-  
+
   // Fetch resource information
   const { data: resourceData, isLoading: resourceLoading } = useQuery({
     queryKey: ["databaseResources", databaseId],
     queryFn: async () => {
-      const response = await axios.get(`/api/storage/checkdatabaseinfo/?databaseId=${databaseId}`);
+      const response = await axios.get(
+        `/api/storage/checkdatabaseinfo/?databaseId=${databaseId}`
+      );
       console.log(response.data);
       return response.data;
     },
-    enabled: !!databaseId
+    enabled: !!databaseId,
   });
-  
+
   // Fetch storage information
   const { data: storageData, isLoading: storageLoading } = useQuery({
     queryKey: ["databaseStorage", databaseId],
     queryFn: async () => {
       console.log("Fetching storage data for database ID:", databaseId);
-      const response = await axios.get(`/api/storage/checkdatabaseinfo/?databaseId=${databaseId}`);
+      const response = await axios.get(
+        `/api/storage/checkdatabaseinfo/?databaseId=${databaseId}`
+      );
       return response.data;
-
     },
-    enabled: !!databaseId
+    enabled: !!databaseId,
   });
-  
+
   // Update resources mutation
   const updateResourcesMutation = useMutation({
     mutationFn: async (data: { cpu_limit?: number; memory_limit?: number }) => {
       return axios.post("/api/resource/update", {
         database_id: databaseId,
-        ...data
+        ...data,
       });
     },
     onSuccess: () => {
       // Update cache
-      queryClient.invalidateQueries({ queryKey: ["databaseResources", databaseId] });
-      
+      queryClient.invalidateQueries({
+        queryKey: ["databaseResources", databaseId],
+      });
+
       // Update original values for CPU and memory
-      setOriginalValues(prev => ({
+      setOriginalValues((prev) => ({
         ...prev,
         cpu: cpuValue,
-        memory: memoryValue
+        memory: memoryValue,
       }));
-      
+
       toast({
         title: "Resources updated",
         description: "Database resources have been updated successfully",
@@ -98,27 +106,29 @@ export function PerformanceTab({ selectedDatabase, refetchDatabases }: Performan
         description: "Failed to update database resources",
         variant: "destructive",
       });
-    }
+    },
   });
-  
+
   // Update storage mutation
   const updateStorageMutation = useMutation({
     mutationFn: async (data: { maxSizeMB: number }) => {
       return axios.post("/api/storage/updateSize", {
         databaseId,
-        ...data
+        ...data,
       });
     },
     onSuccess: () => {
       // Update cache
-      queryClient.invalidateQueries({ queryKey: ["databaseStorage", databaseId] });
-      
+      queryClient.invalidateQueries({
+        queryKey: ["databaseStorage", databaseId],
+      });
+
       // Update original values for storage
-      setOriginalValues(prev => ({
+      setOriginalValues((prev) => ({
         ...prev,
-        storage: storageValue
+        storage: storageValue,
       }));
-      
+
       toast({
         title: "Storage updated",
         description: "Database storage limit has been updated successfully",
@@ -131,82 +141,88 @@ export function PerformanceTab({ selectedDatabase, refetchDatabases }: Performan
         description: "Failed to update storage limit",
         variant: "destructive",
       });
-    }
+    },
   });
-  
-  useEffect(() => {
-  },[])
+
+  useEffect(() => {}, []);
   // Set initial values when data is loaded
   useEffect(() => {
     if (resourceData?.resources) {
-      const cpuAllocation = parseFloat(resourceData.resources.allocated_resources.cpu);
-      const memoryAllocation = parseFloat(resourceData.resources.allocated_resources.memory);
-      
+      const cpuAllocation = parseFloat(
+        resourceData.resources.allocated_resources.cpu
+      );
+      const memoryAllocation = parseFloat(
+        resourceData.resources.allocated_resources.memory
+      );
+
       setCpuValue(cpuAllocation);
       setMemoryValue(memoryAllocation);
-      
-      setOriginalValues(prev => ({
+
+      setOriginalValues((prev) => ({
         ...prev,
         cpu: cpuAllocation,
-        memory: memoryAllocation
+        memory: memoryAllocation,
       }));
     }
   }, [resourceData]);
-  
+
   useEffect(() => {
     if (storageData?.storageData) {
       console.log("Storage data:", storageData.storageData.storage);
       // Convert MB to GB for display
-      const storageSizeGB = Math.round(storageData.storageData.storage.allocated_storage);
-      
+      const storageSizeGB = Math.round(
+        storageData.storageData.storage.allocated_storage
+      );
+
       setStorageValue(storageSizeGB);
-      setOriginalValues(prev => ({
+      setOriginalValues((prev) => ({
         ...prev,
-        storage: storageSizeGB
+        storage: storageSizeGB,
       }));
     }
   }, [storageData]);
-  
+
   // Save resource changes
   const handleSaveChanges = async () => {
     if (!databaseId) return;
-    
+
     // Check what has changed
     const cpuChanged = cpuValue !== originalValues.cpu;
     const memoryChanged = memoryValue !== originalValues.memory;
     const storageChanged = storageValue !== originalValues.storage;
-    
+
     // Update resources if changed
     if (cpuChanged || memoryChanged) {
       updateResourcesMutation.mutate({
         cpu_limit: cpuValue,
-        memory_limit: memoryValue 
+        memory_limit: memoryValue,
       });
     }
-    
+
     // Update storage if changed
     if (storageChanged) {
       updateStorageMutation.mutate({
-        maxSizeMB: storageValue 
+        maxSizeMB: storageValue,
       });
     }
-    
+
     // Refetch databases list if provided
     if (refetchDatabases) {
       await refetchDatabases();
     }
   };
-  
+
   // Check if anything changed
-  const hasChanges = 
-    cpuValue !== originalValues.cpu || 
-    memoryValue !== originalValues.memory || 
+  const hasChanges =
+    cpuValue !== originalValues.cpu ||
+    memoryValue !== originalValues.memory ||
     storageValue !== originalValues.storage;
-  
+
   // Calculate if any mutations are in progress
-  const isSaving = updateResourcesMutation.isPending || updateStorageMutation.isPending;
+  const isSaving =
+    updateResourcesMutation.isPending || updateStorageMutation.isPending;
   const isLoading = resourceLoading || storageLoading;
-  
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -214,7 +230,7 @@ export function PerformanceTab({ selectedDatabase, refetchDatabases }: Performan
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-4">
       <Card className="bg-[#151923] border-gray-800">
@@ -228,7 +244,9 @@ export function PerformanceTab({ selectedDatabase, refetchDatabases }: Performan
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <Label className="text-gray-200">CPU Allocation</Label>
-              <span className="text-sm font-medium text-gray-200">{cpuValue} vCPUs</span>
+              <span className="text-sm font-medium text-gray-200">
+                {cpuValue} vCPUs
+              </span>
             </div>
             <Slider
               value={[cpuValue]}
@@ -246,7 +264,9 @@ export function PerformanceTab({ selectedDatabase, refetchDatabases }: Performan
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <Label className="text-gray-200">Memory</Label>
-              <span className="text-sm font-medium text-gray-200">{memoryValue} MB</span>
+              <span className="text-sm font-medium text-gray-200">
+                {memoryValue} MB
+              </span>
             </div>
             <Slider
               value={[memoryValue]}
@@ -264,7 +284,9 @@ export function PerformanceTab({ selectedDatabase, refetchDatabases }: Performan
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <Label className="text-gray-200">Storage</Label>
-              <span className="text-sm font-medium text-gray-200">{storageValue} MB</span>
+              <span className="text-sm font-medium text-gray-200">
+                {storageValue} MB
+              </span>
             </div>
             <Slider
               value={[storageValue]}
@@ -279,9 +301,55 @@ export function PerformanceTab({ selectedDatabase, refetchDatabases }: Performan
             </p>
           </div>
         </CardContent>
+        <CardContent className="space-y-6">
+=
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <Label className="text-gray-200">Storage Usage</Label>
+            <span className="text-sm font-medium text-gray-200">
+              {storageData?.storageData?.storage?.current_storage || 0} / {storageValue} MB (
+              {Math.round(
+                ((storageData?.storageData?.storage?.current_storage || 0) / storageValue) *
+                  100
+              ) || 0}
+              %)
+            </span>
+          </div>
+         
+          {/* Storage Usage Bar */}
+          <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full ${
+                (storageData?.storageData?.storage?.current_storage || 0) / storageValue >
+                0.8
+                  ? "bg-red-500"
+                  : (storageData?.storageData?.storage?.current_storage || 0) /
+                      storageValue >
+                    0.6
+                  ? "bg-yellow-500"
+                  : "bg-green-500"
+              }`}
+              style={{
+                width: `${Math.min(
+                  ((storageData?.storageData?.storage?.current_storage || 0) /
+                    storageValue) *
+                    100,
+                  100
+                )}%`,
+              }}
+            />
+          </div>
+
+          <p className="text-xs text-gray-400">
+            Current storage usage. When usage approaches the limit, consider
+            increasing capacity or cleaning up old data.
+          </p>
+        </div>
+        </CardContent>
+   
         {hasChanges && (
           <CardFooter>
-            <Button 
+            <Button
               className="w-full bg-purple-600 hover:bg-purple-700 text-white"
               onClick={handleSaveChanges}
               disabled={isSaving}
@@ -292,7 +360,7 @@ export function PerformanceTab({ selectedDatabase, refetchDatabases }: Performan
                   Saving Changes...
                 </>
               ) : (
-                'Save Changes'
+                "Save Changes"
               )}
             </Button>
           </CardFooter>
@@ -314,7 +382,10 @@ export function PerformanceTab({ selectedDatabase, refetchDatabases }: Performan
                 Cache frequently executed queries
               </p>
             </div>
-            <Switch defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
+            <Switch
+              defaultChecked
+              className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
+            />
           </div>
 
           <div className="flex items-center justify-between">
@@ -324,7 +395,10 @@ export function PerformanceTab({ selectedDatabase, refetchDatabases }: Performan
                 Automatically clean up and optimize storage
               </p>
             </div>
-            <Switch defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
+            <Switch
+              defaultChecked
+              className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
+            />
           </div>
 
           <div className="space-y-2">
