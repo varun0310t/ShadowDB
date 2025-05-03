@@ -1,19 +1,18 @@
 import { getDefaultReaderPool } from "../Getpools";
-import net from 'net';  
-
-
+import net from "net";
 
 export function isPortInUse(port: number): Promise<boolean> {
   return new Promise((resolve) => {
-    const server = net.createServer()
-      .once('error', (err: any) => {
-        if (err.code === 'EADDRINUSE') {
+    const server = net
+      .createServer()
+      .once("error", (err: any) => {
+        if (err.code === "EADDRINUSE") {
           resolve(true); // Port is in use
         } else {
           resolve(false);
         }
       })
-      .once('listening', () => {
+      .once("listening", () => {
         console.log(`Port ${port} is available`);
         server.close();
         resolve(false); // Port is available
@@ -22,20 +21,27 @@ export function isPortInUse(port: number): Promise<boolean> {
   });
 }
 
-
 // Updated findAvailablePort function
 export async function findAvailablePort(startPort: number): Promise<number> {
   try {
     // Get all used ports from database
     const { rows } = await getDefaultReaderPool().query(
-      "SELECT port FROM databases UNION SELECT patroni_port AS port FROM databases WHERE patroni_port IS NOT NULL"
+      `SELECT port FROM databases 
+UNION 
+SELECT patroni_port AS port FROM databases WHERE patroni_port IS NOT NULL 
+UNION 
+SELECT read_port AS port FROM haproxy_instances 
+UNION 
+SELECT write_port AS port FROM haproxy_instances 
+UNION 
+SELECT port FROM pgpool_instances`
     );
     const usedPorts = new Set(rows.map((row) => row.port));
     console.log("Used ports from database:", usedPorts);
 
     // Find an available port that's not used by DB or already in use on the machine
     let port = startPort;
-    while (usedPorts.has(port) || await isPortInUse(port)) {
+    while (usedPorts.has(port) || (await isPortInUse(port))) {
       port++;
     }
 
