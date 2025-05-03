@@ -167,7 +167,6 @@ volumes:
   pg_primary:
   pg_replica1:
   pg_replica2:
-  patroni_data:
   etcd_data:
   redis_data:
   grafana_data:
