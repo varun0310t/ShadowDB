@@ -59,6 +59,14 @@ CREATE TABLE users (
   email_notifications BOOLEAN DEFAULT true,
   two_factor_enabled BOOLEAN DEFAULT false,
   theme VARCHAR(20) DEFAULT 'dark',
+
+  --notification preferences
+  Security_alert BOOLEAN DEFAULT true,
+  Marketing_alert BOOLEAN DEFAULT true,
+  Product_alert BOOLEAN DEFAULT true,
+  Usage_alert BOOLEAN DEFAULT true,
+  New_login_alert BOOLEAN DEFAULT true,
+  
   
   
   -- Audit fields
