@@ -60,11 +60,12 @@ export async function PATCH(req: Request) {
 
     try {
       passwordChangeSchema.parse(body);
-    } catch (validationError: any) {
-      return NextResponse.json(
-        { error: validationError.errors[0].message },
-        { status: 400 }
-      );
+    } catch (validationError: unknown) {
+      const errorMessage =
+        validationError instanceof z.ZodError
+          ? validationError.message
+          : "Unknown error";
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
 
     const { currentPassword, newPassword } = body;
@@ -115,12 +116,11 @@ export async function PATCH(req: Request) {
     return NextResponse.json({
       message: "Password updated successfully",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error changing password:", error);
-    return NextResponse.json(
-      { error: "Failed to change password" },
-      { status: 500 }
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -131,11 +131,13 @@ export async function POST(req: Request) {
 
     try {
       resetRequestSchema.parse(body);
-    } catch (validationError: any) {
-      return NextResponse.json(
-        { error: validationError.errors[0].message },
-        { status: 400 }
-      );
+    } catch (validationError: unknown) {
+      const errorMessage =
+        validationError instanceof z.ZodError
+          ? validationError.message
+          : "Unknown error";
+
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
 
     const { email } = body;
@@ -190,7 +192,7 @@ export async function POST(req: Request) {
         { status: 500 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error requesting password reset:", error);
     return NextResponse.json(
       { error: "Failed to process reset request" },
@@ -206,11 +208,8 @@ export async function PUT(req: Request) {
 
     try {
       resetValidationSchema.parse(body);
-    } catch (validationError: any) {
-      return NextResponse.json(
-        { error: validationError.errors[0].message },
-        { status: 400 }
-      );
+    } catch (validationError: unknown) {
+      return NextResponse.json({ error: validationError }, { status: 400 });
     }
 
     const { token, newPassword } = body;
@@ -249,7 +248,7 @@ export async function PUT(req: Request) {
     return NextResponse.json({
       message: "Password reset successful",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error resetting password:", error);
     return NextResponse.json(
       { error: "Failed to reset password" },

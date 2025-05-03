@@ -26,8 +26,9 @@ export class UserAccountService {
     try {
       const response = await axios.patch(this.BASE_URL, data);
       return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.error || 'Failed to change password');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(errorMessage || 'Failed to change password');
     }
   }
 
@@ -38,8 +39,9 @@ export class UserAccountService {
     try {
       const response = await axios.post(this.BASE_URL, data);
       return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.error || 'Failed to request password reset');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(errorMessage|| 'Failed to request password reset');
     }
   }
 
@@ -50,8 +52,9 @@ export class UserAccountService {
     try {
       const response = await axios.put(this.BASE_URL, data);
       return response.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.error || 'Failed to reset password');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(errorMessage || 'Failed to reset password');
     }
   }
 

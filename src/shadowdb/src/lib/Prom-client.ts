@@ -1,6 +1,5 @@
 //// filepath: /B:/git repos B/ShadowDB/src/shadowdb/lib/Prom-client.ts
 import promClient from 'prom-client';
-import { DefaultMetricsCollectorConfiguration } from 'prom-client';
 // Set default labels such as the app name
 promClient.register.setDefaultLabels({
   app: 'shadowdb',

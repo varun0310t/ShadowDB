@@ -42,8 +42,6 @@ import {
   UserPlus,
   Shield,
   AlertCircle,
-  Check,
-  X,
   AlertTriangle,
   Loader2,
 } from "lucide-react";
@@ -173,11 +171,11 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      const errorResponse = (error as any)?.response?.data?.error;
+
       
       toast({
         title: "Error",
-        description: errorResponse || `Failed to grant access: ${errorMessage}`,
+        description: errorMessage || `Failed to grant access: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
@@ -213,11 +211,11 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      const errorResponse = (error as any)?.response?.data?.error;
+    
       
       toast({
         title: "Error Updating Access",
-        description: errorResponse || `Failed to update access: ${errorMessage}`,
+        description: errorMessage || `Failed to update access: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
@@ -250,13 +248,13 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      const errorResponse = (error as any)?.response?.data?.error;
+    
       
-      setRevokeError(errorResponse || `Error: ${errorMessage}`);
+      setRevokeError(errorMessage || `Error: ${errorMessage}`);
       
       toast({
         title: "Error Revoking Access",
-        description: errorResponse || `Failed to revoke access: ${errorMessage}`,
+        description: errorMessage || `Failed to revoke access: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
@@ -306,7 +304,7 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
                 <DialogHeader>
                   <DialogTitle>Grant Database Access</DialogTitle>
                   <DialogDescription className="text-gray-400">
-                    Add a user to database "{selectedDatabase.db_name}"
+                    Add a user to database {selectedDatabase.db_name}
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleGrantAccess}>

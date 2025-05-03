@@ -1,6 +1,6 @@
 import "../db/index";
 import { getDefaultWriterPool, getUserPool, setUserPool } from "./userPools";
-import { Pool } from "pg";
+import { DatabaseError, Pool } from "pg";
 import axios from "axios";
 
 const DB_SERVICE_URL = process.env.DB_SERVICE_URL || "http://localhost:3001";
@@ -33,8 +33,8 @@ export async function initializeUserPool(
     // Create database
     try {
       await getDefaultWriterPool().query(`CREATE DATABASE ${db_name}`);
-    } catch (error: any) {
-      if (error.code === "42P04") {
+    } catch (error: unknown) {
+      if (error instanceof DatabaseError && error.code === "42P04") {
         console.log(`Database ${db_name} already exists`);
       } else {
         console.error(`Error creating database ${db_name}:`, error);
@@ -114,7 +114,6 @@ export async function initializeUserPool(
       if (result.rows.length > 0) {
         dbDetails = result.rows[0];
       }
-     
 
       if (!dbDetails) {
         throw new Error("Could not find database details");
@@ -125,7 +124,7 @@ export async function initializeUserPool(
       // Get connection details from database record
       const host = process.env.DB_SERVICE_HOST || "localhost";
       const port = dbDetails.port;
-      const password = encodeURIComponent(dbDetails.password || "");
+
 
       // Create writer pool (connecting to primary)
       const writerPool = new Pool({
@@ -136,7 +135,7 @@ export async function initializeUserPool(
         password: dbDetails.password,
         application_name: `isolated-writer-${db_name}`,
       });
-     console.log("writerPool", writerPool);
+      console.log("writerPool", writerPool);
       // Test the connection
       await writerPool.query("SELECT NOW()");
       console.log(`Connected to isolated PostgreSQL writer for ${db_name}`);
@@ -169,10 +168,18 @@ export async function initializeUserPool(
               if (response.data && Array.isArray(response.data)) {
                 replicas = response.data;
               }
-            } catch (replicaErr: any) {
-              console.warn(
-                `Could not fetch replicas from DB service: ${replicaErr.message}`
-              );
+            } catch (replicaErr: unknown) {
+              if (replicaErr instanceof Error) {
+                console.error(
+                  `Error fetching replicas from DB service: ${replicaErr.message}`
+                );
+              } else {
+                console.error(
+                  `Error fetching replicas from DB service: ${JSON.stringify(
+                    replicaErr
+                  )}`
+                );
+              }
               // Continue without replicas
             }
           }
@@ -183,8 +190,9 @@ export async function initializeUserPool(
         console.log(
           `Found ${replicas.length} replicas for database ${db_name}`
         );
-      } catch (replicaErr: any) {
-        console.warn(`Error querying for replicas: ${replicaErr.message}`);
+      } catch (replicaErr: unknown) {
+        const errorMessage = replicaErr instanceof Error ? replicaErr.message : JSON.stringify(replicaErr);
+        console.warn(`Error querying for replicas: ${errorMessage}`);
         // Continue with empty replicas array
       }
 

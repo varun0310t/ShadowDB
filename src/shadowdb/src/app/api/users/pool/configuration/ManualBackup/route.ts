@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { BackupManager } from "@/db/psqlBackup";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
-import { getDefaultReaderPool, getDefaultWriterPool } from "@/lib/userPools";
+import { getDefaultReaderPool } from "@/lib/userPools";
 import axios from "axios";
 import dotenv from "dotenv";
 dotenv.config(); // Loads variables from a .env file (if present)
@@ -51,10 +50,12 @@ console.log("Request body:", databaseName, databaseID);
       message: "Backup process started successfully",
       backupId,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Backup API error:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to create backup", details: error.message },
+      { error: "Failed to create backup", details: errorMessage },
       { status: 500 }
     );
   }
@@ -154,10 +155,13 @@ export async function GET(req: Request) {
         },
       });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Backup API error:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    // Handle axios errors specifically
     return NextResponse.json(
-      { error: "Failed to get backup information", details: error.message },
+      { error: "Failed to get backup information", details: errorMessage },
       { status: 500 }
     );
   }

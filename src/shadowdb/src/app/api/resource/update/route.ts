@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import axios from "axios";
-import { getDefaultReaderPool, getDefaultWriterPool } from "@/lib/userPools";
+import { getDefaultReaderPool } from "@/lib/userPools";
 
 export async function POST(request: NextRequest) {
   try {

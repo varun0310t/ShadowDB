@@ -37,7 +37,7 @@ export async function terminateDbConnections(
  */
 export async function databaseInfobyId(
   dbId: string
-): Promise<{ success: boolean; message: string; dbInfo?: any }> {
+): Promise<{ success: boolean; message: string; dbInfo?: string }> {
   try {
     const result = await getDefaultReaderPool().query(
       `SELECT * FROM databases WHERE id = $1`,

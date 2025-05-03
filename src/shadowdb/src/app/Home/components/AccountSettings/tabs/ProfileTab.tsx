@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Switch } from "@/components/ui/switch"
+
 
 type ProfileFormData = {
   name: string
@@ -24,7 +23,7 @@ type ProfileFormData = {
 }
 
 interface ProfileTabProps {
-  userData: any
+  userData: ProfileFormData | null
   onUpdate: () => Promise<void>
 }
 
@@ -72,11 +71,12 @@ export function ProfileTab({ userData, onUpdate }: ProfileTabProps) {
       } else {
         throw new Error((await response.json()).error)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error"
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to update profile"
+        description:errorMessage || "Failed to update profile"
       })
     }
   }

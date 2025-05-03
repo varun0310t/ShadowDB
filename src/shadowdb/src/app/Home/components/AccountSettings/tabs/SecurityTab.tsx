@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import {
   Card,
   CardContent,
@@ -117,10 +116,11 @@ export function SecurityTab() {
         newPasswordRole: "",
         confirmPasswordRole: "",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       toast({
         title: "Error",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -232,7 +232,7 @@ export function SecurityTab() {
                 id="currentPasswordRole"
                 type="password"
                 value={formDataRole.currentPasswordRole}
-                onChange={handleInputChange}
+                onChange={handleInputChangeRole}
                 className="bg-[#0B0F17] border-gray-800 text-white"
               />
             </div>
@@ -244,7 +244,7 @@ export function SecurityTab() {
                 id="newPasswordRole"
                 type="password"
                 value={formDataRole.newPasswordRole}
-                onChange={handleInputChange}
+                onChange={handleInputChangeRole}
                 className="bg-[#0B0F17] border-gray-800 text-white"
               />
             </div>
@@ -256,17 +256,17 @@ export function SecurityTab() {
                 id="confirmPasswordRole"
                 type="password"
                 value={formDataRole.confirmPasswordRole}
-                onChange={handleInputChange}
+                onChange={handleInputChangeRole}
                 className="bg-[#0B0F17] border-gray-800 text-white"
               />
             </div>
             <div className="pt-2">
               <Button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoadingRole}
                 className="bg-purple-600 hover:bg-purple-700"
               >
-                {isLoading ? "Updating..." : "Update Password"}
+                {isLoadingRole ? "Updating..." : "Update Password"}
               </Button>
             </div>
           </form>

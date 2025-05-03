@@ -31,5 +31,5 @@ export interface ConnectionConfigType {
     write_port: number;
     read_port: number;
   };
-  all_db_pools?: any[];
+  all_db_pools?: {id:number}[];
 }

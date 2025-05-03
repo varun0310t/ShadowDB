@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { getDefaultWriterPool } from "../../../../../lib/userPools";
-import { checkAndUpdateLeader,scopeLeaderIndex } from "@/lib/LeaderCheck";
+import { checkAndUpdateLeader, scopeLeaderIndex } from "@/lib/LeaderCheck";
 import axios from "axios";
 
 // DB Service configuration
@@ -18,7 +18,8 @@ export async function POST(req: Request) {
   }
 
   // Parse incoming JSON request body
-  let { tenancy_type, db_name, password } = await req.json();
+  const { tenancy_type, db_name } = await req.json();
+  let { password } = await req.json();
 
   // Validate tenancy_type
   if (!["shared", "isolated"].includes(tenancy_type)) {
@@ -43,12 +44,12 @@ export async function POST(req: Request) {
 
       let dbId;
       let connectionDetails = null;
-      const userdetailsquery= `SELECT * FROM users WHERE id = $1`;
+      const userdetailsquery = `SELECT * FROM users WHERE id = $1`;
       const userdetailsvalues = [session.user.id];
-      const {rows} = await client.query(userdetailsquery, userdetailsvalues);
+      const { rows } = await client.query(userdetailsquery, userdetailsvalues);
       const userdetails = rows[0];
       const userEmail = userdetails.email;
-      const role_password=  userdetails.role_password;
+      const role_password = userdetails.role_password;
       if (tenancy_type === "isolated") {
         // For isolated databases, just call the DB service
         try {
@@ -75,13 +76,15 @@ export async function POST(req: Request) {
           // Use the ID from the DB service directly
           dbId = connectionDetails.id;
           console.log("DB Service ID:", dbId);
-        } catch (dbServiceError: any) {
-          console.error(
-            "DB Service error:",
-            dbServiceError.response?.data || dbServiceError.message
-          );
+        } catch (dbServiceError: unknown) {
+          const errorMessage =
+            dbServiceError instanceof Error
+              ? dbServiceError.message
+              : "Unknown error";
+          console.error("DB Service error:", errorMessage);
+          console.error("DB Service error:", errorMessage);
           throw new Error(
-            `Failed to provision isolated database: ${dbServiceError.message}`
+            `Failed to provision isolated database: ${errorMessage}`
           );
         }
       } else {
@@ -139,9 +142,11 @@ export async function POST(req: Request) {
     } finally {
       client.release();
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Database provisioning error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 

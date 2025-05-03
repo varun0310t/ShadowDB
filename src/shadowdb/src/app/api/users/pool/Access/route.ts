@@ -7,7 +7,6 @@ import {
   getDefaultWriterPool,
 } from "../../../../../lib/userPools";
 import {
-  terminateDbConnections,
   CheckIfUserHasAccess,
   databaseExists,
   databaseInfobyId,
@@ -112,10 +111,12 @@ export async function GET(req: Request) {
       database: dbName,
       users: accessList.rows,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error retrieving database access list:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
+      { error: errorMessage || "Internal server error" },
       { status: 500 }
     );
   }
@@ -135,9 +136,15 @@ export async function POST(req: Request) {
 
     try {
       grantAccessSchema.parse(body);
-    } catch (validationError: any) {
+    } catch (validationError: unknown) {
+      console.error("Validation error:", validationError);
+
+      const errorMessage =
+        validationError instanceof z.ZodError
+          ? validationError.message
+          : "Unknown error";
       return NextResponse.json(
-        { error: `Invalid request data: ${validationError.message}` },
+        { error: `Invalid request data: ${errorMessage}` },
         { status: 400 }
       );
     }
@@ -251,10 +258,12 @@ export async function POST(req: Request) {
     } else {
       throw new Error("could not create new role");
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error granting database access:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
+      { error: errorMessage || "Internal server error" },
       { status: 500 }
     );
   }
@@ -274,9 +283,13 @@ export async function PATCH(req: Request) {
 
     try {
       updateAccessSchema.parse(body);
-    } catch (validationError: any) {
+    } catch (validationError: unknown) {
+      const errorMessage =
+        validationError instanceof z.ZodError
+          ? validationError.message
+          : "Unknown error";
       return NextResponse.json(
-        { error: `Invalid request data: ${validationError.message}` },
+        { error: `Invalid request data: ${errorMessage}` },
         { status: 400 }
       );
     }
@@ -332,8 +345,7 @@ export async function PATCH(req: Request) {
     }
 
     const dbId = dbIdResult.rows[0].id;
-    const ownerId =
-      dbIdResult.rows[0].owner_id; /* Use  instead of owner_id */
+    const ownerId = dbIdResult.rows[0].owner_id; /* Use  instead of owner_id */
 
     // If updating the owner's access, ensure they always have admin privileges
     if (
@@ -367,10 +379,12 @@ export async function PATCH(req: Request) {
       success: true,
       accessLevel,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating database access:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
+      { error: errorMessage || "Internal server error" },
       { status: 500 }
     );
   }
@@ -484,10 +498,13 @@ export async function DELETE(req: Request) {
       message: `Access revoked for user ${email} on database "${dbName}"`,
       success: true,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error revoking database access:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
+      { error: errorMessage || "Internal server error" },
       { status: 500 }
     );
   }

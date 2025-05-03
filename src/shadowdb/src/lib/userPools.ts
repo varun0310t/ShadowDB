@@ -1,5 +1,4 @@
 import { Pool } from "pg";
-import axios from "axios";
 import dotenv from "dotenv";
 dotenv.config();
 const userPools = new Map<string, Pool[]>();
@@ -11,7 +10,7 @@ import {
   leaderPoolIndex,
   checkAndUpdateLeader,
 } from "./LeaderCheck";
-import { get } from "http";
+
 
 if (process.env.environment == "development") {
   checkAndUpdateLeader();

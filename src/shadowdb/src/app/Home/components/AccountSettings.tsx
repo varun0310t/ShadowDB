@@ -28,6 +28,7 @@ export default function AccountSettings() {
         setUserData(data)
       }
     } catch (error) {
+      console.error("Error fetching user data:", error)
       toast({
         variant: "destructive",
         title: "Error",
@@ -38,7 +39,7 @@ export default function AccountSettings() {
     }
   }
 
-  const handleImageUpdate = async (imageData: string) => {
+/*   const handleImageUpdate = async (imageData: string) => {
     try {
       const response = await fetch('/api/users/profile/personalInfo', {
         method: 'PATCH',
@@ -60,7 +61,7 @@ export default function AccountSettings() {
         description: "Failed to update profile image"
       })
     }
-  }
+  } */
 
   return (
     <div className="container mx-auto animate-fadeIn">

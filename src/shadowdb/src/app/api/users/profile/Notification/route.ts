@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { getDefaultReaderPool, getDefaultWriterPool } from "@/lib/userPools";
 import { z } from "zod";
-import { Noto_Znamenny_Musical_Notation } from "next/font/google";
+
 
 // Supabase client setup
 
@@ -17,7 +17,7 @@ const email_notifications_preferrences = z.object({
 });
 
 // GET: Fetch user email notifications preferences
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -44,9 +44,10 @@ export async function GET(req: Request) {
     };
     console.log(preferences);
     return NextResponse.json(preferences, { status: 200 });
-  } catch (error: any) {
+  } catch (e:unknown) {
+    const error = e as Error;
     return NextResponse.json(
-      { error: "Failed to fetch user preferences" },
+      { error: error.message || "Failed to fetch user preferences" },
       { status: 500 }
     );
   }
@@ -66,9 +67,14 @@ export async function PATCH(req: Request) {
     try {
       console.log(body);
       email_notifications_preferrences.parse(body.emailPreferences);
-    } catch (validationError: any) {
+    } catch (validationError: unknown) {
+
+      const errorMessage=
+        validationError instanceof Error
+          ? validationError.message
+          : "Unknown error";
       return NextResponse.json(
-        { error: `Invalid data: ${validationError.message}` },
+        { error: `Invalid data: ${errorMessage}` },
         { status: 400 }
       );
     }
@@ -102,10 +108,13 @@ export async function PATCH(req: Request) {
       { message: "Preferences updated successfully" },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating personal info:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    
     return NextResponse.json(
-      { error: "Failed to update personal information" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

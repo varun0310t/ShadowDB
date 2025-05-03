@@ -7,26 +7,7 @@ import {
   getDefaultReaderPool,
 } from "../../../../../lib/userPools";
 import { initializeUserPool } from "../../../../../lib/initializeUserPools";
-interface DatabaseEntry {
-  id: number;
-  tenancy_type: "shared" | "isolated";
-  db_name: string;
-  access_level: "admin" | "user";
-  region?: string;
-  created_at?: string;
-  status?: "active" | "inactive" | "maintenance";
-  db_user?: string;
-  db_password?: string;
-  haproxy?: {
-    write_port?: number;
-    read_port?: number;
-  };
-  pgpool?: {
-    port?: number;
-    enable_connection_pooling?: boolean;
-    enable_query_cache?: boolean;
-  };
-}
+
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user) {
@@ -81,9 +62,11 @@ export async function POST(req: Request) {
       },
       poolStatus: sanitizedStatus,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error starting user application:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
@@ -176,8 +159,10 @@ export async function GET(req: Request) {
       })),
     };
     return NextResponse.json(response);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error starting user application:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

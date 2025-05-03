@@ -5,7 +5,7 @@ import {
   getDefaultReaderPool,
 } from "./userPools";
 import { initializeUserPool } from "./initializeUserPools";
-import { checkAndUpdateLeader, leaderPoolIndex } from "./LeaderCheck";
+import { checkAndUpdateLeader } from "./LeaderCheck";
 import Rclient from "../db/RedisClient";
 import { CacheOptions, getCacheKey } from "./Caching";
 import {
@@ -13,7 +13,7 @@ import {
   queryFailureCounter,
   queryDurationHistogram,
 } from "./monitoring";
-import cluster from "cluster";
+
 
 function isWriteQuery(query: string): boolean {
   // Remove single-line (--) and multi-line (/* */) comments
@@ -28,12 +28,12 @@ function isWriteQuery(query: string): boolean {
   // Consider SELECT and WITH as read queries (WITH is used in CTEs)
   return !(firstWord === 'SELECT' || firstWord === 'WITH');
 }
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function executeQuery(
   userId: string,
   db_name: string, // Now requiring database name
   query: string,
-  params: any[] = [],
+  params: string[] = [],
   cacheOptions?: CacheOptions,
   ClusterScope: string = "default"
 ): Promise<QueryResult<any>> {

@@ -1,7 +1,6 @@
 //// filepath: /b:/git repos B/ShadowDB/src/shadowdb/src/app/api/query/executeQueryRoute.ts
 import { NextResponse } from "next/server";
 import { executeQuery } from "../../../../lib/queryExecutor";
-import { verifyQueryToken } from "../../../../lib/QueryAuth";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 export async function POST(req: Request) {
@@ -32,10 +31,11 @@ export async function POST(req: Request) {
 
     const result = await executeQuery(userId, db_name, query);
     return NextResponse.json({ rows: result.rows });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error executing query:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { message: error.message || "Internal Server Error" },
+      { message: errorMessage || "Internal Server Error" },
       { status: 500 }
     );
   }

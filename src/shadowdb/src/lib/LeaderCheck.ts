@@ -10,7 +10,7 @@ const defaultReader = new Pool({
   host: process.env.PG_REPLICA1_HOST,
   database: process.env.PG_REPLICA1_DATABASE,
   password: process.env.PG_REPLICA1_PASSWORD,
-  port: parseInt(process.env.PG_REPLICA1_PORT as any, 10),
+  port: parseInt(process.env.PG_REPLICA1_PORT as string, 10),
 });
 
 async function checkAndUpdateLeader() {
@@ -34,7 +34,7 @@ async function checkAndUpdateLeader() {
       const response = await axios.get(`http://localhost:${port}/cluster`);
       const clusterInfo = response.data;
       const scope = clusterInfo.scope;
-      let n = clusterInfo.members.length;
+      const n = clusterInfo.members.length;
       for (let i = 0; i < n; i++) {
         if (clusterInfo.members[i].role === "leader") {
           console.log("Leader found at index", i);

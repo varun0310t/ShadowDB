@@ -5,18 +5,6 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { z } from "zod";
 import { generateQueryToken } from "@/lib/QueryAuth";
 // Define types for type safety
-type TokenResponse = {
-  id: number;
-  user_id: number;
-  token_type: string;
-  token: string;
-  device_info: string | null;
-  ip_address: string | null;
-  expires_at: string;
-  created_at: string;
-  last_used_at: string | null;
-  is_revoked: boolean;
-};
 
 // Schema for token update validation
 const TokenUpdateSchema = z.object({
@@ -73,10 +61,12 @@ export async function GET(req: Request) {
       tokens: result.rows,
       count: result.rowCount,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error retrieving tokens:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
+      { error: errorMessage || "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -127,10 +117,12 @@ export async function POST(req: Request) {
     const result = await getDefaultWriterPool().query(insertQuery, values);
 
     return NextResponse.json(result.rows[0]);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating token:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
+      { error: errorMessage || "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -160,9 +152,21 @@ export async function PATCH(req: Request) {
     // Validate update fields (only is_revoked can be updated)
     try {
       TokenUpdateSchema.parse(updates);
-    } catch (validationError: any) {
+    } catch (validationError: unknown) {
+      console.error("Validation error:", validationError);
+      if (validationError instanceof z.ZodError) {
+        return NextResponse.json(
+          { error: `Invalid update data: ${validationError.message}` },
+          { status: 400 }
+        );
+      }
+      const errorMessage =
+        validationError instanceof Error
+          ? validationError.message
+          : "Unknown error";
+
       return NextResponse.json(
-        { error: `Invalid update data: ${validationError.message}` },
+        { error: `Invalid update data: ${errorMessage}` },
         { status: 400 }
       );
     }
@@ -194,10 +198,14 @@ export async function PATCH(req: Request) {
     }
 
     return NextResponse.json(result.rows[0]);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating token:", error);
+
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+
     return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
+      { error: errorMessage || "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -246,10 +254,12 @@ export async function DELETE(req: Request) {
       success: true,
       message: "Token deleted successfully",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error deleting token:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: error.message || "Internal Server Error" },
+      { error: errorMessage || "Internal Server Error" },
       { status: 500 }
     );
   }

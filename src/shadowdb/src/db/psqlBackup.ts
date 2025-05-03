@@ -3,7 +3,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import * as fs from "fs";
 import * as path from "path";
-import { getDefaultReaderPool, getDefaultWriterPool } from "@/lib/userPools";
+import { getDefaultWriterPool } from "@/lib/userPools";
 import { checkAndUpdateLeader } from "@/lib/LeaderCheck";
 const execAsync = promisify(exec);
 
@@ -146,7 +146,7 @@ export class BackupManager {
             await fs.promises.access(result.file, fs.constants.F_OK);
             console.log(`Backup file verified at: ${result.file}`);
           } catch (fileErr) {
-            console.error(`Backup file not found at: ${result.file}`);
+            console.error(`Backup file not found at: ${result.file} }`,fileErr);
             throw new Error(`Backup file not found: ${result.file}`);
           }
         } else {
@@ -176,7 +176,8 @@ export class BackupManager {
 
         throw new Error("Invalid backup script output");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       console.error("Backup script execution failed:", error);
       return {
         status: "Failed",
@@ -184,7 +185,7 @@ export class BackupManager {
         size: "0",
         checksum: "",
         timestamp: new Date().toISOString(),
-        error: error.message,
+        error: errorMessage,
       };
     }
   }
@@ -208,7 +209,7 @@ export class BackupManager {
 
       console.log(`File size: ${fileBuffer.length} bytes`);
 
-      const { data, error } = await this.supabaseStorage
+      const {  error } = await this.supabaseStorage
         .from(bucketName) // Use the same bucket name here
         .upload(storageKey, fileBuffer, {
           contentType: "application/sql",

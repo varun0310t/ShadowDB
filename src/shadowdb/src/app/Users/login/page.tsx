@@ -30,6 +30,7 @@ export default function LoginPage() {
       setIsGoogleLoading(true);
       await signIn("google", { callbackUrl: "/" });
     } catch (error) {
+      console.error("Google sign-in error:", error);
       toast.error("Failed to sign in with Google");
     } finally {
       setIsGoogleLoading(false);
@@ -41,6 +42,7 @@ export default function LoginPage() {
       setIsGithubLoading(true);
       await signIn("github", { callbackUrl: "/" });
     } catch (error) {
+      console.error("GitHub sign-in error:", error);
       toast.error("Failed to sign in with GitHub");
     } finally {
       setIsGithubLoading(false);

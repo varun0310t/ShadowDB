@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -27,7 +26,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Key, Copy, Trash2, AlertCircle, Lock } from "lucide-react";
 import { TokenType } from "../types/DatabaseTypes";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 
 interface ApiTokensTabProps {
   apiTokens: TokenType[];
@@ -36,8 +35,8 @@ interface ApiTokensTabProps {
   tokenExpiryDays: number;
   setTokenExpiryDays: (days: number) => void;
   isLoadingTokens: boolean;
-  generateTokenMutation: any;
-  deleteTokenMutation: any;
+  generateTokenMutation:{isPending:boolean};
+  deleteTokenMutation: {isPending:boolean};
   copyToClipboard: (text: string) => void;
   generateNewToken: () => void;
   deleteToken: (id: number) => void;

@@ -22,7 +22,7 @@ export function NativePostgresConnections({
         Native PostgreSQL Connections
       </h3>
 
-      {connectionConfig.all_db_pools?.map((pool: any, index: number) => (
+      {connectionConfig.all_db_pools?.map((pool: {id:number}, index: number) => (
         <PostgresConnectionItem
           key={`pgpool-${pool.id}`}
           pool={pool}

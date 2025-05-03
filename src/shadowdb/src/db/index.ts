@@ -1,7 +1,6 @@
 import { Pool } from "pg";
 import dotenv from "dotenv";
-import axios from "axios";
-import { setUserPool, getUserPool } from "../lib/userPools";
+import { setUserPool } from "../lib/userPools";
 
 dotenv.config(); // Loads variables from a .env file (if present)
 
@@ -11,7 +10,7 @@ const defaultWriter = new Pool({
   host: process.env.PG_HOST,
   database: process.env.PG_DATABASE,
   password: process.env.PG_PASSWORD,
-  port: parseInt(process.env.PG_PORT as any, 10),
+  port: parseInt(process.env.PG_PORT as string, 10),
 });
 
 // Default reader pools
@@ -21,14 +20,14 @@ const defaultReaders = [
     host: process.env.PG_REPLICA1_HOST,
     database: process.env.PG_REPLICA1_DATABASE,
     password: process.env.PG_REPLICA1_PASSWORD,
-    port: parseInt(process.env.PG_REPLICA1_PORT as any, 10),
+    port: parseInt(process.env.PG_REPLICA1_PORT as string, 10),
   }),
   new Pool({
     user: process.env.PG_REPLICA2_USER,
     host: process.env.PG_REPLICA2_HOST,
     database: process.env.PG_REPLICA2_DATABASE,
     password: process.env.PG_REPLICA2_PASSWORD,
-    port: parseInt(process.env.PG_REPLICA2_PORT as any, 10),
+    port: parseInt(process.env.PG_REPLICA2_PORT as string, 10),
   })
 ];
 

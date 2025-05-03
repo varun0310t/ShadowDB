@@ -4,7 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import "../../../../../db/index";
 import { getDefaultReaderPool } from "../../../../../lib/userPools";
 
-export async function GET(req: Request) {
+export async function GET() {
   const session = await getServerSession(authOptions);
 
 

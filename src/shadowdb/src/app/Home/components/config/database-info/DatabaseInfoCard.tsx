@@ -23,7 +23,7 @@ import { DatabaseEntry } from "../../../types/database-types";
 
 interface DatabaseInfoCardProps {
   selectedDatabase: DatabaseEntry;
-  refetchDatabases: () => Promise<any>;
+  refetchDatabases: () => Promise<void>;
 }
 
 export function DatabaseInfoCard({
@@ -77,11 +77,12 @@ export function DatabaseInfoCard({
         });
       }
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       toast({
         title: "Error",
-        description:
-          error.response?.data?.error || "Failed to update database name",
+        description: errorMessage || "Failed to update database name",
         variant: "destructive",
       });
     },
@@ -139,8 +140,7 @@ export function DatabaseInfoCard({
             )}
             {updateDbNameMutation.isError && (
               <p className="text-xs text-red-500">
-                {updateDbNameMutation.error?.message ||
-                  "Failed to update database name"}
+                {"Failed to update database name"}
               </p>
             )}
           </div>
@@ -154,7 +154,9 @@ export function DatabaseInfoCard({
               </SelectTrigger>
               <SelectContent className="bg-[#151923] border-gray-800 text-white">
                 <SelectItem value="us-east-1">US East (N. Virginia)</SelectItem>
-                <SelectItem value="us-west-1">US West (N. California)</SelectItem>
+                <SelectItem value="us-west-1">
+                  US West (N. California)
+                </SelectItem>
                 <SelectItem value="eu-west-1">EU (Ireland)</SelectItem>
                 <SelectItem value="ap-southeast-1">
                   Asia Pacific (Singapore)
@@ -201,6 +203,7 @@ function UpdateDatabaseName(data: {
   New_DB_Name: string;
   database_id: number;
 }) {
+  console.log("Updating database name:", data);
   // This would be replaced with an actual API call
   return Promise.resolve({
     RenameResult: {

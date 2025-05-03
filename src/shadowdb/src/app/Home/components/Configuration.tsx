@@ -139,7 +139,7 @@ export default function DatabaseConfiguration({
 
     if (data && data.databases && selectedDatabaseId) {
       const refreshedDb = data.databases.find(
-        (db: any) => db.id.toString() === selectedDatabaseId
+        (db: {id:number}) => db.id.toString() === selectedDatabaseId
       );
 
       if (refreshedDb) {

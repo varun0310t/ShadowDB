@@ -10,6 +10,7 @@ const SECRET:Secret = process.env.QUERY_SECRET || "your-very-secret-string";
  * @param expiresIn - Expiration time (optional; default: 1 hour)
  * @returns A JWT
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function generateQueryToken(
   payload: object,
   expiresIn: string = "30d"
@@ -25,6 +26,7 @@ export function generateQueryToken(
  * @returns The decoded payload.
  * @throws an error if token is invalid or expired.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function verifyQueryToken(token: string): any {
   return jwt.verify(token, SECRET);
 }

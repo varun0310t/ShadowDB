@@ -31,7 +31,7 @@ const personalInfoSchema = z.object({
 });
 
 // GET: Fetch user's personal info
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -69,10 +69,12 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json(result.rows[0]);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching personal info:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to fetch personal info" },
+      { error: errorMessage || "Failed to fetch personal info" },
       { status: 500 }
     );
   }
@@ -91,9 +93,20 @@ export async function PATCH(req: Request) {
     // Validate request body
     try {
       personalInfoSchema.parse(body);
-    } catch (validationError: any) {
+    } catch (validationError: unknown) {
+      console.error("Validation error:", validationError);
+      if (validationError instanceof z.ZodError) {
+        return NextResponse.json(
+          { error: `Invalid data: ${validationError.message}` },
+          { status: 400 }
+        );
+      }
+      const errorMessage =
+        validationError instanceof Error
+          ? validationError.message
+          : "Unknown error";
       return NextResponse.json(
-        { error: `Invalid data: ${validationError.message}` },
+        { error: `Invalid data: ${errorMessage}` },
         { status: 400 }
       );
     }
@@ -122,7 +135,7 @@ export async function PATCH(req: Request) {
       const buffer = Buffer.from(base64Data, "base64");
       const fileName = `${session.user.id}-${Date.now()}.jpg`;
 
-      const { data, error } = await supabase.storage
+      const {  error } = await supabase.storage
         .from("profile-pictures")
         .upload(fileName, buffer, {
           contentType: "image/jpeg",
@@ -212,10 +225,12 @@ export async function PATCH(req: Request) {
       message: "Personal information updated successfully",
       user: result.rows[0],
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating personal info:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Failed to update personal information" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

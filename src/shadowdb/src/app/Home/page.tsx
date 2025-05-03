@@ -11,8 +11,6 @@ import {
   Play,
   ChevronLeft,
   ChevronRight,
-  Activity,
-  Clock,
   Settings,
   User, // Add User icon for Account tab
 } from "lucide-react";
@@ -38,7 +36,7 @@ export default function HomePage() {
     access_level: "admin" | "user";
   }
 
-  const { data, isLoading, isError } = useQuery<
+  const { data } = useQuery<
     { databases: DatabaseEntry[] },
     Error
   >({

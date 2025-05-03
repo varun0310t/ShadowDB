@@ -8,7 +8,7 @@ import {
 } from "../../../../lib/userPools";
 import bcrypt from "bcrypt";
 import "@/db/index";
-import { use } from "react";
+
 
 export const authOptions: NextAuthOptions = {
   providers: [

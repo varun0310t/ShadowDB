@@ -1,27 +1,32 @@
-import { User, Shield, Bell, CreditCard, Key, LogOut } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { signOut } from "next-auth/react"
-import { AccountNavItem } from "./AccountNavItem"
-import { Skeleton } from "@/components/ui/skeleton"
+import { User, Shield, Bell, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+
+import { Badge } from "@/components/ui/badge";
+import { signOut } from "next-auth/react";
+import { AccountNavItem } from "./AccountNavItem";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface SidebarProps {
-  activeTab: string
-  setActiveTab: (tab: string) => void
-  userData: any
-  loading: boolean
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  userData: { image: string; name: string; email: string } | null;
+  loading: boolean;
 }
 
-export function Sidebar({ activeTab, setActiveTab, userData, loading }: SidebarProps) {
+export function Sidebar({
+  activeTab,
+  setActiveTab,
+  userData,
+  loading,
+}: SidebarProps) {
   const navigationItems = [
     { icon: <User size={18} />, title: "Profile", id: "profile" },
     { icon: <Shield size={18} />, title: "Security", id: "security" },
     { icon: <Bell size={18} />, title: "Notifications", id: "notifications" },
 
-  /*   { icon: <Key size={18} />, title: "API Keys", id: "api" }, */
-  ]
+    /*   { icon: <Key size={18} />, title: "API Keys", id: "api" }, */
+  ];
 
   return (
     <Card className="bg-[#151923] border-gray-800 sticky top-6">
@@ -39,8 +44,12 @@ export function Sidebar({ activeTab, setActiveTab, userData, loading }: SidebarP
               />
             </div>
           )}
-          <h3 className="text-xl font-semibold text-gray-300">{userData?.name || 'Loading...'}</h3>
-          <p className="text-gray-400 text-sm">{userData?.email || 'Loading...'}</p>
+          <h3 className="text-xl font-semibold text-gray-300">
+            {userData?.name || "Loading..."}
+          </h3>
+          <p className="text-gray-400 text-sm">
+            {userData?.email || "Loading..."}
+          </p>
           <Badge className="mt-2 bg-purple-600">Pro Plan</Badge>
         </div>
 
@@ -70,5 +79,5 @@ export function Sidebar({ activeTab, setActiveTab, userData, loading }: SidebarP
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

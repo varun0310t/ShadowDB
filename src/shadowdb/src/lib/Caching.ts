@@ -6,11 +6,16 @@ export interface CacheOptions {
   queryId?: string;      // optional cache key override
   customKey?: string;    // any additional info to include in the key
 }
+interface RedisClient {
+  keys(pattern: string): Promise<string[]>;
+  del(...keys: string[]): Promise<number>;
+}
+
 
 export function getCacheKey(
   poolKey: string,       // Now using poolKey which is `${userId}:${dbName}`
   query: string, 
-  params: any[] = [], 
+  params: string[] = [], 
   cacheOptions?: CacheOptions
 ): string {
   // If queryId is provided, use it directly
@@ -31,7 +36,7 @@ export function getCacheKey(
 
 // Helper function to invalidate cache for a specific database
 export async function invalidateDBCache(
-  redis: any,
+  redis:RedisClient, // Redis client instance,
   userId: string,
   dbName: string
 ): Promise<number> {
@@ -48,7 +53,7 @@ export async function invalidateDBCache(
 
 // Helper function to invalidate all user caches
 export async function invalidateUserCache(
-  redis: any,
+  redis: RedisClient,
   userId: string
 ): Promise<number> {
   const pattern = `${userId}:*:cache:*`;

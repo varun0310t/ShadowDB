@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { registry } from '../../../lib/Prom-client';
 
-export async function GET(_req: Request) {
+export async function GET() {
   const metrics = await registry.metrics();
   return new NextResponse(metrics, {
     status: 200,

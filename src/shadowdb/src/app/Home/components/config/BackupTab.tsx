@@ -32,7 +32,6 @@ import {
   createBackup,
   downloadBackup,
   restoreFromBackup,
-  updateBackupConfiguration,
   Backup,
   PaginationState,
 } from "@/client/lib/services/BackupService";

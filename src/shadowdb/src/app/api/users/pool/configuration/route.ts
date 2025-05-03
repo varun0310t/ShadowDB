@@ -3,16 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import axios from "axios";
 import "../../../../../db/index";
-import {
-  getDefaultReaderPool,
-  getDefaultWriterPool,
-} from "../../../../../lib/userPools";
-import {
-  terminateDbConnections,
-  renameDatabase,
-  RenameReferences,
-  databaseExists,
-} from "../../../../../lib/utils/DButils";
+
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -46,7 +37,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    let RenameResultRes = { message: "" };
+
 
     if (New_DB_Name && New_DB_Name !== "" && Original_DB_Name !== New_DB_Name) {
       let RenameResult = await axios.post(
@@ -72,8 +63,10 @@ export async function POST(req: Request) {
     }
     console.log("here");
     return NextResponse.json({ RenameResult: "succes" }, { status: 200 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Pool configuration error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

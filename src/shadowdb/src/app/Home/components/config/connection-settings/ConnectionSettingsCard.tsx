@@ -1,12 +1,21 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import axios from "axios";
-import { DatabaseEntry, ConnectionConfigType } from "../../../types/database-types";
-import  {HAProxyWriteConnection } from "./HAProxyWriteConnection";
+import {
+  DatabaseEntry,
+  ConnectionConfigType,
+} from "../../../types/database-types";
+import { HAProxyWriteConnection } from "./HAProxyWriteConnection";
 import { HAProxyReadConnection } from "./HAProxyReadConnection";
 import { PgPoolConnection } from "./PgPoolConnection";
 import { NativePostgresConnections } from "./NativePostgresConnections";
@@ -65,12 +74,13 @@ export function ConnectionSettingsCard({
         queryKey: ["connectionConfig", selectedDatabase.id],
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       toast({
         title: "Error",
         description:
-          error.response?.data?.error ||
-          "Failed to update connection pooling setting",
+          errorMessage || "Failed to update connection pooling setting",
         variant: "destructive",
       });
     },
@@ -96,12 +106,12 @@ export function ConnectionSettingsCard({
         queryKey: ["connectionConfig", selectedDatabase.id],
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       toast({
         title: "Error",
-        description:
-          error.response?.data?.error ||
-          "Failed to update query caching setting",
+        description: errorMessage || "Failed to update query caching setting",
         variant: "destructive",
       });
     },
@@ -124,12 +134,13 @@ export function ConnectionSettingsCard({
         variant: "default",
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+
       toast({
         title: "Error",
-        description:
-          error.response?.data?.error ||
-          "Failed to update SSL enforcement setting",
+        description: errorMessage || "Failed to update SSL enforcement setting",
         variant: "destructive",
       });
     },
@@ -161,14 +172,14 @@ export function ConnectionSettingsCard({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* HAProxy Write Connection */}
-        <HAProxyWriteConnection 
+        <HAProxyWriteConnection
           selectedDatabase={selectedDatabase}
           connectionConfig={connectionConfig}
           copyToClipboard={copyToClipboard}
         />
 
         {/* HAProxy Read Connection */}
-        <HAProxyReadConnection 
+        <HAProxyReadConnection
           selectedDatabase={selectedDatabase}
           connectionConfig={connectionConfig}
           copyToClipboard={copyToClipboard}
@@ -200,13 +211,12 @@ export function ConnectionSettingsCard({
             </p>
           </div>
           <FeaturePreview>
-          <Switch
-            checked={sslEnforced}
-            onCheckedChange={handleSslEnforcementChange}
-            disabled={true}
-            
-            className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-black"
-          />
+            <Switch
+              checked={sslEnforced}
+              onCheckedChange={handleSslEnforcementChange}
+              disabled={true}
+              className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-black"
+            />
           </FeaturePreview>
         </div>
 
@@ -218,16 +228,18 @@ export function ConnectionSettingsCard({
             </p>
           </div>
           <FeaturePreview>
-          <Switch
-            checked={
-              isLoading
-                ? selectedDatabase.pgpool?.enable_connection_pooling || false
-                : connectionPooling
-            }
-            onCheckedChange={handleConnectionPoolingChange}
-            className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-black"
-            disabled={true||isLoading || updateConnectionPoolingMutation.isPending}
-          />
+            <Switch
+              checked={
+                isLoading
+                  ? selectedDatabase.pgpool?.enable_connection_pooling || false
+                  : connectionPooling
+              }
+              onCheckedChange={handleConnectionPoolingChange}
+              className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-black"
+              disabled={
+                true || isLoading || updateConnectionPoolingMutation.isPending
+              }
+            />
           </FeaturePreview>
         </div>
 
@@ -239,16 +251,18 @@ export function ConnectionSettingsCard({
             </p>
           </div>
           <FeaturePreview>
-          <Switch
-            checked={
-              isLoading
-                ? selectedDatabase.pgpool?.enable_query_cache || false
-                : queryCaching
-            }
-            onCheckedChange={handleQueryCachingChange}
-            className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-black"
-            disabled={true||isLoading || updateQueryCachingMutation.isPending}
-          />
+            <Switch
+              checked={
+                isLoading
+                  ? selectedDatabase.pgpool?.enable_query_cache || false
+                  : queryCaching
+              }
+              onCheckedChange={handleQueryCachingChange}
+              className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-black"
+              disabled={
+                true || isLoading || updateQueryCachingMutation.isPending
+              }
+            />
           </FeaturePreview>
         </div>
       </CardContent>

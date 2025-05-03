@@ -1,8 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { toast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
 // Import component sections
@@ -15,7 +13,7 @@ import { DatabaseEntry } from "../../types/database-types";
 interface GeneralTabProps {
   selectedDatabase: DatabaseEntry;
   copyToClipboard: (text: string) => void;
-  refetchDatabases: () => Promise<any>;
+  refetchDatabases: () => Promise<void>;
 }
 
 export function GeneralTab({
@@ -24,8 +22,6 @@ export function GeneralTab({
   refetchDatabases,
 }: GeneralTabProps) {
   // Get the shared QueryClient from context
-  const queryClient = useQueryClient();
-
   // Fetch connection configuration from the API
   const { data: connectionConfig, isLoading } = useQuery({
     queryKey: ["connectionConfig", selectedDatabase.id],
@@ -55,20 +51,4 @@ export function GeneralTab({
       />
     </div>
   );
-}
-
-// Mock function for UpdateDatabaseName
-function UpdateDatabaseName(data: {
-  tenancy_type: string;
-  Original_DB_Name: string;
-  New_DB_Name: string;
-  database_id: number;
-}) {
-  // This would be replaced with an actual API call
-  return Promise.resolve({
-    RenameResult: {
-      success: true,
-      message: "Database renamed successfully",
-    },
-  });
 }

@@ -49,7 +49,7 @@ export default function RunQueryContent({
   }>;
 }) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("data");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -275,7 +275,7 @@ export default function RunQueryContent({
                       <tbody>
                         {results.map((row, i) => (
                           <tr key={i} className="border-b border-gray-800">
-                            {Object.values(row).map((value: any, j) => (
+                            {Object.values(row).map((value: string, j) => (
                               <td key={j} className="px-4 py-2">
                                 {typeof value === "object" && value !== null
                                   ? JSON.stringify(value)

@@ -41,10 +41,11 @@ function CreateDatabaseContent() {
       reset(); // Reset form
       toast.success("Database created successfully!");
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      const errorMessage =  error instanceof Error ? error.message : "An error occurred";
       setIsSubmitting(false);
-      toast.error(error.message || "An error occurred while creating the database.");
-      setError(error.message || "An error occurred while creating the database.");
+      toast.error(errorMessage || "An error occurred while creating the database.");
+      setError(errorMessage || "An error occurred while creating the database.");
     },
   });
 

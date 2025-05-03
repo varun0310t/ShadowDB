@@ -43,7 +43,7 @@ export default function SignUpPage() {
   });
 
   // Update the mutation with proper typing
-  const mutation = useMutation<any, Error, SignUpData>({
+  const mutation = useMutation<SignUpData, Error, SignUpData>({
     mutationFn: (data: SignUpData) => signUpEmail(data),
     onSuccess: () => {
       toast.success("Account created successfully");

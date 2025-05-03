@@ -31,10 +31,11 @@ export async function POST(req: Request) {
 
     const result = await executeQuery(userId, query, params);
     return NextResponse.json({ rows: result.rows });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error executing query:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { message: error.message || "Internal Server Error" },
+      { message:errorMessage || "Internal Server Error" },
       { status: 500 }
     );
   }

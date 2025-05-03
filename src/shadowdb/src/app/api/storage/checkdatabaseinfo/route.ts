@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import axios from "axios";
 import { getDefaultReaderPool } from "@/lib/userPools";
-
-const DB_SERVICE_URL = process.env.DB_Service_url || "http://localhost:3001";
 
 export async function GET(
   request: NextRequest
@@ -23,7 +20,6 @@ export async function GET(
       );
     }
 
-    const userId = session.user.id;
 
     // Get database information including container resources using axios
     const response = await getDefaultReaderPool().query(
