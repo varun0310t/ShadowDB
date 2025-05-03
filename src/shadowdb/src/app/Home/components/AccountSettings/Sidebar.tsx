@@ -20,7 +20,7 @@ export function Sidebar({ activeTab, setActiveTab, userData, loading }: SidebarP
     { icon: <Shield size={18} />, title: "Security", id: "security" },
     { icon: <Bell size={18} />, title: "Notifications", id: "notifications" },
 
-    { icon: <Key size={18} />, title: "API Keys", id: "api" },
+  /*   { icon: <Key size={18} />, title: "API Keys", id: "api" }, */
   ]
 
   return (
@@ -39,7 +39,7 @@ export function Sidebar({ activeTab, setActiveTab, userData, loading }: SidebarP
               />
             </div>
           )}
-          <h3 className="text-xl font-semibold">{userData?.name || 'Loading...'}</h3>
+          <h3 className="text-xl font-semibold text-gray-300">{userData?.name || 'Loading...'}</h3>
           <p className="text-gray-400 text-sm">{userData?.email || 'Loading...'}</p>
           <Badge className="mt-2 bg-purple-600">Pro Plan</Badge>
         </div>

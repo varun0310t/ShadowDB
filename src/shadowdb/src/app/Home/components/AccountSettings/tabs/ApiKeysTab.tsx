@@ -16,7 +16,7 @@ export function ApiKeysTab() {
   return (
     <Card className="bg-[#151923] border-gray-800">
       <CardHeader>
-        <CardTitle>API Keys</CardTitle>
+        <CardTitle className="text-gray-200">API Keys</CardTitle>
         <CardDescription>Manage your API keys for programmatic access</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

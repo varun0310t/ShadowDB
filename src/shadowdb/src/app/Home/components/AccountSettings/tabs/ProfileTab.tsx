@@ -87,7 +87,7 @@ export function ProfileTab({ userData, onUpdate }: ProfileTabProps) {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Personal Information</CardTitle>
+              <CardTitle className="text-gray-200">Personal Information</CardTitle>
               <CardDescription>Update your personal details</CardDescription>
             </div>
             <Button

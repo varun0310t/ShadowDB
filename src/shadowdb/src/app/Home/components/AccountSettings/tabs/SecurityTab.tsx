@@ -1,101 +1,180 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/hooks/use-toast"
-import { UserAccountService } from '@/client/lib/services/UserAccountService'
-
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { UserAccountService } from "@/client/lib/services/UserAccountService";
+import axios from "axios";
 export function SecurityTab() {
-  const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  })
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [e.target.id]: e.target.value
-    }))
-  }
+      [e.target.id]: e.target.value,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
       if (!UserAccountService.validatePassword(formData.newPassword)) {
         console.log(formData.newPassword);
-        throw new Error("Password must be at least 8 characters and contain uppercase, lowercase, number and special character")
+        throw new Error(
+          "Password must be at least 8 characters and contain uppercase, lowercase, number and special character"
+        );
       }
 
-      if (!UserAccountService.passwordsMatch(formData.newPassword, formData.confirmPassword)) {
-        throw new Error("Passwords don't match")
+      if (
+        !UserAccountService.passwordsMatch(
+          formData.newPassword,
+          formData.confirmPassword
+        )
+      ) {
+        throw new Error("Passwords don't match");
       }
 
-      const result = await UserAccountService.changePassword(formData)
+      const result = await UserAccountService.changePassword(formData);
       toast({
         title: "Success",
         description: result.message,
         variant: "default",
-      })
-      setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' })
+      });
+      setFormData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message,
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
+  const [isLoadingRole, setIsLoadingRole] = useState(false);
+  const [formDataRole, setFormDataRole] = useState({
+    currentPasswordRole: "",
+    newPasswordRole: "",
+    confirmPasswordRole: "",
+  });
+  const handleInputChangeRole = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormDataRole((prev) => ({
+      ...prev,
+      [e.target.id]: e.target.value,
+    }));
+  };
+
+  const handleSubmitRole = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoadingRole(true);
+
+    try {
+      if (!UserAccountService.validatePassword(formDataRole.newPasswordRole)) {
+        console.log(formData.newPassword);
+        throw new Error(
+          "Password must be at least 8 characters and contain uppercase, lowercase, number and special character"
+        );
+      }
+
+      if (
+        !UserAccountService.passwordsMatch(
+          formDataRole.newPasswordRole,
+          formDataRole.confirmPasswordRole
+        )
+      ) {
+        throw new Error("Passwords don't match");
+      }
+
+      const resultaxios = await await axios.patch("", formDataRole);
+      const result = resultaxios.data;
+      toast({
+        title: "Success",
+        description: result.message,
+        variant: "default",
+      });
+      setFormDataRole({
+        currentPasswordRole: "",
+        newPasswordRole: "",
+        confirmPasswordRole: "",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingRole(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
       <Card className="bg-[#151923] border-gray-800">
         <CardHeader>
-          <CardTitle>Password</CardTitle>
+          <CardTitle className="text-gray-200">Password</CardTitle>
           <CardDescription>Update your password</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="currentPassword" className="text-gray-200">Current Password</Label>
-              <Input 
-                id="currentPassword" 
-                type="password" 
+              <Label htmlFor="currentPassword" className="text-gray-200">
+                Current Password
+              </Label>
+              <Input
+                id="currentPassword"
+                type="password"
                 value={formData.currentPassword}
                 onChange={handleInputChange}
-                className="bg-[#0B0F17] border-gray-800 text-white" 
+                className="bg-[#0B0F17] border-gray-800 text-white"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="newPassword" className="text-gray-200">New Password</Label>
-              <Input 
-                id="newPassword" 
+              <Label htmlFor="newPassword" className="text-gray-200">
+                New Password
+              </Label>
+              <Input
+                id="newPassword"
                 type="password"
                 value={formData.newPassword}
                 onChange={handleInputChange}
-                className="bg-[#0B0F17] border-gray-800 text-white" 
+                className="bg-[#0B0F17] border-gray-800 text-white"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-gray-200">Confirm New Password</Label>
-              <Input 
-                id="confirmPassword" 
+              <Label htmlFor="confirmPassword" className="text-gray-200">
+                Confirm New Password
+              </Label>
+              <Input
+                id="confirmPassword"
                 type="password"
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
-                className="bg-[#0B0F17] border-gray-800 text-white" 
+                className="bg-[#0B0F17] border-gray-800 text-white"
               />
             </div>
             <div className="pt-2">
-              <Button 
+              <Button
                 type="submit"
                 disabled={isLoading}
                 className="bg-purple-600 hover:bg-purple-700"
@@ -107,7 +186,7 @@ export function SecurityTab() {
         </CardContent>
       </Card>
 
-     {/*  <Card className="bg-[#151923] border-gray-800">
+      {/*  <Card className="bg-[#151923] border-gray-800">
         <CardHeader>
           <CardTitle>Two-Factor Authentication</CardTitle>
           <CardDescription>Add an extra layer of security to your account</CardDescription>
@@ -136,6 +215,63 @@ export function SecurityTab() {
           </div>
         </CardContent>
       </Card> */}
+      {/* this div is for role password */}
+
+      <Card className="bg-[#151923] border-gray-800">
+        <CardHeader>
+          <CardTitle className="text-gray-200">Role Password</CardTitle>
+          <CardDescription>Update your password</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <form onSubmit={handleSubmitRole} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="currentPasswordRole" className="text-gray-200">
+                Current Password (initially your email is your role password pls update if not already)
+              </Label>
+              <Input
+                id="currentPasswordRole"
+                type="password"
+                value={formDataRole.currentPasswordRole}
+                onChange={handleInputChange}
+                className="bg-[#0B0F17] border-gray-800 text-white"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newPassword" className="text-gray-200">
+                New Password
+              </Label>
+              <Input
+                id="newPasswordRole"
+                type="password"
+                value={formDataRole.newPasswordRole}
+                onChange={handleInputChange}
+                className="bg-[#0B0F17] border-gray-800 text-white"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-gray-200">
+                Confirm New Password
+              </Label>
+              <Input
+                id="confirmPasswordRole"
+                type="password"
+                value={formDataRole.confirmPasswordRole}
+                onChange={handleInputChange}
+                className="bg-[#0B0F17] border-gray-800 text-white"
+              />
+            </div>
+            <div className="pt-2">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                {isLoading ? "Updating..." : "Update Password"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
-  )
+  );
 }

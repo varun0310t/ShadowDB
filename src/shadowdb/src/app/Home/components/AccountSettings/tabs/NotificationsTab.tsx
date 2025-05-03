@@ -128,15 +128,15 @@ export function NotificationsTab() {
   return  (
     <Card className="bg-[#151923] border-gray-800">
       <CardHeader>
-        <CardTitle>Notification Preferences</CardTitle>
+        <CardTitle className="text-gray-200">Notification Preferences</CardTitle>
         <CardDescription>Manage how you receive notifications</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">Email Notifications</h3>
+          <h3 className="text-lg font-medium text-gray-200" >Email Notifications</h3>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="email-security">Security Alerts</Label>
+              <Label htmlFor="email-security"  className="text-gray-400">Security Alerts</Label>
               <Switch
                 id="email-security"
                 checked={emailNotifications.security_alerts}
@@ -145,7 +145,7 @@ export function NotificationsTab() {
               />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="email-updates">Product Updates</Label>
+              <Label htmlFor="email-updates" className="text-gray-400">Product Updates</Label>
               <Switch
                 id="email-updates"
                 checked={emailNotifications.product_updates}
@@ -154,7 +154,7 @@ export function NotificationsTab() {
               />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="email-marketing">Marketing</Label>
+              <Label htmlFor="email-marketing" className="text-gray-400">Marketing</Label>
               <Switch
                 id="email-marketing"
                 checked={emailNotifications.marketing}
@@ -163,7 +163,7 @@ export function NotificationsTab() {
               />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="email-usage">Usage Reports</Label>
+              <Label htmlFor="email-usage" className="text-gray-400">Usage Reports</Label>
               <Switch
                 id="email-usage"
                 checked={emailNotifications.usage_reports}
@@ -172,7 +172,7 @@ export function NotificationsTab() {
               />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="new-login">
+              <Label htmlFor="new-login" className="text-gray-400">
                 Get notified of new logins to your account
               </Label>
               <Switch
