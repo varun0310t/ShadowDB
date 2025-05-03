@@ -16,9 +16,17 @@ import {
 import cluster from "cluster";
 
 function isWriteQuery(query: string): boolean {
-  return /^(INSERT|UPDATE|DELETE|CREATE|ALTER|DROP|TRUNCATE)/i.test(
-    query.trim()
-  );
+  // Remove single-line (--) and multi-line (/* */) comments
+  const cleanedQuery = query
+    .replace(/--.*$/gm, '')                    // Remove -- comments
+    .replace(/\/\*[\s\S]*?\*\//g, '')          // Remove /* */ comments
+    .trim();                                   // Trim leading/trailing whitespace
+
+  // Extract first keyword
+  const firstWord = cleanedQuery.match(/^\w+/i)?.[0]?.toUpperCase();
+
+  // Consider SELECT and WITH as read queries (WITH is used in CTEs)
+  return !(firstWord === 'SELECT' || firstWord === 'WITH');
 }
 
 export async function executeQuery(
