@@ -11,7 +11,7 @@ export async function IsPatroniReady(
 ): Promise<void> {
   let isReady = false;
   let attempts = 0;
-  const maxAttempts = 30;
+  const maxAttempts = 100;
 
   while (!isReady && attempts < maxAttempts) {
     attempts++;

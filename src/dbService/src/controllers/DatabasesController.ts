@@ -18,7 +18,7 @@ export const CreateDatabase = async (req: Request, res: Response) => {
   try {
     const { userId, databaseName, password, userEmail, role_password } =
       req.body;
-
+    console.log(req.body);
     if (!userId || !databaseName || !password || !userEmail || !role_password) {
       res.status(400).json({
         error: "Missing required fields: userId, databaseName, password",
@@ -99,9 +99,7 @@ export const CreateDatabase = async (req: Request, res: Response) => {
     // Wait for PostgreSQL to be ready
     await IsPatroniReady(containerName, patroniPort);
     // create a database in the new instance
-    console.log(
-      `PostgreSQL instance ${containerName} is ready. Creating database ${databaseName}`
-    );
+    
     let replicaResponse: any = null;
     //add one replica to the primary instance by calling the addreplica endpoint
     try {
