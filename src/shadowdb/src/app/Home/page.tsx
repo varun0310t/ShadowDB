@@ -178,7 +178,7 @@ function SidebarItem({
   onClick,
   collapsed,
 }: {
-  icon: JSX.Element;
+  icon: React.ReactElement;
   title: string;
   active: boolean;
   onClick: () => void;

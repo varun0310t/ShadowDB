@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+
 import {
   Card,
   CardContent,
@@ -262,7 +263,7 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
     }
   };
 
-  const getAccessLevelBadge = (accessLevel: string, isOwner = false): JSX.Element => {
+  const getAccessLevelBadge = (accessLevel: string, isOwner = false): React.ReactElement=>{
     if (isOwner) {
       return <Badge className="bg-purple-900 hover:bg-purple-800">Owner</Badge>;
     }

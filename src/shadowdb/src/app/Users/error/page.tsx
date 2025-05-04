@@ -1,10 +1,14 @@
-"use client";
+"use client"
+
+import React, { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Database } from "lucide-react";
 
-export default function ErrorPage() {
+export const dynamic = "force-dynamic";
+
+function ErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
 
@@ -30,6 +34,31 @@ export default function ErrorPage() {
   };
 
   return (
+    <div className="max-w-md w-full space-y-8 text-center">
+      <h1 className="text-4xl font-bold text-purple-500">
+        Authentication Error
+      </h1>
+      <p className="text-gray-400">
+        {error ? getErrorMessage(error) : "An unknown error occurred."}
+      </p>
+      <div className="space-y-4">
+        <Button className="w-full bg-purple-600 hover:bg-purple-700" asChild>
+          <Link href="/Users/login">Back to Login</Link>
+        </Button>
+        <Button
+          variant="outline"
+          className="w-full bg-[#151923] border-gray-800 hover:bg-[#0B0F17] text-stone-50"
+          asChild
+        >
+          <Link href="/">Go Home</Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export default function ErrorPage() {
+  return (
     <div className="min-h-screen bg-[#0B0F17] text-white">
       <header className="px-4 lg:px-6 h-14 flex items-center">
         <Link href="/" className="flex items-center gap-2">
@@ -39,29 +68,9 @@ export default function ErrorPage() {
       </header>
 
       <main className="flex flex-col items-center justify-center min-h-[calc(100vh-3.5rem)] px-4">
-        <div className="max-w-md w-full space-y-8 text-center">
-          <h1 className="text-4xl font-bold text-purple-500">
-            Authentication Error
-          </h1>
-          <p className="text-gray-400">
-            {error ? getErrorMessage(error) : "An unknown error occurred."}
-          </p>
-          <div className="space-y-4">
-            <Button
-              className="w-full bg-purple-600 hover:bg-purple-700"
-              asChild
-            >
-              <Link href="/Users/login">Back to Login</Link>
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full bg-[#151923] border-gray-800 hover:bg-[#0B0F17] text-stone-50"
-              asChild
-            >
-              <Link href="/">Go Home</Link>
-            </Button>
-          </div>
-        </div>
+        <Suspense fallback={<div className="text-center">Loading error details...</div>}>
+          <ErrorContent />
+        </Suspense>
       </main>
     </div>
   );
