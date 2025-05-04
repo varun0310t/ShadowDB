@@ -1,8 +1,40 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Database, Shield, Zap, Cloud, DollarSign, Users } from "lucide-react"
+"use client";
+
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Database, Shield, Zap, Cloud, DollarSign, Users } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const { data: session, status } = useSession();
+  const [isClient, setIsClient] = useState(false);
+
+  // Use this to prevent hydration mismatch
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Auth button content and redirect logic
+  const renderAuthButton = () => {
+    // Only render content once we're on client-side
+    if (!isClient) return <Button variant="outline" className="text-black">Loading...</Button>;
+
+    if (status === "authenticated") {
+      return (
+        <Button variant="outline" className="hidden md:inline-flex text-black">
+          <Link href="/Home">Dashboard</Link>
+        </Button>
+      );
+    } else {
+      return (
+        <Button variant="outline" className="hidden md:inline-flex text-black">
+          <Link href="/Users/login">Sign In</Link>
+        </Button>
+      );
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-white">
       {/* Header */}
@@ -22,9 +54,7 @@ export default function Home() {
             Testimonials
           </Link>
         </nav>
-        <Button variant="outline" className=" hidden md:inline-flex text-black ">
-          Get Started
-        </Button>
+        {renderAuthButton()}
       </header>
 
       {/* Hero Section */}
@@ -35,9 +65,15 @@ export default function Home() {
         <p className="text-xl mb-8 max-w-2xl">
           Scale your applications with ease using ShadowDB's powerful, reliable, and secure database solution.
         </p>
-        <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
-          Sign Up Now
-        </Button>
+        {isClient && status === "authenticated" ? (
+          <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
+            <Link href="/Home">Go to Dashboard</Link>
+          </Button>
+        ) : (
+          <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
+            <Link href="/Users/login">Sign Up Now</Link>
+          </Button>
+        )}
       </section>
 
       {/* Features Section */}
@@ -106,9 +142,15 @@ export default function Home() {
       <section className="py-20 px-4 bg-purple-600 text-center">
         <h2 className="text-3xl font-bold mb-6">Curious how we manage your data ?</h2>
         <p className="text-xl mb-8">  We ensure security, scalability, and reliability with a modern architecture. </p>
-        <Button size="lg" variant="secondary">
-          Our Architechture
-        </Button>
+        {isClient && status === "authenticated" ? (
+          <Button size="lg" variant="secondary">
+            <Link href="/System-Design">Our Architecture</Link>
+          </Button>
+        ) : (
+          <Button size="lg" variant="secondary">
+            <Link href="/System-Design">Our Architecture</Link>
+          </Button>
+        )}
       </section>
 
       {/* Footer */}

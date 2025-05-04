@@ -111,7 +111,7 @@ export default function ArchitecturePage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-[#151923] border-gray-800">
+         {/*  <Card className="bg-[#151923] border-gray-800">
             <CardHeader>
               <CardTitle className="text-purple-500">Queue System</CardTitle>
               <CardDescription>Reliable message processing</CardDescription>
@@ -125,7 +125,7 @@ export default function ArchitecturePage() {
               </ul>
             </CardContent>
           </Card>
-
+ */}
           <Card className="bg-[#151923] border-gray-800">
             <CardHeader>
               <CardTitle className="text-purple-500">Monitoring & Analytics</CardTitle>

@@ -17,9 +17,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Parse incoming JSON request body
-  const { tenancy_type, db_name } = await req.json();
-  let { password } = await req.json();
+  const body = await req.json();
+  const { tenancy_type, db_name } = body;
+  let { password } = body;
 
   // Validate tenancy_type
   if (!["shared", "isolated"].includes(tenancy_type)) {
