@@ -49,7 +49,17 @@ export async function POST(req: Request) {
       const { rows } = await client.query(userdetailsquery, userdetailsvalues);
       const userdetails = rows[0];
       const userEmail = userdetails.email;
-      const role_password = userdetails.role_password;
+      let role_password;
+      if (
+        userdetails.role_password == undefined ||
+        userdetails.role_password == null ||
+        userdetails.role_password == ""
+      ) {
+        role_password = userdetails.email;
+      } else {
+        role_password = userdetails.role_password;
+      }
+
       if (tenancy_type === "isolated") {
         // For isolated databases, just call the DB service
         try {
