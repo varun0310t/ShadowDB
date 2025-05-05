@@ -17,6 +17,13 @@ BEGIN
   END IF;
 END $$;
 
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'AccountPlan') THEN
+    CREATE TYPE AccountPlan AS ENUM ('free', 'pro', 'enterprise');
+  END IF;
+END $$;
+
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
@@ -81,7 +88,10 @@ CREATE TABLE users (
 
   -- Unique constraints
   CONSTRAINT unique_email_per_provider UNIQUE (email, provider),
-  CONSTRAINT unique_provider_id UNIQUE (provider_id, provider)
+  CONSTRAINT unique_provider_id UNIQUE (provider_id, provider),
+
+  --
+  AccountPlan AccountPlan DEFAULT 'free' -- Default account plan
 );
 
 -- Create custom type for account status if not exists

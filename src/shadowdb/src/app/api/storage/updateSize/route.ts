@@ -60,6 +60,25 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
+    const userinfo = await getDefaultWriterPool().query(
+      "SELECT * from  users WHERE id = $1",
+      [userId]
+    );
+
+    if (userinfo.rows.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "User not found" },
+        { status: 404 }
+      );
+    }
+    const user = userinfo.rows[0];
+
+    if (user.AccountPlan === "Free" && maxSizeMBNumber > 1000) {
+      return NextResponse.json(
+        { success: false, error: "Free plan allows max size of 1000MB" },
+        { status: 403 }
+      );
+    }
 
     // Update the database max size
     await getDefaultWriterPool().query(
