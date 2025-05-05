@@ -1,5 +1,11 @@
-import { getDefaultWriterPool, getDefaultReaderPool } from "../userPools";
-
+import {
+  getDefaultWriterPool,
+  getDefaultReaderPool,
+  getUserPool,
+  getWriterPool,
+} from "../userPools";
+import { Pool } from "pg";
+import type { Database } from "../../../types/DatabaseSchemaType";
 /**
  * Terminates all connections to a specific database except the current connection
  * @param dbName Name of the database to terminate connections for
@@ -7,26 +13,67 @@ import { getDefaultWriterPool, getDefaultReaderPool } from "../userPools";
  */
 
 export async function terminateDbConnections(
-  dbName: string
+  database_id: number
 ): Promise<{ success: boolean; count: number }> {
-  try {
-    const result = await getDefaultWriterPool().query(
-      `
+  const dbInfo = await databaseInfobyId(database_id);
+  if (!dbInfo.success) {
+    return { success: false, count: 0 };
+  }
+  const dbName = dbInfo.dbInfo?.name;
+  if (!dbName) {
+    return { success: false, count: 0 };
+  }
+
+  if (dbInfo.dbInfo?.tenancy_type === "shared") {
+    try {
+      const result = await getDefaultWriterPool().query(
+        `
         SELECT pg_terminate_backend(pg_stat_activity.pid)
         FROM pg_stat_activity
         WHERE pg_stat_activity.datname = $1
         AND pid <> pg_backend_pid();
       `,
-      [dbName]
-    );
+        [dbName]
+      );
 
-    return {
-      success: true,
-      count: result.rowCount === null ? 0 : result.rowCount,
-    };
-  } catch (error) {
-    console.error("Error terminating database connections:", error);
-    throw error;
+      return {
+        success: true,
+        count: result.rowCount === null ? 0 : result.rowCount,
+      };
+    } catch (error) {
+      console.error("Error terminating database connections:", error);
+      throw error;
+    }
+  } else {
+    const port = dbInfo.dbInfo?.port;
+    const newpool = await new Pool({
+      user: process.env.DB_USER,
+      host: process.env.DB_HOST,
+      database: dbName,
+      password: process.env.USER_DB_PASSWORD,
+      port: Number(port),
+    });
+    try {
+      const result = await newpool.query(
+        `
+        SELECT pg_terminate_backend(pg_stat_activity.pid)
+        FROM pg_stat_activity
+        WHERE pg_stat_activity.datname = $1
+        AND pid <> pg_backend_pid();
+      `,
+        [dbName]
+      );
+      if (!result) {
+        return { success: false, count: 0 };
+      }
+      return {
+        success: true,
+        count: result.rowCount === null ? 0 : result.rowCount,
+      };
+    } catch (error) {
+      console.error("Error terminating database connections:", error);
+      throw error;
+    }
   }
 }
 
@@ -36,12 +83,12 @@ export async function terminateDbConnections(
  * @returns Boolean indicating if database exists
  */
 export async function databaseInfobyId(
-  dbId: string
-): Promise<{ success: boolean; message: string; dbInfo?: string }> {
+  database_id: number
+): Promise<{ success: boolean; message: string; dbInfo?: Database }> {
   try {
     const result = await getDefaultReaderPool().query(
       `SELECT * FROM databases WHERE id = $1`,
-      [dbId]
+      [database_id]
     );
     if (result.rowCount === 0) {
       return { success: false, message: "Database not found" };
@@ -95,6 +142,7 @@ export async function databaseExists(
  * @returns Object with success status and message
  */
 export async function renameDatabase(
+  oldDatabase_id: number,
   oldName: string,
   newName: string,
   userId: string
@@ -129,7 +177,11 @@ export async function renameDatabase(
 
     //check if user has access to the database
 
-    const userHasAccess = await CheckIfUserHasAccess(userId, oldName, "admin");
+    const userHasAccess = await CheckIfUserHasAccess(
+      userId,
+      oldDatabase_id,
+      "admin"
+    );
     if (!userHasAccess) {
       return {
         success: false,
@@ -147,7 +199,7 @@ export async function renameDatabase(
     }
 
     // First terminate all connections
-    await terminateDbConnections(oldName);
+    await terminateDbConnections(oldDatabase_id);
 
     // Then rename the database
     await getDefaultWriterPool().query(
@@ -237,7 +289,7 @@ export async function RenameReferences(
  */
 export async function CheckIfUserHasAccess(
   userId: string,
-  database_id: string,
+  database_id: number,
   requiredAccessLevel?: "admin" | "write" | "read"
 ): Promise<boolean> {
   try {

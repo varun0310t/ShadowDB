@@ -27,6 +27,7 @@ const updateAccessSchema = z.object({
   dbName: z.string().min(1),
   email: z.string().email("Invalid email address format"),
   accessLevel: z.enum(["admin", "user", "read"]),
+  database_id: z.number(),
 });
 
 // GET - List all users with access to a specific database
@@ -40,9 +41,9 @@ export async function GET(req: Request) {
 
     // Parse query parameters
     const url = new URL(req.url);
-    const dbName = url.searchParams.get("dbName");
+    const database_id = url.searchParams.get("database_id");
 
-    if (!dbName) {
+    if (!database_id) {
       return NextResponse.json(
         { error: "Database name is required" },
         { status: 400 }
@@ -50,10 +51,10 @@ export async function GET(req: Request) {
     }
 
     // Check if database exists
-    const dbExists = await databaseExists(dbName);
+    const dbExists = await databaseInfobyId(parseInt(database_id));
     if (!dbExists) {
       return NextResponse.json(
-        { error: `Database "${dbName}" does not exist` },
+        { error: `Database "${database_id}" does not exist` },
         { status: 404 }
       );
     }
@@ -61,7 +62,7 @@ export async function GET(req: Request) {
     // Check if the requesting user has admin access to the database
     const hasAdminAccess = await CheckIfUserHasAccess(
       session.user.id,
-      dbName,
+      parseInt(database_id),
       "admin"
     );
     if (!hasAdminAccess) {
@@ -73,13 +74,13 @@ export async function GET(req: Request) {
 
     // Get database ID
     const dbIdResult = await getDefaultReaderPool().query(
-      `SELECT id FROM databases WHERE name = $1`,
-      [dbName]
+      `SELECT id FROM databases WHERE id = $1`,
+      [database_id]
     );
     console.log("dbIdResult", dbIdResult);
     if (dbIdResult.rows.length === 0) {
       return NextResponse.json(
-        { error: `Database "${dbName}" not found in the registry` },
+        { error: `Database "${database_id}" not found in the registry` },
         { status: 404 }
       );
     }
@@ -108,7 +109,7 @@ export async function GET(req: Request) {
     );
 
     return NextResponse.json({
-      database: dbName,
+      database: database_id,
       users: accessList.rows,
     });
   } catch (error: unknown) {
@@ -401,29 +402,20 @@ export async function DELETE(req: Request) {
 
     // Parse query parameters
     const url = new URL(req.url);
-    const dbName = url.searchParams.get("dbName");
+    const database_id = url.searchParams.get("database_id");
     const email = url.searchParams.get("email");
 
-    if (!dbName || !email) {
+    if (!database_id || !email) {
       return NextResponse.json(
         { error: "Database name and user email are required" },
         { status: 400 }
       );
     }
 
-    // Check if database exists
-    const dbExists = await databaseExists(dbName);
-    if (!dbExists) {
-      return NextResponse.json(
-        { error: `Database "${dbName}" does not exist` },
-        { status: 404 }
-      );
-    }
-
     // Check if the requesting user has admin access to the database
     const hasAdminAccess = await CheckIfUserHasAccess(
       session.user.id,
-      dbName,
+      parseInt(database_id),
       "admin"
     );
     if (!hasAdminAccess) {
@@ -448,13 +440,13 @@ export async function DELETE(req: Request) {
 
     // Get database ID and owner info
     const dbIdResult = await getDefaultReaderPool().query(
-      `SELECT id, owner_id FROM databases WHERE name = $1` /* Use created_by instead of owner_id */,
-      [dbName]
+      `SELECT id, owner_id FROM databases WHERE id = $1` /* Use created_by instead of owner_id */,
+      [database_id]
     );
 
     if (dbIdResult.rows.length === 0) {
       return NextResponse.json(
-        { error: `Database "${dbName}" not found in the registry` },
+        { error: `Database "${database_id}" not found in the registry` },
         { status: 404 }
       );
     }
@@ -495,7 +487,7 @@ export async function DELETE(req: Request) {
     }
 
     return NextResponse.json({
-      message: `Access revoked for user ${email} on database "${dbName}"`,
+      message: `Access revoked for user ${email} on database "${database_id}"`,
       success: true,
     });
   } catch (error: unknown) {

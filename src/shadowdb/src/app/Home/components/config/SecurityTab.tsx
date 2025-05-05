@@ -123,7 +123,7 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
     
     setLoading(true);
     try {
-      const data = await getDatabaseAccessUsers(selectedDatabase.db_name);
+      const data = await getDatabaseAccessUsers(selectedDatabase.id);
       setAccessUsers(data.users || []);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -152,6 +152,7 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
         dbName: selectedDatabase.db_name,
         email: newUserEmail,
         accessLevel: newUserAccessLevel,
+        database_id: selectedDatabase.id,
       });
 
       if (result.success) {
@@ -194,6 +195,7 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
         dbName: selectedDatabase.db_name,
         email,
         accessLevel,
+        database_id: selectedDatabase.id,
       });
 
       if (result.success) {
