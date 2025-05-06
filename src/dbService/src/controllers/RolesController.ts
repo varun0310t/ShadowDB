@@ -211,4 +211,235 @@ const CreateNewRole = async (req: Request, res: Response) => {
   }
 };
 
-export { CreateNewRole };
+const DeleteRole = async (req: Request, res: Response) => {
+  try {
+    const { database_id, userID } = req.body;
+    const userinfoquery = "select role_password,email from users where id=$1";
+    const uservalues = [userID];
+    const userResult = await getDefaultReaderPool().query(
+      userinfoquery,
+      uservalues
+    );
+    const role_password = userResult.rows[0].role_password;
+    const userEmail = userResult.rows[0].email;
+    // Validate required inputs
+    if (!database_id) {
+      res.status(400).json({
+        success: false,
+        message:
+          "Missing required parameters: database_id, userEmail, and role_password are required",
+      });
+      return;
+    }
+
+    // Get database information
+    const databaseinfoquery = "SELECT * FROM databases WHERE id=$1";
+    const values = [database_id];
+    const databaseInforesult = await getDefaultReaderPool().query(
+      databaseinfoquery,
+      values
+    );
+
+    if (databaseInforesult.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        message: "Database not found",
+      });
+      return;
+    }
+
+    const databaseinfo = databaseInforesult.rows[0];
+    const {
+      container_name: containerName,
+      name: databaseName,
+      password,
+    } = databaseinfo;
+
+    // Get PgPool information
+    const pgpoolquery = "SELECT * FROM pgpool_instances WHERE id=$1";
+    const pgpoolvalues = [databaseinfo.pgpool_id];
+    const pgpoolinforesult = await getDefaultReaderPool().query(
+      pgpoolquery,
+      pgpoolvalues
+    );
+
+    if (pgpoolinforesult.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        message: "PgPool instance not found",
+      });
+    }
+
+    const pgpoolinfo = pgpoolinforesult.rows[0];
+    const {
+      container_name: pgpoolContainerName,
+      volume_name: pgpoolVolumeName,
+    } = pgpoolinfo;
+
+    console.log(`Deleting role for: ${userEmail}`);
+
+    //ressaign owner to postgres
+    const reassignOwnerCmd = `docker exec -e PGPASSWORD="${password}" ${containerName} psql -U postgres -d ${databaseName} -c "REASSIGN OWNED BY \\\"${userEmail}\\\" TO postgres;"`;
+
+    const { stdout: reassignOutput, stderr: reassignError } = await execAsync(
+      reassignOwnerCmd
+    );
+    console.log(`Reassign output: ${reassignOutput}`);
+    if (reassignError) console.log(`Reassign stderr: ${reassignError}`);
+
+    // drop owned by user
+    const dropOwnedCmd = `docker exec -e PGPASSWORD="${password}" ${containerName} psql -U postgres -d ${databaseName} -c "DROP OWNED BY \\\"${userEmail}\\\";"`;
+    const { stdout: dropOutput, stderr: dropError } = await execAsync(
+      dropOwnedCmd
+    );
+    console.log(`Drop owned output: ${dropOutput}`);
+    if (dropError) console.log(`Drop owned stderr: ${dropError}`);
+
+    // drop role
+    const dropRoleCmd = `docker exec -e PGPASSWORD="${password}" ${containerName} psql -U postgres -c "DROP ROLE \\\"${userEmail}\\\";"`;
+    const { stdout: dropRoleOutput, stderr: dropRoleError } = await execAsync(
+      dropRoleCmd
+    );
+    console.log(`Drop role output: ${dropRoleOutput}`);
+    if (dropRoleError) console.log(`Drop role stderr: ${dropRoleError}`);
+    // Return success whether or not role was deleted
+    res.status(200).json({
+      success: true,
+      message: "Role deleted successfully and objects reassigned to postgres",
+      data: {
+        user_id: userID,
+        database_id,
+        access_level: "user",
+        email: userEmail,
+        deleted_at: new Date(), // Changed from created_at to deleted_at
+      },
+    });
+    return;
+  } catch (error) {
+    console.error(
+      `Unexpected error: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+    res.status(500).json({
+      success: false,
+      message: "An unexpected error occurred",
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return;
+  }
+};
+const createReadonly = async (req: Request, res: Response) => {
+  const { database_id, userID } = req.body;
+  console.log("Creating readonly role for user:", userID);
+  try {
+    // Validate required inputs
+    if (!database_id || !userID) {
+      res.status(400).json({
+        success: false,
+        message:
+          "Missing required parameters: database_id, userID, and access_level are required",
+      });
+      return;
+    }
+
+    // Get database information
+    const databaseinfoquery = "SELECT * FROM databases WHERE id=$1";
+    const values = [database_id];
+    const databaseInforesult = await getDefaultReaderPool().query(
+      databaseinfoquery,
+      values
+    );
+
+    if (databaseInforesult.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        message: "Database not found",
+      });
+      return;
+    }
+
+    const databaseinfo = databaseInforesult.rows[0];
+    const {
+      container_name: containerName,
+      name: databaseName,
+      password,
+    } = databaseinfo;
+
+    // Get PgPool information
+    const pgpoolquery = "SELECT * FROM pgpool_instances WHERE id=$1";
+    const pgpoolvalues = [databaseinfo.pgpool_id];
+    const pgpoolinforesult = await getDefaultReaderPool().query(
+      pgpoolquery,
+      pgpoolvalues
+    );
+
+    if (pgpoolinforesult.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        message: "PgPool instance not found",
+      });
+    }
+
+    const pgpoolinfo = pgpoolinforesult.rows[0];
+    const {
+      container_name: pgpoolContainerName,
+      volume_name: pgpoolVolumeName,
+    } = pgpoolinfo;
+
+    const userinfoquery = "select role_password,email from users where id=$1";
+    const uservalues = [userID];
+    const userResult = await getDefaultReaderPool().query(
+      userinfoquery,
+      uservalues
+    );
+    if (userResult.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+      return;
+    }
+    const userEmail = userResult.rows[0].email;
+    const role_password = userResult.rows[0].role_password;
+    // create role
+    console.log(`Creating readonly role for: ${userEmail}`);
+    const createRoleCmd = `docker exec -e PGPASSWORD="${password}" ${containerName} psql -U postgres -c "CREATE ROLE \\\"${userEmail}\\\" WITH LOGIN PASSWORD '${role_password}'; GRANT CONNECT ON DATABASE ${databaseName} TO \\\"${userEmail}\\\";"`;
+    console.log("Creating role command:", createRoleCmd);
+    const { stdout: createOutput, stderr: createError } = await execAsync(
+      createRoleCmd
+    );
+    console.log(`Role creation output: ${createOutput}`);
+    //give readonly access to the user
+    const grantPrivilegesCmd = `docker exec -e PGPASSWORD="${password}" ${containerName} psql -U postgres -d ${databaseName} -c "GRANT CONNECT ON DATABASE ${databaseName} TO \\\"${userEmail}\\\"; GRANT USAGE ON SCHEMA public TO \\\"${userEmail}\\\"; GRANT SELECT ON ALL TABLES IN SCHEMA public TO \\\"${userEmail}\\\"; GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO \\\"${userEmail}\\\"; GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO \\\"${userEmail}\\\"; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO \\\"${userEmail}\\\"; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON SEQUENCES TO \\\"${userEmail}\\\"; ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO \\\"${userEmail}\\\";"`;
+    console.log("Granting privileges command:", grantPrivilegesCmd);
+    const { stdout: roleOutput, stderr } = await execAsync(grantPrivilegesCmd);
+    console.log(`Role privileges output: ${roleOutput}, stderr: ${stderr}`);
+
+    res.status(201).json({
+      success: true,
+      message: "Readonly role created successfully",
+      data: {
+        user_id: userID,
+        database_id,
+        access_level: "readonly",
+        email: userEmail,
+        created_at: new Date(),
+      },
+    });
+    return;
+  } catch (error) {
+    console.error(
+      `Unexpected error: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+    res.status(500).json({
+      success: false,
+      message: "An unexpected error occurred",
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return;
+  }
+};
+export { CreateNewRole, DeleteRole, createReadonly };

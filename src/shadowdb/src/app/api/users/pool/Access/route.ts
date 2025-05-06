@@ -26,7 +26,7 @@ const grantAccessSchema = z.object({
 const updateAccessSchema = z.object({
   dbName: z.string().min(1),
   email: z.string().email("Invalid email address format"),
-  accessLevel: z.enum(["admin", "user", "read"]),
+  accessLevel: z.enum(["admin", "user", "readonly"]),
   database_id: z.number(),
 });
 
@@ -295,21 +295,14 @@ export async function PATCH(req: Request) {
       );
     }
 
-    const { dbName, email, accessLevel } = body;
-
+    const { dbName, email, accessLevel, database_id } = body;
+    console.log("heresgsdg1");
     // Check if database exists
-    const dbExists = await databaseExists(dbName);
-    if (!dbExists) {
-      return NextResponse.json(
-        { error: `Database "${dbName}" does not exist` },
-        { status: 404 }
-      );
-    }
 
     // Check if the requesting user has admin access to the database
     const hasAdminAccess = await CheckIfUserHasAccess(
       session.user.id,
-      dbName,
+      database_id,
       "admin"
     );
     if (!hasAdminAccess) {
@@ -334,8 +327,8 @@ export async function PATCH(req: Request) {
 
     // Get database ID and owner info
     const dbIdResult = await getDefaultReaderPool().query(
-      `SELECT id, owner_id FROM databases WHERE name = $1` /* Use created_by instead of owner_id */,
-      [dbName]
+      `SELECT id, owner_id FROM databases WHERE id = $1` /* Use created_by instead of owner_id */,
+      [database_id]
     );
 
     if (dbIdResult.rows.length === 0) {
@@ -347,7 +340,7 @@ export async function PATCH(req: Request) {
 
     const dbId = dbIdResult.rows[0].id;
     const ownerId = dbIdResult.rows[0].owner_id; /* Use  instead of owner_id */
-
+    console.log("here");
     // If updating the owner's access, ensure they always have admin privileges
     if (
       targetUserId.toString() === ownerId.toString() &&
@@ -358,6 +351,44 @@ export async function PATCH(req: Request) {
         { status: 400 }
       );
     }
+    //first delete the role of the user in that database
+    const result = await axios.post(
+      `${process.env.DB_Service_url}/api/roles/delete`,
+      { database_id, userID: targetUserId }
+    );
+    if (result.status !== 200) {
+      return NextResponse.json(
+        { error: "Failed to delete user role" },
+        { status: 500 }
+      );
+    }
+    // Create a new role for the user in that database
+
+    if (accessLevel === "readonly") {
+      const result = await axios.post(
+        `${process.env.DB_Service_url}/api/roles/readonly`,
+        { database_id, userID: targetUserId }
+      );
+      if (result.status !== 201) {
+        return NextResponse.json(
+          { error: "Failed to create readonly role" },
+          { status: 500 }
+        );
+      }
+    } else {
+    
+      const result = await axios.post(
+        `${process.env.DB_Service_url}/api/roles/create`,
+        { database_id, userID: targetUserId }
+      );
+      if (result.status !== 201) {
+        return NextResponse.json(
+          { error: "Failed to create new role" },
+          { status: 500 }
+        );
+      }
+    }
+    // Check if the user already has access to the database
 
     // Update the user's access level
     const updateResult = await getDefaultWriterPool().query(
@@ -367,7 +398,7 @@ export async function PATCH(req: Request) {
        RETURNING access_level`,
       [accessLevel, targetUserId, dbId]
     );
-
+    console.log("updateResult", updateResult);
     if (updateResult.rowCount === 0) {
       return NextResponse.json(
         { error: `User ${email} does not have access to this database` },
@@ -471,6 +502,16 @@ export async function DELETE(req: Request) {
       );
     }
 
+    const result = await axios.post(
+      `${process.env.DB_Service_url}/api/roles/delete`,
+      { database_id, userID: targetUserId }
+    );
+    if (result.status !== 200) {
+      return NextResponse.json(
+        { error: "Failed to delete user role" },
+        { status: 500 }
+      );
+    }
     // Delete the access record
     const deleteResult = await getDefaultWriterPool().query(
       `DELETE FROM user_databases 

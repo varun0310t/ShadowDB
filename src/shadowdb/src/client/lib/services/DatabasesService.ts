@@ -70,9 +70,9 @@ export const updateDatabaseAccess = async (data: {
   return response.data;
 };
 
-export const revokeDatabaseAccess = async (dbName: string, email: string) => {
+export const revokeDatabaseAccess = async (database_id: number, email: string) => {
   const response = await axios.delete(
-    `/api/users/pool/Access?dbName=${encodeURIComponent(dbName)}&email=${encodeURIComponent(email)}`
+    `/api/users/pool/Access?database_id=${encodeURIComponent(database_id)}&email=${encodeURIComponent(email)}`
   );
   return response.data;
 };

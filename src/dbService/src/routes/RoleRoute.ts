@@ -1,9 +1,15 @@
 import { Router } from "express";
 
-import { CreateNewRole } from "../controllers/RolesController";
+import {
+  CreateNewRole,
+  DeleteRole,
+  createReadonly,
+} from "../controllers/RolesController";
+
 const app = Router();
 
-app.post("/create",CreateNewRole);
-
+app.post("/create", CreateNewRole);
+app.post("/delete", DeleteRole);
+app.post("/readonly", createReadonly);
 
 export default app;

@@ -71,7 +71,7 @@ interface AccessUser {
   id: number;
   name: string;
   email: string;
-  access_level: "admin" | "user" | "read";
+  access_level: "admin" | "user" | "readonly";
   is_owner: boolean;
 }
 
@@ -233,12 +233,12 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
   };
 
   const handleRevokeAccess = async (): Promise<void> => {
-    if (!selectedDatabase?.db_name || !userToRevoke) return;
+    if (!selectedDatabase?.id || !userToRevoke) return;
 
     setIsRevokingAccess(prev => ({ ...prev, [userToRevoke]: true }));
 
     try {
-      const result = await revokeDatabaseAccess(selectedDatabase.db_name, userToRevoke);
+      const result = await revokeDatabaseAccess(selectedDatabase.id, userToRevoke);
       if (result.success) {
         toast({
           title: "Access Revoked",
@@ -456,7 +456,7 @@ export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
                                     <span>User</span>
                                   </div>
                                 </SelectItem>
-                                <SelectItem value="read">
+                                <SelectItem value="readonly">
                                   <div className="flex items-center">
                                     <Lock className="h-3 w-3 mr-2 text-green-500" />
                                     <span>Read</span>
