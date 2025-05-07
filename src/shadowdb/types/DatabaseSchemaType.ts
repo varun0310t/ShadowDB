@@ -133,4 +133,5 @@ export enum TenancyType {
     provider: 'credentials' | 'google' | 'github';
     provider_id: string | null;
     created_at: Date;
+    role_password: string | null;
   }

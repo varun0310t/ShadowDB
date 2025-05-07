@@ -89,7 +89,7 @@ export function SecurityTab() {
 
     try {
       if (!UserAccountService.validatePassword(formDataRole.newPasswordRole)) {
-        console.log(formData.newPassword);
+        console.log(formDataRole.newPasswordRole);
         throw new Error(
           "Password must be at least 8 characters and contain uppercase, lowercase, number and special character"
         );
@@ -104,7 +104,10 @@ export function SecurityTab() {
         throw new Error("Passwords don't match");
       }
 
-      const resultaxios = await await axios.patch("", formDataRole);
+      const resultaxios = await axios.patch(
+        "/api/users/profile/Security/Role_password",
+        formDataRole
+      );
       const result = resultaxios.data;
       toast({
         title: "Success",
@@ -117,7 +120,8 @@ export function SecurityTab() {
         confirmPasswordRole: "",
       });
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       toast({
         title: "Error",
         description: errorMessage,
@@ -226,7 +230,8 @@ export function SecurityTab() {
           <form onSubmit={handleSubmitRole} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="currentPasswordRole" className="text-gray-200">
-                Current Password (initially your email is your role password pls update if not already)
+                Current Password (initially your email is your role password pls
+                update if not already)
               </Label>
               <Input
                 id="currentPasswordRole"
