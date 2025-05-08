@@ -262,10 +262,7 @@ function CreateDatabaseContent() {
                   </p>
                 </div>
               )}
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              {errors.dbType && (
-                <p className="text-sm text-red-500">{errors.dbType.message}</p>
-              )}
+            
             </div>
 
             {error && <p className="text-sm text-red-500">{error}</p>}

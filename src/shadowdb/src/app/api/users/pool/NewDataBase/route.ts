@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
-  const { tenancy_type, db_name } = body;
+  const { tenancy_type, db_name, haproxy_enabled, pgpool_enabled } = body;
   let { password } = body;
 
   // Validate tenancy_type
@@ -67,6 +67,9 @@ export async function POST(req: Request) {
               password: password,
               userEmail: userEmail,
               role_password: role_password,
+              tenancyType: tenancy_type,
+              haproxy_enabled: haproxy_enabled,
+              pgpool_enabled: pgpool_enabled,
             }
           );
 

@@ -16,8 +16,15 @@ const execAsync = promisify(exec);
 //
 export const CreateDatabase = async (req: Request, res: Response) => {
   try {
-    const { userId, databaseName, password, userEmail, role_password } =
-      req.body;
+    const {
+      userId,
+      databaseName,
+      password,
+      userEmail,
+      role_password,
+      haproxy_enabled,
+      pgpool_enabled,
+    } = req.body;
     console.log(req.body);
     if (!userId || !databaseName || !password || !userEmail || !role_password) {
       res.status(400).json({
@@ -99,7 +106,7 @@ export const CreateDatabase = async (req: Request, res: Response) => {
     // Wait for PostgreSQL to be ready
     await IsPatroniReady(containerName, patroniPort);
     // create a database in the new instance
-    
+
     let replicaResponse: any = null;
     //add one replica to the primary instance by calling the addreplica endpoint
     try {
@@ -210,7 +217,20 @@ export const CreateDatabase = async (req: Request, res: Response) => {
       "UPDATE databases SET status = 'running' WHERE id = $1",
       [instanceId]
     );
-
+    if (!haproxy_enabled) {
+      console.log("HAProxy is disabled, skipping HAProxy creation.");
+      res.status(201).json({
+        id: instanceId,
+        userId,
+        databaseName,
+        containerName,
+        port: dbPort,
+        patroniPort,
+        patroniScope,
+        status: "running",
+      });
+      return;
+    }
     // Create HAProxy for this database cluster
     console.log(`Creating HAProxy for database cluster ${patroniScope}`);
     try {
@@ -241,6 +261,26 @@ export const CreateDatabase = async (req: Request, res: Response) => {
       console.log(`QueryCacher port: ${querycacherInstance.port}`);
  */
       // After creating HAProxy
+
+      if (!pgpool_enabled) {
+        console.log("PgPool-II is disabled, skipping PgPool-II creation.");
+        res.status(201).json({
+          id: instanceId,
+          userId,
+          databaseName,
+          containerName,
+          port: dbPort,
+          patroniPort,
+          patroniScope,
+          status: "running",
+          haproxy: {
+            id: haproxyInstance.id,
+            writePort: haproxyInstance.writePort,
+            readPort: haproxyInstance.readPort,
+          },
+        });
+        return;
+      }
       console.log("Setting up PgPool-II instance...");
       const pgpoolInstance = await createPgPoolInstance({
         clusterName: patroniScope,
