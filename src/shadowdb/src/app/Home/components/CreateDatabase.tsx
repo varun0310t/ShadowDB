@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,12 +13,21 @@ import { Database, Shield, Cloud } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { CreateDatabse } from "@/client/lib/services/DatabasesService";
 import { toast, ToastContainer } from "react-toastify";
+// Import the Switch component at the top of your file
+import { Switch } from "@/components/ui/switch";
+import { FeaturePreview } from "@/components/ComingSoonToopTipWrapper";
 import "react-toastify/dist/ReactToastify.css";
+import { registry } from "../../../lib/Prom-client";
 
 // Define the schema using zod
 const schema = z.object({
-  dbName: z.string().min(1, "Database name is required").regex(/^[a-zA-Z0-9_]+$/, "Invalid database name"),
-  dbType: z.enum(["shared", "isolated"]),
+  dbName: z
+    .string()
+    .min(1, "Database name is required")
+    .regex(/^[a-zA-Z0-9_]+$/, "Invalid database name"),
+  dbType: z.enum(["shared", "isolated"]).default("isolated"),
+  haproxy_enabled: z.boolean().default(false),
+  pgpool_enabled: z.boolean().default(false),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -26,15 +35,37 @@ type FormData = z.infer<typeof schema>;
 function CreateDatabaseContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [dbType, setDbType] = useState("shared");
+  const [dbType, setDbType] = useState("isolated");
 
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormData>({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
   const createDatabase = useMutation({
-    mutationFn: ({ dbName, dbType }: { dbName: string; dbType: string }) =>
-      CreateDatabse({ db_name: dbName, tenancy_type: dbType }),
+    mutationFn: ({
+      dbName,
+      dbType,
+      haproxy_enabled,
+      pgpool_enabled,
+    }: {
+      dbName: string;
+      dbType: string;
+      haproxy_enabled: boolean;
+      pgpool_enabled: boolean;
+    }) =>
+      CreateDatabse({
+        db_name: dbName,
+        tenancy_type: dbType,
+        haproxy_enabled,
+        pgpool_enabled,
+      }),
     onSuccess: () => {
       setIsSubmitting(false);
       setError(null);
@@ -42,10 +73,15 @@ function CreateDatabaseContent() {
       toast.success("Database created successfully!");
     },
     onError: (error: unknown) => {
-      const errorMessage =  error instanceof Error ? error.message : "An error occurred";
+      const errorMessage =
+        error instanceof Error ? error.message : "An error occurred";
       setIsSubmitting(false);
-      toast.error(errorMessage || "An error occurred while creating the database.");
-      setError(errorMessage || "An error occurred while creating the database.");
+      toast.error(
+        errorMessage || "An error occurred while creating the database."
+      );
+      setError(
+        errorMessage || "An error occurred while creating the database."
+      );
     },
   });
 
@@ -85,7 +121,9 @@ function CreateDatabaseContent() {
                 className="bg-[#0B0F17] border-gray-800 focus:ring-purple-500 focus:border-purple-500 text-zinc-200"
                 required
               />
-              {errors.dbName && <p className="text-sm text-red-500">{errors.dbName.message}</p>}
+              {errors.dbName && (
+                <p className="text-sm text-red-500">{errors.dbName.message}</p>
+              )}
               <p className="text-xs text-gray-500">
                 Name must be unique and contain only letters, numbers, and
                 underscores
@@ -94,10 +132,9 @@ function CreateDatabaseContent() {
 
             <div className="space-y-3">
               <Label className="text-gray-300">Database Type</Label>
-
               <RadioGroup
                 value={dbType}
-                onValueChange={(value:"isolated"|"shared") => {
+                onValueChange={(value: "isolated" | "shared") => {
                   setDbType(value);
                   setValue("dbType", value);
                 }}
@@ -105,11 +142,14 @@ function CreateDatabaseContent() {
               >
                 <div className="flex items-start space-x-3">
                   <div className="flex items-center h-5 mt-1">
-                    <RadioGroupItem
-                      value="shared"
-                      id="shared"
-                      className="border-gray-600 text-purple-600"
-                    />
+                    <FeaturePreview message="shared database is currently turned off">
+                      <RadioGroupItem
+                        value="shared"
+                        id="shared"
+                        className="border-gray-600 text-purple-600"
+                        disabled={true}
+                      />
+                    </FeaturePreview>
                   </div>
                   <div className="flex-1">
                     <label
@@ -149,7 +189,83 @@ function CreateDatabaseContent() {
                   </div>
                 </div>
               </RadioGroup>
-              {errors.dbType && <p className="text-sm text-red-500">{errors.dbType.message}</p>}
+              {/* Only show advanced options for isolated database type */}
+              {dbType === "isolated" && (
+                <div className="space-y-4 border border-gray-800 rounded-md p-4 bg-[#0F131C]">
+                  <h3 className="text-gray-200 font-medium">
+                    Advanced Configuration
+                  </h3>
+                  {/* HAProxy Toggle */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label
+                        htmlFor="haproxy_enabled"
+                        className="text-gray-300 cursor-pointer"
+                      >
+                        Enable HAProxy
+                      </Label>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Load balancing and high availability for your database
+                      </p>
+                    </div>
+                    <Switch
+                      id="haproxy_enabled"
+                      {...register("haproxy_enabled")}
+                      checked={watch("haproxy_enabled")}
+                      onCheckedChange={(checked) => {
+                        setValue("haproxy_enabled", checked);
+                        if (!checked) {
+                          setValue("pgpool_enabled", false);
+                        }
+                      }}
+                      className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
+                    />
+                  </div>
+                  {/* PGPool Toggle - Only enabled if HAProxy is enabled */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label
+                        htmlFor="pgpool_enabled"
+                        className={`text-gray-300 ${
+                          !watch("haproxy_enabled") ? "opacity-50" : ""
+                        }`}
+                      >
+                        Enable PGPool
+                      </Label>
+                      <p
+                        className={`text-xs text-gray-500 mt-1 ${
+                          !watch("haproxy_enabled") ? "opacity-50" : ""
+                        }`}
+                      >
+                        Connection pooling and query caching for better
+                        performance
+                      </p>
+                    </div>
+                    <Switch
+                      id="pgpool_enabled"
+                      {...register("pgpool_enabled")}
+                      checked={watch("pgpool_enabled")}
+                      disabled={!watch("haproxy_enabled")}
+                      onCheckedChange={(checked) =>
+                        setValue("pgpool_enabled", checked)
+                      }
+                      className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800 data-[disabled]:opacity-50"
+                    />
+                  </div>
+                  {!watch("haproxy_enabled") && watch("pgpool_enabled") && (
+                    <p className="text-xs text-amber-500">
+                      PGPool requires HAProxy to be enabled
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-2 italic">
+                    These features are only available for isolated databases
+                  </p>
+                </div>
+              )}
+              {error && <p className="text-sm text-red-500">{error}</p>}
+              {errors.dbType && (
+                <p className="text-sm text-red-500">{errors.dbType.message}</p>
+              )}
             </div>
 
             {error && <p className="text-sm text-red-500">{error}</p>}

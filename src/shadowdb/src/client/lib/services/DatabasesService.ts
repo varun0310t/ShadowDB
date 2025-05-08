@@ -8,6 +8,8 @@ export const GetDataBases = async () => {
 export const CreateDatabse = async (data: {
   tenancy_type: string;
   db_name: string;
+  haproxy_enabled: boolean;
+  pgpool_enabled: boolean;
 }) => {
   const response = await axios.post("/api/users/pool/NewDataBase", data);
   return response.data;
