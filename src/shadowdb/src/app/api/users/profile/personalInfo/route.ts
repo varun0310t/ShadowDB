@@ -95,11 +95,7 @@ export async function PATCH(req: NextRequest) {
 
     // Handle file upload if present
     let imageUrl = null;
-    if (
-      formData.imageFile &&
-      formData.imageFile === "object" &&
-      "arrayBuffer" in formData.imageFile
-    ) {
+    if (formData.imageFile) {
       const file = formData.imageFile;
 
       // Check if user exists and get current data to handle old image
