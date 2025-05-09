@@ -20,6 +20,7 @@ type ProfileFormData = {
   language?: string
   timezone?: string
   image?: string
+  imageFile?: File | null
 }
 
 interface ProfileTabProps {
@@ -31,55 +32,81 @@ export function ProfileTab({ userData, onUpdate }: ProfileTabProps) {
   const [editing, setEditing] = useState(false)
   const [imagePreview, setImagePreview] = useState<string>("")
   const { toast } = useToast()
-  const { register, handleSubmit, reset } = useForm<ProfileFormData>()
+  const { register, handleSubmit, reset, setValue } = useForm<ProfileFormData>()
 
-  useEffect(() => {
-    if (userData) {
-      reset(userData)
-      setImagePreview(userData.image || "")
-    }
-  }, [userData, reset])
+useEffect(() => {
+  if (userData) {
+    reset({
+      ...userData,
+      imageFile: undefined // Clear any file data when resetting
+    })
+    setImagePreview(userData.image || "")
+  }
+}, [userData, reset])
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        const base64String = reader.result as string
-        setImagePreview(base64String)
-        handleSubmit((data) => onSubmit({ ...data, image: base64String }))()
-      }
-      reader.readAsDataURL(file)
-    }
+   if (file) {
+    // Create a temporary local preview
+    const objectUrl = URL.createObjectURL(file)
+    setImagePreview(objectUrl)
+    
+    // Store the file in form data
+    setValue('imageFile', file)
+  }
   }
 
-  const onSubmit = async (data: ProfileFormData) => {
-    try {
-      const response = await fetch('/api/users/profile/personalInfo', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-      
-      if (response.ok) {
-        toast({
-          title: "Success",
-          description: "Profile updated successfully"
-        })
-        setEditing(false)
-        onUpdate()
-      } else {
-        throw new Error((await response.json()).error)
-      }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error"
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description:errorMessage || "Failed to update profile"
-      })
+ const onSubmit = async (data: ProfileFormData) => {
+  try {
+    // Create a FormData object to send the file properly
+    const formData = new FormData()
+    
+    // Add all text fields
+    formData.append('name', data.name)
+    if (data.display_name) formData.append('display_name', data.display_name)
+    if (data.bio) formData.append('bio', data.bio)
+    if (data.company) formData.append('company', data.company)
+    if (data.website) formData.append('website', data.website)
+    if (data.location) formData.append('location', data.location)
+    
+    // Add the image file if it exists
+    if (data.imageFile) {
+      formData.append('imageFile', data.imageFile)
     }
+    
+    // Send request with FormData
+    const response = await fetch('/api/users/profile/personalInfo', {
+      method: 'PATCH',
+      // Don't set Content-Type header, it will be set automatically with boundary
+      body: formData,
+    })
+    
+    if (response.ok) {
+      const result = await response.json()
+      
+      // If backend returns an image URL, update it
+      if (result.imageUrl) {
+        setImagePreview(result.imageUrl)
+      }
+      
+      toast({
+        title: "Success",
+        description: "Profile updated successfully"
+      })
+      setEditing(false)
+      onUpdate()
+    } else {
+      throw new Error((await response.json()).error)
+    }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error"
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: errorMessage || "Failed to update profile"
+    })
   }
+}
 
   return (
     <div className="space-y-6">
@@ -96,8 +123,7 @@ export function ProfileTab({ userData, onUpdate }: ProfileTabProps) {
               className="border-gray-700"
               onClick={() => setEditing(!editing)}
             >
-              {editing ? "Cancel" : <Edit2 size={16} className="mr-2" />}
-              {editing ? "Cancel" : "Edit Profile"}
+              {editing ? "Cancel" : <Edit2 size={20} className="" />}
             </Button>
           </div>
         </CardHeader>

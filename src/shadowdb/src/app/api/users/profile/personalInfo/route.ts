@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
+import { parseFormData } from "@/lib/utils/ReqUtils";
 import { getDefaultReaderPool, getDefaultWriterPool } from "@/lib/userPools";
 import supabase from "@/lib/SupaBaseClient";
 import { z } from "zod";
@@ -18,6 +19,7 @@ const personalInfoSchema = z.object({
       z.literal(""),
     ])
     .optional(),
+  imageFile: z.instanceof(File).optional(),
   bio: z.string().max(500).optional(),
   location: z.string().max(100).optional(),
   company: z.string().max(100).optional(),
@@ -80,43 +82,25 @@ export async function GET() {
   }
 }
 
-// PATCH: Update user's personal info
-export async function PATCH(req: Request) {
+// Update the PATCH handler to process file uploads
+export async function PATCH(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
+    // Parse the multipart form data
+    const formData = await parseFormData(req);
 
-    // Validate request body
-    try {
-      personalInfoSchema.parse(body);
-    } catch (validationError: unknown) {
-      console.error("Validation error:", validationError);
-      if (validationError instanceof z.ZodError) {
-        return NextResponse.json(
-          { error: `Invalid data: ${validationError.message}` },
-          { status: 400 }
-        );
-      }
-      const errorMessage =
-        validationError instanceof Error
-          ? validationError.message
-          : "Unknown error";
-      return NextResponse.json(
-        { error: `Invalid data: ${errorMessage}` },
-        { status: 400 }
-      );
-    }
+    // Handle file upload if present
+    let imageUrl = null;
+    if (formData.imageFile instanceof File) {
+      const file = formData.imageFile;
 
-    let { image, ...otherFields } = body;
-
-    // Handle base64 image upload
-    if (image && image.startsWith("data:image")) {
+      // Check if user exists and get current data to handle old image
       const currentUser = await getDefaultReaderPool().query(
-        `SELECT image FROM users WHERE id = $1 `,
+        `SELECT image FROM users WHERE id = $1`,
         [session.user.id]
       );
 
@@ -125,35 +109,42 @@ export async function PATCH(req: Request) {
         const oldImagePath = currentUser.rows[0].image.split("/").pop();
         if (oldImagePath) {
           await supabase.storage
-            .from("profile-pictures")
+            .from("shadowdb-bucket")
             .remove([oldImagePath]);
         }
       }
 
       // Upload new image
-      const base64Data = image.split(",")[1];
-      const buffer = Buffer.from(base64Data, "base64");
-      const fileName = `${session.user.id}-${Date.now()}.jpg`;
+      const fileName = `${session.user.id}-${Date.now()}-${file.name.replace(
+        /[^a-zA-Z0-9.-]/g,
+        ""
+      )}`;
 
-      const {  error } = await supabase.storage
-        .from("profile-pictures")
+      // Convert file to buffer
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      // Upload to Supabase
+      const { error } = await supabase.storage
+        .from("shadowdb-bucket")
         .upload(fileName, buffer, {
-          contentType: "image/jpeg",
+          contentType: file.type,
           upsert: true,
         });
 
       if (error) {
+        console.error("Supabase upload error:", error);
         throw new Error("Failed to upload image");
       }
 
+      // Get public URL
       const {
         data: { publicUrl },
-      } = supabase.storage.from("profile-pictures").getPublicUrl(fileName);
+      } = supabase.storage.from("shadowdb-bucket").getPublicUrl(fileName);
 
-      image = publicUrl;
+      imageUrl = publicUrl;
     }
-
-    // Check if user exists and get current data
+    // Check if user exists
     const currentUser = await getDefaultReaderPool().query(
       `SELECT provider FROM users WHERE id = $1 AND deleted_at IS NULL`,
       [session.user.id]
@@ -163,15 +154,9 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // For OAuth users, only allow updating certain fields
-    if (currentUser.rows[0].provider !== "credentials" && image) {
-      return NextResponse.json(
-        { error: "OAuth users cannot change their profile image" },
-        { status: 400 }
-      );
-    }
+   
 
-    // Update user information
+    // Update user information with the new fields
     const result = await getDefaultWriterPool().query(
       `UPDATE users 
        SET 
@@ -197,19 +182,19 @@ export async function PATCH(req: Request) {
         timezone, language, theme, email_notifications,
         updated_at`,
       [
-        otherFields.name,
-        otherFields.display_name,
-        image,
-        otherFields.bio,
-        otherFields.location,
-        otherFields.company,
-        otherFields.website,
-        otherFields.github_username,
-        otherFields.twitter_username,
-        otherFields.timezone,
-        otherFields.language,
-        otherFields.theme,
-        otherFields.email_notifications,
+        formData.name,
+        formData.display_name,
+        imageUrl,
+        formData.bio,
+        formData.location,
+        formData.company,
+        formData.website,
+        formData.github_username,
+        formData.twitter_username,
+        formData.timezone,
+        formData.language,
+        formData.theme,
+        formData.email_notifications,
         session.user.id,
       ]
     );
@@ -224,14 +209,12 @@ export async function PATCH(req: Request) {
     return NextResponse.json({
       message: "Personal information updated successfully",
       user: result.rows[0],
+      imageUrl: imageUrl, // Return the image URL for the client
     });
   } catch (error: unknown) {
     console.error("Error updating personal info:", error);
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ["lh3.googleusercontent.com"], // Add your image domains here
+    domains: ["lh3.googleusercontent.com","krvsfqouebruazgllzym.supabase.co"], // Add your image domains here
   },
   /* config options here */
   eslint: {
