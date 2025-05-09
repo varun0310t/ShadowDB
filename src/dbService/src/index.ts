@@ -5,6 +5,8 @@ import databaseConfgirationRoute from "./routes/DatabaseconfigurationRoute";
 import roleRoute from "./routes/RoleRoute";
 import storageRoute from "./routes/StorageRoute";
 import ResourceRoute from "./routes/ResourceRoute";
+import haproxyRoute from "./routes/HaproxyRoute";
+import pgpoolRoute from "./routes/PgpoolRoute";
 import { config } from "dotenv";
 
 // Load environment variables
@@ -29,6 +31,8 @@ app.use("/api/configuration", databaseConfgirationRoute);
 app.use("/api/roles", roleRoute);
 app.use("/api/storage", storageRoute);
 app.use("/api/resource", ResourceRoute);
+app.use("/api/haproxy", haproxyRoute);
+app.use("/api/pgpool", pgpoolRoute);
 // Error handling middleware
 app.use(
   (

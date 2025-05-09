@@ -689,3 +689,152 @@ export const AddReplica = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to create database replica" });
   }
 };
+
+export const StopDatabase = async (req: Request, res: Response) => {
+  try {
+    const { database_Scope } = req.body;
+    if (!database_Scope) {
+      res
+        .status(400)
+        .json({ error: "Missing required fields: database_Scope" });
+      return;
+    }
+    // Get the database instance details
+    const { rows } = await getDefaultReaderPool().query(
+      "SELECT * FROM databases WHERE patroni_scope = $1",
+      [database_Scope]
+    );
+    if (rows.length === 0) {
+      res.status(404).json({ error: "Database not found" });
+      return;
+    }
+    //get primary and replica instance in array
+    const primaryInstance = rows.filter((row) => row.is_replica === false);
+    const replicaInstances = rows.filter((row) => row.is_replica === true);
+
+    ///stop all of this contianers
+    const allContainers = [primaryInstance, ...replicaInstances];
+    for (const instance of allContainers) {
+      const containerName = instance.container_name;
+      console.log(`Stopping container: ${containerName}`);
+      await execAsync(`docker stop ${containerName}`);
+    }
+    // Update the database status in the database
+    await getDefaultWriterPool().query(
+      "UPDATE databases SET status = 'stopped' WHERE patroni_scope = $1",
+      [database_Scope]
+    );
+  
+    res.status(200).json({
+      message: `Database ${database_Scope} stopped successfully`,
+      primaryInstance,
+      replicaInstances,
+    });
+  } catch (error) {
+    console.error("Failed to stop database:", error);
+    res.status(500).json({ error: "Failed to stop database" });
+  }
+};
+
+export const StartDatabase = async (req: Request, res: Response) => {
+  try {
+    const { database_Scope } = req.body;
+    if (!database_Scope) {
+      res
+        .status(400)
+        .json({ error: "Missing required fields: database_Scope" });
+      return;
+    }
+    // Get the database instance details
+    const { rows } = await getDefaultReaderPool().query(
+      "SELECT * FROM databases WHERE patroni_scope = $1",
+      [database_Scope]
+    );
+    if (rows.length === 0) {
+      res.status(404).json({ error: "Database not found" });
+      return;
+    }
+    //get primary and replica instance in array
+    const primaryInstance = rows.filter((row) => row.is_replica === false);
+    const replicaInstances = rows.filter((row) => row.is_replica === true);
+
+    ///start all of this contianers
+    const allContainers = [primaryInstance, ...replicaInstances];
+    for (const instance of allContainers) {
+      const containerName = instance.container_name;
+      console.log(`Starting container: ${containerName}`);
+      await execAsync(`docker start ${containerName}`);
+    }
+    // Update the database status in the database
+    await getDefaultWriterPool().query(
+      "UPDATE databases SET status = 'running' WHERE patroni_scope = $1",
+      [database_Scope]
+    );
+
+    res.status(200).json({
+      message: `Database ${database_Scope} started successfully`,
+      primaryInstance,
+      replicaInstances,
+    });
+  } catch (error) {
+    console.error("Failed to start database:", error);
+    res.status(500).json({ error: "Failed to start database" });
+  }
+};
+
+export const DeleteDatabase = async (req: Request, res: Response) => {
+  try {
+    const { database_Scope } = req.body;
+    if (!database_Scope) {
+      res
+        .status(400)
+        .json({ error: "Missing required fields: database_Scope" });
+      return;
+    }
+    // Get the database instance details
+    const { rows } = await getDefaultReaderPool().query(
+      "SELECT * FROM databases WHERE patroni_scope = $1",
+      [database_Scope]
+    );
+    if (rows.length === 0) {
+      res.status(404).json({ error: "Database not found" });
+      return;
+    }
+    //get primary and replica instance in array
+    const primaryInstance = rows.filter((row) => row.is_replica === false);
+    const replicaInstances = rows.filter((row) => row.is_replica === true);
+
+    ///stop all of this contianers
+    const allContainers = [primaryInstance, ...replicaInstances];
+    for (const instance of allContainers) {
+      const containerName = instance.container_name;
+      console.log(`Stopping container: ${containerName}`);
+      await execAsync(`docker stop ${containerName}`);
+    }
+
+    // Delete Docker containers and volumes
+    for (const instance of allContainers) {
+      const containerName = instance.container_name;
+      const volumeName = instance.volume_name;
+      console.log(`Deleting container: ${containerName}`);
+      await execAsync(`docker rm ${containerName}`);
+      console.log(`Deleting volume: ${volumeName}`);
+      await execAsync(`docker volume rm ${volumeName}`);
+    }
+
+    // Delete the database entry from the database
+    await getDefaultWriterPool().query(
+      "DELETE FROM databases WHERE patroni_scope = $1",
+      [database_Scope]
+    );
+
+    res.status(200).json({
+      message: `Database ${database_Scope} deleted successfully`,
+      primaryInstance,
+      replicaInstances,
+    });
+  } catch (error) {
+    console.error("Failed to delete database:", error);
+    res.status(500).json({ error: "Failed to delete database" });
+  }
+};

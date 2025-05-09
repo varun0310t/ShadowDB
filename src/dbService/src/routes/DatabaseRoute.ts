@@ -1,7 +1,7 @@
 import "../config/psqlConfig";
 import { Router, Request, Response } from "express";
 import { initializeService } from "../Services/DatabaseRouteService";
-import { AddReplica, CreateDatabase } from "../controllers/DatabasesController";
+import { AddReplica, CreateDatabase,StopDatabase,DeleteDatabase ,StartDatabase} from "../controllers/DatabasesController";
 
 const router = Router();
 
@@ -26,6 +26,14 @@ router.post("/create", CreateDatabase);
 // New endpoint to add a replica to an existing database
 router.post("/addReplica", AddReplica);
 
+// Endpoint to stop a running database
+router.post("/stop", StopDatabase);
+
+// Endpoint to delete a stopped database
+router.post("/delete", DeleteDatabase);
+
+// Endpoint to start a stopped database
+router.post("/start", StartDatabase);
 // Updated to check Patroni status instead of just PostgreSQL
 
 export default router;
