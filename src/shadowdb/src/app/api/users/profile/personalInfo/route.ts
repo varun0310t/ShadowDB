@@ -19,7 +19,7 @@ const personalInfoSchema = z.object({
       z.literal(""),
     ])
     .optional(),
-  imageFile: z.instanceof(File).optional(),
+  imageFile: z.any().optional(),
   bio: z.string().max(500).optional(),
   location: z.string().max(100).optional(),
   company: z.string().max(100).optional(),
@@ -95,7 +95,11 @@ export async function PATCH(req: NextRequest) {
 
     // Handle file upload if present
     let imageUrl = null;
-    if (formData.imageFile instanceof File) {
+    if (
+      formData.imageFile &&
+      formData.imageFile === "object" &&
+      "arrayBuffer" in formData.imageFile
+    ) {
       const file = formData.imageFile;
 
       // Check if user exists and get current data to handle old image
@@ -108,9 +112,7 @@ export async function PATCH(req: NextRequest) {
       if (currentUser.rows[0]?.image) {
         const oldImagePath = currentUser.rows[0].image.split("/").pop();
         if (oldImagePath) {
-          await supabase.storage
-            .from("shadowdb-bucket")
-            .remove([oldImagePath]);
+          await supabase.storage.from("shadowdb-bucket").remove([oldImagePath]);
         }
       }
 
@@ -153,8 +155,6 @@ export async function PATCH(req: NextRequest) {
     if (currentUser.rows.length === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-
-   
 
     // Update user information with the new fields
     const result = await getDefaultWriterPool().query(
