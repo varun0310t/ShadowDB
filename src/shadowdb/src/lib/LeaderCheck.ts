@@ -28,22 +28,25 @@ async function checkAndUpdateLeader() {
       }
     }
     leaderPorts.push(8008);
-   for(const port of leaderPorts){ {
-      console.log("Leader port", port);
+    for (const port of leaderPorts) {
+      try {
+        console.log("Leader port", port);
 
-      const response = await axios.get(`http://localhost:${port}/cluster`);
-      const clusterInfo = response.data;
-      const scope = clusterInfo.scope;
-      const n = clusterInfo.members.length;
-      for (let i = 0; i < n; i++) {
-        if (clusterInfo.members[i].role === "leader") {
-          console.log("Leader found at index", i);
-          scopeLeaderIndex.set(scope, i);
-          break;
+        const response = await axios.get(`http://localhost:${port}/cluster`);
+        const clusterInfo = response.data;
+        const scope = clusterInfo.scope;
+        const n = clusterInfo.members.length;
+        for (let i = 0; i < n; i++) {
+          if (clusterInfo.members[i].role === "leader") {
+            console.log("Leader found at index", i);
+            scopeLeaderIndex.set(scope, i);
+            break;
+          }
         }
+      } catch (error) {
+        console.error("Error fetching cluster info:", port);
       }
-    };
-  }
+    }
   } catch (error) {
     console.error("Error checking leader:", error);
   }
@@ -51,4 +54,4 @@ async function checkAndUpdateLeader() {
 checkAndUpdateLeader();
 setInterval(checkAndUpdateLeader, 10000);
 
-export { leaderPoolIndex, checkAndUpdateLeader,scopeLeaderIndex };
+export { leaderPoolIndex, checkAndUpdateLeader, scopeLeaderIndex };

@@ -29,7 +29,10 @@ import {
 } from "lucide-react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GenerateQueryToken, GetDataBases } from "@/client/lib/services/DatabasesService";
+import {
+  GenerateQueryToken,
+  GetDataBases,
+} from "@/client/lib/services/DatabasesService";
 import axios from "axios";
 
 // Import tab components
@@ -40,7 +43,11 @@ import { SecurityTab } from "./config/SecurityTab";
 import { ApiTokensTab } from "./config/ApiTokensTab";
 
 // Import types
-import { DatabaseConfigProps, DatabaseEntry, TokenType } from "./types/DatabaseTypes";
+import {
+  DatabaseConfigProps,
+  DatabaseEntry,
+  TokenType,
+} from "./types/DatabaseTypes";
 import { Label } from "@/components/ui/label";
 
 export default function DatabaseConfiguration({
@@ -48,7 +55,8 @@ export default function DatabaseConfiguration({
 }: DatabaseConfigProps) {
   const [activeTab, setActiveTab] = useState("general");
   const [selectedDatabaseId, setSelectedDatabaseId] = useState<string>("");
-  const [selectedDatabase, setSelectedDatabase] = useState<DatabaseEntry | null>(null);
+  const [selectedDatabase, setSelectedDatabase] =
+    useState<DatabaseEntry | null>(null);
   const [apiTokens, setApiTokens] = useState<TokenType[]>([]);
   const [newToken, setNewToken] = useState<TokenType | null>(null);
   const [tokenExpiryDays, setTokenExpiryDays] = useState(30);
@@ -56,10 +64,7 @@ export default function DatabaseConfiguration({
 
   const queryClient = useQueryClient();
 
-  const {
-    data: tokensData,
-    isLoading: isLoadingTokens,
-  } = useQuery({
+  const { data: tokensData, isLoading: isLoadingTokens } = useQuery({
     queryKey: ["tokens"],
     queryFn: async () => {
       const response = await axios.get("/api/query/Tokens");
@@ -99,14 +104,17 @@ export default function DatabaseConfiguration({
 
   useEffect(() => {
     if (selectedDatabaseId && databases.length > 0) {
-      const database = databases.find((db) => db.id.toString() === selectedDatabaseId) || null;
-
+      const database =
+        databases.find((db) => db.id.toString() === selectedDatabaseId) || null;
+      console.log("Selected Database:", database);
       if (database) {
         setSelectedDatabase({
           ...database,
           region: database.region || "us-east-1",
-          created_at: database.created_at || new Date().toISOString().split("T")[0],
-          status: database.status || "active",
+          created_at:
+            database.created_at || new Date().toISOString().split("T")[0],
+          status: database.status || "running",
+          patroni_scope: database.patroni_scope || "",
         });
         setIsLoading(false);
       }
@@ -139,14 +147,15 @@ export default function DatabaseConfiguration({
 
     if (data && data.databases && selectedDatabaseId) {
       const refreshedDb = data.databases.find(
-        (db: {id:number}) => db.id.toString() === selectedDatabaseId
+        (db: { id: number }) => db.id.toString() === selectedDatabaseId
       );
 
       if (refreshedDb) {
         setSelectedDatabase({
           ...refreshedDb,
           region: refreshedDb.region || "us-east-1",
-          created_at: refreshedDb.created_at || new Date().toISOString().split("T")[0],
+          created_at:
+            refreshedDb.created_at || new Date().toISOString().split("T")[0],
           status: refreshedDb.status || "active",
         });
       }
@@ -253,9 +262,9 @@ export default function DatabaseConfiguration({
             <div className="flex items-center space-x-2 mt-1">
               <Badge
                 className={
-                  selectedDatabase.status === "active"
+                  selectedDatabase.status === "running"
                     ? "bg-green-600"
-                    : selectedDatabase.status === "maintenance"
+                    : selectedDatabase.status === "stopped"
                     ? "bg-yellow-600"
                     : "bg-red-600"
                 }
@@ -323,8 +332,8 @@ export default function DatabaseConfiguration({
 
         {/* General Settings */}
         <TabsContent value="general" className="space-y-4">
-          <GeneralTab 
-            selectedDatabase={selectedDatabase} 
+          <GeneralTab
+            selectedDatabase={selectedDatabase}
             copyToClipboard={copyToClipboard}
             refetchDatabases={handleDatabaseRefetch}
           />
@@ -332,7 +341,7 @@ export default function DatabaseConfiguration({
 
         {/* Performance Settings */}
         <TabsContent value="performance" className="space-y-4">
-          <PerformanceTab  selectedDatabase={selectedDatabase}/>
+          <PerformanceTab selectedDatabase={selectedDatabase} />
         </TabsContent>
 
         {/* Backup & Recovery */}
@@ -347,7 +356,7 @@ export default function DatabaseConfiguration({
 
         {/* API Tokens */}
         <TabsContent value="api" className="space-y-4">
-          <ApiTokensTab 
+          <ApiTokensTab
             apiTokens={apiTokens}
             newToken={newToken}
             setNewToken={setNewToken}

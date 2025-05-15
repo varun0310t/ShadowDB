@@ -38,8 +38,8 @@ CREATE TABLE databases (
   is_replica BOOLEAN DEFAULT false,  -- Whether this is a replica instance
 
   -- reference to the haproxy instance and querycacher instance
-  haproxy_id INTEGER REFERENCES haproxy_instances(id) ON DELETE CASCADE,
-  querycacher_id INTEGER REFERENCES querycacher_instances(id) ON DELETE CASCADE,
+  haproxy_id INTEGER REFERENCES haproxy_instances(id) ON DELETE SET NULL,
+  querycacher_id INTEGER REFERENCES querycacher_instances(id) ON DELETE SET NULL,
   pgpool_id INTEGER REFERENCES pgpool_instances(id) ON DELETE SET NULL,
 
   --strogae related fields

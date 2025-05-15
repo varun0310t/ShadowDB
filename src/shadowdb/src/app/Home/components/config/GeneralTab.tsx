@@ -6,6 +6,7 @@ import axios from "axios";
 // Import component sections
 import { DatabaseInfoCard } from "./database-info/DatabaseInfoCard";
 import { ConnectionSettingsCard } from "./connection-settings/ConnectionSettingsCard";
+import { DatabaseLifecycleCard } from "./database-lifecycle/DatabaseLifecycleCard";
 
 // Types
 import { DatabaseEntry } from "../../types/database-types";
@@ -33,11 +34,14 @@ export function GeneralTab({
     },
     enabled: !!selectedDatabase.id, // Only run this query if we have a database ID
   });
-
   return (
     <div className="space-y-4">
       {/* Database Information Card */}
       <DatabaseInfoCard
+        selectedDatabase={selectedDatabase}
+        refetchDatabases={refetchDatabases}
+      />      {/* Database Lifecycle Card */}
+      <DatabaseLifecycleCard
         selectedDatabase={selectedDatabase}
         refetchDatabases={refetchDatabases}
       />

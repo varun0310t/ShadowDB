@@ -5,8 +5,9 @@ export interface DatabaseEntry {
   access_level: "admin" | "user";
   region?: string;
   created_at?: string;
-  status?: "active" | "inactive" | "maintenance";
-  db_user?:string;
+  status?: "running" | "stopped" | "creating" | "error" | "deleted";
+  db_user?: string;
+  patroni_scope: string;
   db_password?: string;
   haproxy?:{
     write_port?: number;

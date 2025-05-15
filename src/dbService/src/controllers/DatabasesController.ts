@@ -713,8 +713,10 @@ export const StopDatabase = async (req: Request, res: Response) => {
     const replicaInstances = rows.filter((row) => row.is_replica === true);
 
     ///stop all of this contianers
-    const allContainers = [primaryInstance, ...replicaInstances];
+    const allContainers = [...primaryInstance, ...replicaInstances];
+    console.log(allContainers);
     for (const instance of allContainers) {
+      console.log(instance);
       const containerName = instance.container_name;
       console.log(`Stopping container: ${containerName}`);
       await execAsync(`docker stop ${containerName}`);
@@ -739,6 +741,7 @@ export const StopDatabase = async (req: Request, res: Response) => {
 export const StartDatabase = async (req: Request, res: Response) => {
   try {
     const { database_Scope } = req.body;
+    console.log(database_Scope);
     if (!database_Scope) {
       res
         .status(400)
@@ -750,6 +753,7 @@ export const StartDatabase = async (req: Request, res: Response) => {
       "SELECT * FROM databases WHERE patroni_scope = $1",
       [database_Scope]
     );
+    console.log(rows, "rows", database_Scope);
     if (rows.length === 0) {
       res.status(404).json({ error: "Database not found" });
       return;
@@ -759,7 +763,7 @@ export const StartDatabase = async (req: Request, res: Response) => {
     const replicaInstances = rows.filter((row) => row.is_replica === true);
 
     ///start all of this contianers
-    const allContainers = [primaryInstance, ...replicaInstances];
+    const allContainers = [...primaryInstance, ...replicaInstances];
     for (const instance of allContainers) {
       const containerName = instance.container_name;
       console.log(`Starting container: ${containerName}`);
@@ -805,7 +809,7 @@ export const DeleteDatabase = async (req: Request, res: Response) => {
     const replicaInstances = rows.filter((row) => row.is_replica === true);
 
     ///stop all of this contianers
-    const allContainers = [primaryInstance, ...replicaInstances];
+    const allContainers = [...primaryInstance, ...replicaInstances];
     for (const instance of allContainers) {
       const containerName = instance.container_name;
       console.log(`Stopping container: ${containerName}`);

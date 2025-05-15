@@ -22,19 +22,12 @@ import { signOut } from "next-auth/react";
 import DatabaseConfiguration from "./components/Configuration";
 // Import Account component (which you'll need to create)
 import AccountSettings from "./components/AccountSettings";
-
+import type { DatabaseEntry } from "./types/database-types";
 export default function HomePage() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activePage, setActivePage] = useState("home");
   const [selectedDatabase, setSelectedDatabase] = useState("");
   const [databases, setDatabases] = useState<DatabaseEntry[]>([]);
-
-  interface DatabaseEntry {
-    id: number;
-    tenancy_type: "shared" | "isolated";
-    db_name: string;
-    access_level: "admin" | "user";
-  }
 
   const { data } = useQuery<
     { databases: DatabaseEntry[] },
@@ -46,6 +39,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (data?.databases && data.databases.length > 0) {
+      console.log("databases", data.databases);
       setDatabases(data.databases);
     }
   }, [data?.databases]);

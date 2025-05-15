@@ -56,10 +56,12 @@ export const CreateHaproxy = async (req: Request, res: Response) => {
 export const stopHaproxy = async (req: Request, res: Response) => {
   try {
     const { clusterName } = req.body;
+    console.log("Stopping HAProxy instance for cluster:", clusterName);
     const haproxyinfo = await getDefaultReaderPool().query(
-      `SELECT * FROM haproxy_instances WHERE container_name = $1`,
+      `SELECT * FROM haproxy_instances WHERE cluster_name = $1`,
       [clusterName]
     );
+    console.log(haproxyinfo.rows);
     if (haproxyinfo.rows.length === 0) {
        res.status(404).json({ message: "HAProxy instance not found" });
        return;
@@ -92,10 +94,12 @@ export const stopHaproxy = async (req: Request, res: Response) => {
 export const startHaproxy = async (req: Request, res: Response) => {
   try {
     const { clusterName } = req.body;
+    console.log("Starting HAProxy instance for cluster:", clusterName);
     const haproxyinfo = await getDefaultReaderPool().query(
-      `SELECT * FROM haproxy_instances WHERE container_name = $1`,
+      `SELECT * FROM haproxy_instances WHERE cluster_name = $1`,
       [clusterName]
     );
+    console.log(haproxyinfo.rows);
     if (haproxyinfo.rows.length === 0) {
        res.status(404).json({ message: "HAProxy instance not found" });
         return;
@@ -129,9 +133,12 @@ export const deleteHaproxy = async (req: Request, res: Response) => {
   try {
     const { clusterName } = req.body;
     const haproxyinfo = await getDefaultReaderPool().query(
-      `SELECT * FROM haproxy_instances WHERE container_name = $1`,
+      `SELECT * FROM haproxy_instances WHERE cluster_name = $1`,
       [clusterName]
     );
+    console.log(haproxyinfo.rows);
+    console.log("Deleting HAProxy instance for cluster:", clusterName);
+
     if (haproxyinfo.rows.length === 0) {
        res.status(404).json({ message: "HAProxy instance not found" });
         return;

@@ -17,8 +17,7 @@ export function PgPoolConnection({
   connectionConfig,
   isLoading,
   copyToClipboard,
-}: PgPoolConnectionProps) {
-  const connectionString = `postgresql://${
+}: PgPoolConnectionProps) {  const connectionString = `postgresql://${
     connectionConfig?.role_user || "postgres"
   }:${selectedDatabase.db_password || "password"}@${
     connectionConfig?.hostname ||

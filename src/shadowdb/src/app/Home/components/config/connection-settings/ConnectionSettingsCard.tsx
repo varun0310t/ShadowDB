@@ -44,13 +44,12 @@ export function ConnectionSettingsCard({
 
   // Get the shared QueryClient from context
   const queryClient = useQueryClient();
-
   // Update UI state when connection config loads
   useEffect(() => {
-    if (connectionConfig) {
-      // Update PgPool settings from the fetched data
-      setConnectionPooling(connectionConfig.pgpool.enable_connection_pooling);
-      setQueryCaching(connectionConfig.pgpool.enable_query_cache);
+    if (connectionConfig && connectionConfig.pgpool) {
+      // Update PgPool settings from the fetched data if pgpool exists
+      setConnectionPooling(connectionConfig.pgpool.enable_connection_pooling || false);
+      setQueryCaching(connectionConfig.pgpool.enable_query_cache || false);
     }
   }, [connectionConfig]);
 

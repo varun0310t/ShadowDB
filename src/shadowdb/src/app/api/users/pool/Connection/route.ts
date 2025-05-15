@@ -2,11 +2,15 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import "../../../../../db/index";
+import type { HaproxyInstance } from "../../../../../../types/DatabaseSchemaType";
+import type { PgpoolInstance } from "../../../../../../types/DatabaseSchemaType";
+import type { Database } from "../../../../../../types/DatabaseSchemaType";
 import {
   getAppropriatePool,
   getDefaultReaderPool,
 } from "../../../../../lib/userPools";
 import { initializeUserPool } from "../../../../../lib/initializeUserPools";
+
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -84,8 +88,7 @@ export async function GET(req: Request) {
       { error: "Database ID is required" },
       { status: 400 }
     );
-  }
-  try {
+  }  try {
     const query = `
     SELECT d.id, d.tenancy_type, d.name as db_name, ud.access_level, d.patroni_scope,d.haproxy_id,d.pgpool_id
     FROM databases d
@@ -93,7 +96,17 @@ export async function GET(req: Request) {
     WHERE ud.user_id = $1 AND d.id = $2;
 `;
     const values = [session.user.id, database_id];
-    const result = await getDefaultReaderPool().query(query, values);
+    let result;
+    
+    try {
+      result = await getDefaultReaderPool().query(query, values);
+    } catch (dbError) {
+      console.error("Database query error:", dbError);
+      return NextResponse.json(
+        { error: "Failed to query database information" },
+        { status: 500 }
+      );
+    }
     if (result.rowCount === 0) {
       return NextResponse.json(
         { error: "Database not found or no access" },
@@ -108,33 +121,58 @@ export async function GET(req: Request) {
       patroni_scope,
       haproxy_id,
       pgpool_id,
-    } = result.rows[0];
+    } = result.rows[0];    // Initialize default values in case of query failures
+    let resultforhaproxy :{ rows: HaproxyInstance[] } = { rows: [] } ;
+    let resultforpgpool: { rows: PgpoolInstance[] } = { rows: [] };
+    let resultforalldbpool: { rows: Database[] } = { rows: [] };
 
-    const querytogethaproxypool = `
-    SELECT * FROM haproxy_instances WHERE id = $1;
-    `;
-    const valuesforhaproxy = [haproxy_id];
-    const resultforhaproxy = await getDefaultReaderPool().query(
-      querytogethaproxypool,
-      valuesforhaproxy
-    );
-    const querytogetpgpool = `
-    SELECT * FROM pgpool_instances WHERE id = $1;
-    `;
-    const valuesforpgpool = [pgpool_id];
-    const resultforpgpool = await getDefaultReaderPool().query(
-      querytogetpgpool,
-      valuesforpgpool
-    );
-    const querytogetalldbpool = `
-    Select * from databases where patroni_scope = $1;
-    `;
-    const valuesforalldbpool = [patroni_scope];
-    const resultforalldbpool = await getDefaultReaderPool().query(
-      querytogetalldbpool,
-      valuesforalldbpool
-    );
-    const response = {
+    try {
+      const querytogethaproxypool = `
+      SELECT * FROM haproxy_instances WHERE id = $1;
+      `;
+      const valuesforhaproxy = [haproxy_id];
+      if (haproxy_id) {
+        resultforhaproxy = await getDefaultReaderPool().query(
+          querytogethaproxypool,
+          valuesforhaproxy
+        );
+      }
+    } catch (haproxyError) {
+      console.error("Error fetching HAProxy info:", haproxyError);
+      // Continue with empty result
+    }
+    
+    try {
+      const querytogetpgpool = `
+      SELECT * FROM pgpool_instances WHERE id = $1;
+      `;
+      const valuesforpgpool = [pgpool_id];
+      if (pgpool_id) {
+        resultforpgpool = await getDefaultReaderPool().query(
+          querytogetpgpool,
+          valuesforpgpool
+        );
+      }
+    } catch (pgpoolError) {
+      console.error("Error fetching PgPool info:", pgpoolError);
+      // Continue with empty result
+    }
+    
+    try {
+      const querytogetalldbpool = `
+      Select * from databases where patroni_scope = $1;
+      `;
+      const valuesforalldbpool = [patroni_scope];
+      if (patroni_scope) {
+        resultforalldbpool = await getDefaultReaderPool().query(
+          querytogetalldbpool,
+          valuesforalldbpool
+        );
+      }
+    } catch (allDbPoolError) {
+      console.error("Error fetching all DB pools:", allDbPoolError);
+      // Continue with empty result
+    }const response = {
       id: id,
       tenancy_type: tenancy_type,
       db_name: dbName,
@@ -142,21 +180,25 @@ export async function GET(req: Request) {
       patroni_scope: patroni_scope,
       role_user:session.user.email,
       hostname: process.env.DB_Service_Host || "localhost",
-      haproxy: {
+      haproxy_enabled: resultforhaproxy.rows.length > 0,
+      pgpool_enabled: resultforpgpool.rows.length > 0,
+      haproxy: resultforhaproxy.rows.length > 0 ? {
         write_port: resultforhaproxy.rows[0].write_port,
         read_port: resultforhaproxy.rows[0].read_port,
-      },
-      pgpool: {
+      } : null,
+      pgpool: resultforpgpool.rows.length > 0 ? {
         port: resultforpgpool.rows[0].port,
-      },
-      all_db_pools: resultforalldbpool.rows.map((row: any) => ({
+        enable_connection_pooling: resultforpgpool.rows[0].enable_connection_pooling ?? false,
+        enable_query_cache: resultforpgpool.rows[0].enable_query_cache ?? false
+      } : null,
+      all_db_pools: resultforalldbpool.rows ? resultforalldbpool.rows.map((row: any) => ({
         id: row.id,
         db_name: row.name,
         tenancy_type: row.tenancy_type,
         access_level: row.access_level,
         status: row.status,
-        port:row.port,
-      })),
+        port: row.port || null,
+      })) : [],
     };
     return NextResponse.json(response);
   } catch (error: unknown) {
