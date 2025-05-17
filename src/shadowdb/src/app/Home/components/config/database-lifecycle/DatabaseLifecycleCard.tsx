@@ -10,6 +10,9 @@ import {
   Pause,
   Trash2,
   Loader2,
+  PlusCircle,
+  ServerIcon,
+  ActivityIcon,
 } from "lucide-react";
 import {
   Card,
@@ -443,6 +446,82 @@ export function DatabaseLifecycleCard({
       setIsProcessing(null);
     },
   });
+  // Add these mutations to the DatabaseLifecycleCard component
+  const createHAProxyMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedDatabase.patroni_scope) {
+        throw new Error("Database scope not found");
+      }
+      setIsProcessing("create-haproxy");
+      const response = await axios.post("/api/haproxy/lifecycle/create", {
+        database_id: selectedDatabase.id,
+        patroni_scope: selectedDatabase.patroni_scope,
+      });
+      return response.data;
+    },
+    onSuccess: async () => {
+      toast({
+        title: "HAProxy created",
+        description: "HAProxy instance created successfully",
+      });
+      if (refetchDatabases) {
+        await refetchDatabases();
+      }
+      queryClient.invalidateQueries({ queryKey: ["databases"] });
+      queryClient.invalidateQueries({
+        queryKey: ["connectionConfig", selectedDatabase.id],
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error creating HAProxy",
+        description:
+          error?.response?.data?.message || "An unknown error occurred",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setIsProcessing(null);
+    },
+  });
+
+  const createPgPoolMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedDatabase.patroni_scope) {
+        throw new Error("Database scope not found");
+      }
+      setIsProcessing("create-pgpool");
+      const response = await axios.post("/api/pgpool/lifecycle/create", {
+        database_id: selectedDatabase.id,
+        patroni_scope: selectedDatabase.patroni_scope,
+      });
+      return response.data;
+    },
+    onSuccess: async () => {
+      toast({
+        title: "PgPool created",
+        description: "PgPool instance created successfully",
+      });
+      if (refetchDatabases) {
+        await refetchDatabases();
+      }
+      queryClient.invalidateQueries({ queryKey: ["databases"] });
+      queryClient.invalidateQueries({
+        queryKey: ["connectionConfig", selectedDatabase.id],
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error creating PgPool",
+        description:
+          error?.response?.data?.message || "An unknown error occurred",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setIsProcessing(null);
+    },
+  });
   return (
     <Card className="bg-[#151923] border-gray-800">
       <CardHeader>
@@ -521,8 +600,7 @@ export function DatabaseLifecycleCard({
           </div>
         </div>{" "}
         {/* HAProxy Information - Only show if available */}
-        {(selectedDatabase.haproxy ||
-          selectedDatabase.haproxy_enabled === false) && (
+        {selectedDatabase.haproxy && (
           <div>
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-lg font-medium text-white">
@@ -594,9 +672,74 @@ export function DatabaseLifecycleCard({
             </div>
           </div>
         )}
+        {!selectedDatabase.haproxy_enabled && (
+          <div className="mt-2">
+            <h3 className="text-lg font-medium flex items-center gap-2 text-gray-200">
+              <ServerIcon className="h-5 w-5 text-blue-500" /> HAProxy
+              <Badge variant="destructive">Not Enabled</Badge>
+            </h3>
+            <div className="mt-2">
+              <Button
+                size="sm"
+                variant="default"
+                className="bg-purple-600 hover:bg-purple-700"
+                onClick={() => createHAProxyMutation.mutate()}
+                disabled={isProcessing === "create-haproxy"}
+              >
+                {isProcessing === "create-haproxy" ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Create HAProxy
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
         {/* PgPool Information - Only show if available */}
-        {(selectedDatabase.pgpool ||
-          selectedDatabase.pgpool_enabled === false) && (
+        {/* PgPool Section */}
+        {!selectedDatabase.pgpool && selectedDatabase.haproxy !== null && (
+          <div className="mt-6">
+            <h3 className="text-lg font-medium flex items-center gap-2 text-gray-300">
+              <ActivityIcon className="h-5 w-5 text-purple-500" /> PgPool
+              <Badge variant="destructive">Not Enabled</Badge>
+            </h3>
+            <div className="mt-2">
+              <Button
+                size="sm"
+                variant="default"
+                className="bg-purple-600 hover:bg-purple-700"
+                onClick={() => createPgPoolMutation.mutate()}
+                disabled={
+                  isProcessing === "create-pgpool" || !selectedDatabase.haproxy
+                }
+              >
+                {isProcessing === "create-pgpool" ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Create PgPool
+                  </>
+                )}
+              </Button>
+              {!selectedDatabase.haproxy && (
+                <p className="text-sm text-gray-400 mt-1">
+                  HAProxy must be created first before creating PgPool
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+        {selectedDatabase.pgpool && (
           <div>
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-lg font-medium text-white">PgPool Service</h3>

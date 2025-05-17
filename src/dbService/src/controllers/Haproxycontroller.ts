@@ -16,6 +16,7 @@ export const CreateHaproxy = async (req: Request, res: Response) => {
       `SELECT * FROM databases WHERE patroni_scope = $1`,
       [patroni_scope]
     );
+    console.log(dbinfo.rows);
     //get all databases primary and replicas info
     const primaryDatabases = dbinfo.rows.filter(
       (db) => db.is_replica === false

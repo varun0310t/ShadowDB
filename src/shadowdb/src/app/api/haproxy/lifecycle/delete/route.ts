@@ -21,6 +21,18 @@ console.log("Request to delete HAProxy:", { database_id, patroni_scope });
       { data: { clusterName: patroni_scope } }
     );
 
+    //also delete the associated PgPool instance
+    try {
+      console.log("Deleting associated PgPool instance for scope:", patroni_scope);
+      await axios.delete(
+        `${process.env.DB_Service_url}/api/pgpool/delete`,
+        { data: { clusterName: patroni_scope } }
+      );
+    } catch (pgpoolError) {
+      console.error("Error deleting PgPool:", pgpoolError);
+      // Continue execution even if PgPool deletion failed
+    }
+
     return NextResponse.json(response.data);
   } catch (error: any) {
     console.error("Error deleting HAProxy:", error);

@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { database_id, patroni_scope } = body;
     console.log("Request to stop HAProxy:", { database_id, patroni_scope });
-    
+
     // We need patroni_scope for the DB service API
     if (!patroni_scope) {
       return NextResponse.json(
@@ -20,6 +20,20 @@ export async function POST(request: NextRequest) {
       `${process.env.DB_Service_url}/api/haproxy/stop`,
       { clusterName: patroni_scope }
     );
+
+    // Also stop associated PgPool instances
+    try {
+      console.log(
+        "Stopping associated PgPool instance for scope:",
+        patroni_scope
+      );
+      await axios.post(`${process.env.DB_Service_url}/api/pgpool/stop`, {
+        clusterName: patroni_scope,
+      });
+    } catch (pgpoolError) {
+      console.error("Error stopping PgPool:", pgpoolError);
+      // Continue execution even if PgPool stop failed
+    }
 
     return NextResponse.json(response.data);
   } catch (error: any) {
