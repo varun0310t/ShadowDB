@@ -189,7 +189,7 @@ export function NotificationsTab() {
                   <Label htmlFor="email-security" className="text-gray-400">Security Alerts</Label>
                   <Switch
                     id="email-security"
-                    checked={notificationPrefs.email.security_alerts}
+                    checked={notificationPrefs?.email?.security_alerts}
                     onCheckedChange={() => handleEmailToggle('security_alerts')}
                     className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
                   />
@@ -198,7 +198,7 @@ export function NotificationsTab() {
                   <Label htmlFor="email-updates" className="text-gray-400">Product Updates</Label>
                   <Switch
                     id="email-updates"
-                    checked={notificationPrefs.email.product_updates}
+                    checked={notificationPrefs?.email?.product_updates}
                     onCheckedChange={() => handleEmailToggle('product_updates')}
                     className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
                   />
@@ -207,7 +207,7 @@ export function NotificationsTab() {
                   <Label htmlFor="email-marketing" className="text-gray-400">Marketing</Label>
                   <Switch
                     id="email-marketing"
-                    checked={notificationPrefs.email.marketing}
+                    checked={notificationPrefs?.email?.marketing}
                     onCheckedChange={() => handleEmailToggle('marketing')}
                     className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
                   />
@@ -216,7 +216,7 @@ export function NotificationsTab() {
                   <Label htmlFor="email-usage" className="text-gray-400">Usage Reports</Label>
                   <Switch
                     id="email-usage"
-                    checked={notificationPrefs.email.usage_reports}
+                    checked={notificationPrefs?.email?.usage_reports}
                     onCheckedChange={() => handleEmailToggle('usage_reports')}
                     className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
                   />
@@ -254,7 +254,7 @@ export function NotificationsTab() {
                   <Label htmlFor="mobile-security" className="text-gray-400">Security Alerts</Label>
                   <Switch
                     id="mobile-security"
-                    checked={notificationPrefs.mobile.security_alerts}
+                    checked={notificationPrefs?.mobile?.security_alerts}
                     onCheckedChange={() => handleMobileToggle('security_alerts')}
                     className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
                   />
@@ -263,7 +263,7 @@ export function NotificationsTab() {
                   <Label htmlFor="mobile-updates" className="text-gray-400">Product Updates</Label>
                   <Switch
                     id="mobile-updates"
-                    checked={notificationPrefs.mobile.product_updates}
+                    checked={notificationPrefs?.mobile?.product_updates}
                     onCheckedChange={() => handleMobileToggle('product_updates')}
                     className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
                   />
@@ -272,7 +272,7 @@ export function NotificationsTab() {
                   <Label htmlFor="mobile-usage" className="text-gray-400">Usage Reports</Label>
                   <Switch
                     id="mobile-usage"
-                    checked={notificationPrefs.mobile.usage_reports}
+                    checked={notificationPrefs?.mobile?.usage_reports}
                     onCheckedChange={() => handleMobileToggle('usage_reports')}
                     className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
                   />
