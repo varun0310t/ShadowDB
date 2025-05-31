@@ -36,7 +36,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+    <div className="flex flex-col h-full overflow-auto bg-gray-900 text-white">
       {/* Header */}
       <header className="py-4 px-6 flex justify-between items-center">
         <div className="flex items-center space-x-2">
