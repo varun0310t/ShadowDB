@@ -78,25 +78,25 @@ export default function HomePage() {
       {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 bg-gray-800 transition-all duration-300 ease-in-out flex flex-col ${
-          isSidebarCollapsed ? "w-16" : "md:w-64 w-[85%]"
+          isSidebarCollapsed ? "w-16" : "md:w-64 w-[70%]"
         }`}
       >
         <div
-          className={`flex items-center justify-between p-4 border-b border-gray-700 ${
+          className={`flex items-center justify-between p-3 md:p-4 border-b border-gray-700 ${
             isSidebarCollapsed ? "justify-center" : ""
           }`}
         >
           <div className="flex items-center space-x-2 overflow-hidden">
-            <Database className="w-8 h-8 text-purple-500 flex-shrink-0" />
+            <Database className="w-7 h-7 md:w-8 md:h-8 text-purple-500 flex-shrink-0" />
             {!isSidebarCollapsed && (
-              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+              <span className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
                 ShadowDB
               </span>
             )}
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-4">
+        <nav className="flex-1 overflow-y-auto py-3 md:py-4">
           <ul className="space-y-2 px-2">
             <SidebarItem
               icon={<Home />}
@@ -175,7 +175,11 @@ export default function HomePage() {
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-900 bg-opacity-50 p-4 md:p-6">
           {activePage === "home" && <HomeContent />}
-          {activePage === "create" && <CreateDatabaseContent />}
+          {activePage === "create" && (
+            <div className="flex items-start justify-center h-full min-h-0 pt-0">
+              <CreateDatabaseContent />
+            </div>
+          )}
           {activePage === "query" && (
             <RunQueryContent
               selectedDatabase={selectedDatabase}
