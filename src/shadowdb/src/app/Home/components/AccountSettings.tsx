@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Tabs, TabsContent } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { Sidebar } from "./AccountSettings/Sidebar"
 import { ProfileTab } from "./AccountSettings/tabs/ProfileTab"
@@ -39,59 +39,39 @@ export default function AccountSettings() {
     }
   }
 
-/*   const handleImageUpdate = async (imageData: string) => {
-    try {
-      const response = await fetch('/api/users/profile/personalInfo', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: imageData }),
-      })
-      
-      if (response.ok) {
-        fetchUserData()
-        toast({
-          title: "Success",
-          description: "Profile image updated successfully"
-        })
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update profile image"
-      })
-    }
-  } */
-
   return (
-    <div className="container mx-auto animate-fadeIn">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1">
-          <Sidebar 
-            activeTab={activeTab} 
-            setActiveTab={setActiveTab} 
+    <div className="flex flex-col h-screen w-full bg-gradient-to-br from-gray-900 to-black text-white overflow-y-auto md:overflow-hidden">
+      <div className="flex flex-col md:flex-row w-full h-full">
+        {/* Sidebar - scrollable on desktop, fixed height on mobile */}
+        <div className="w-full md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-gray-800 md:h-screen md:overflow-y-auto">
+          <Sidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
             userData={userData}
             loading={loading}
           />
         </div>
 
-        <div className="lg:col-span-3">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsContent value="profile">
-              <ProfileTab userData={userData} onUpdate={fetchUserData} />
-            </TabsContent>
-            <TabsContent value="security">
-              <SecurityTab />
-            </TabsContent>
-            <TabsContent value="notifications">
-              <NotificationsTab />
-            </TabsContent>
-            <TabsContent value="billing">
-              <BillingTab />
-            </TabsContent>
-            <TabsContent value="api">
-              <ApiKeysTab />
-            </TabsContent>
+        {/* Main content - scrollable */}
+        <div className="flex-1 md:h-screen md:overflow-y-auto pl-0 md:pl-6 pt-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="min-h-full">
+            <div className="pb-20 px-4">
+              <TabsContent value="profile">
+                <ProfileTab userData={userData} onUpdate={fetchUserData} />
+              </TabsContent>
+              <TabsContent value="security">
+                <SecurityTab />
+              </TabsContent>
+              <TabsContent value="notifications">
+                <NotificationsTab />
+              </TabsContent>
+              <TabsContent value="billing">
+                <BillingTab />
+              </TabsContent>
+              <TabsContent value="api">
+                <ApiKeysTab />
+              </TabsContent>
+            </div>
           </Tabs>
         </div>
       </div>

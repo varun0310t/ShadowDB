@@ -2,7 +2,7 @@ import { Activity, Clock } from "lucide-react";
 
 function HomeContent() {
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="flex flex-col h-full w-full space-y-6 animate-fadeIn overflow-y-auto pb-6">
       <h2 className="text-3xl font-bold">Welcome to ShadowDB</h2>
       <p className="text-gray-300">
         Manage your databases with ease using our powerful and intuitive

@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { UserAccountService } from "@/client/lib/services/UserAccountService";
+import { TabWrapper } from "../TabWrapper";
 import axios from "axios";
 export function SecurityTab() {
   const { toast } = useToast();
@@ -133,64 +134,65 @@ export function SecurityTab() {
   };
 
   return (
-    <div className="space-y-6">
-      <Card className="bg-[#151923] border-gray-800">
-        <CardHeader>
-          <CardTitle className="text-gray-200">Password</CardTitle>
-          <CardDescription>Update your password</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="currentPassword" className="text-gray-200">
-                Current Password
-              </Label>
-              <Input
-                id="currentPassword"
-                type="password"
-                value={formData.currentPassword}
-                onChange={handleInputChange}
-                className="bg-[#0B0F17] border-gray-800 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="newPassword" className="text-gray-200">
-                New Password
-              </Label>
-              <Input
-                id="newPassword"
-                type="password"
-                value={formData.newPassword}
-                onChange={handleInputChange}
-                className="bg-[#0B0F17] border-gray-800 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-gray-200">
-                Confirm New Password
-              </Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                className="bg-[#0B0F17] border-gray-800 text-white"
-              />
-            </div>
-            <div className="pt-2">
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                {isLoading ? "Updating..." : "Update Password"}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+    <TabWrapper>
+      <div className="space-y-6">
+        <Card className="bg-[#151923] border-gray-800">
+          <CardHeader>
+            <CardTitle className="text-gray-200">Password</CardTitle>
+            <CardDescription>Update your password</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="currentPassword" className="text-gray-200">
+                  Current Password
+                </Label>
+                <Input
+                  id="currentPassword"
+                  type="password"
+                  value={formData.currentPassword}
+                  onChange={handleInputChange}
+                  className="bg-[#0B0F17] border-gray-800 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="newPassword" className="text-gray-200">
+                  New Password
+                </Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  value={formData.newPassword}
+                  onChange={handleInputChange}
+                  className="bg-[#0B0F17] border-gray-800 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-gray-200">
+                  Confirm New Password
+                </Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  className="bg-[#0B0F17] border-gray-800 text-white"
+                />
+              </div>
+              <div className="pt-2">
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  {isLoading ? "Updating..." : "Update Password"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
 
-      {/*  <Card className="bg-[#151923] border-gray-800">
+        {/*  <Card className="bg-[#151923] border-gray-800">
         <CardHeader>
           <CardTitle>Two-Factor Authentication</CardTitle>
           <CardDescription>Add an extra layer of security to your account</CardDescription>
@@ -219,64 +221,65 @@ export function SecurityTab() {
           </div>
         </CardContent>
       </Card> */}
-      {/* this div is for role password */}
+        {/* this div is for role password */}
 
-      <Card className="bg-[#151923] border-gray-800">
-        <CardHeader>
-          <CardTitle className="text-gray-200">Role Password</CardTitle>
-          <CardDescription>Update your password</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <form onSubmit={handleSubmitRole} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="currentPasswordRole" className="text-gray-200">
-                Current Password (initially your email is your role password pls
-                update if not already)
-              </Label>
-              <Input
-                id="currentPasswordRole"
-                type="password"
-                value={formDataRole.currentPasswordRole}
-                onChange={handleInputChangeRole}
-                className="bg-[#0B0F17] border-gray-800 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="newPassword" className="text-gray-200">
-                New Password
-              </Label>
-              <Input
-                id="newPasswordRole"
-                type="password"
-                value={formDataRole.newPasswordRole}
-                onChange={handleInputChangeRole}
-                className="bg-[#0B0F17] border-gray-800 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-gray-200">
-                Confirm New Password
-              </Label>
-              <Input
-                id="confirmPasswordRole"
-                type="password"
-                value={formDataRole.confirmPasswordRole}
-                onChange={handleInputChangeRole}
-                className="bg-[#0B0F17] border-gray-800 text-white"
-              />
-            </div>
-            <div className="pt-2">
-              <Button
-                type="submit"
-                disabled={isLoadingRole}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                {isLoadingRole ? "Updating..." : "Update Password"}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+        <Card className="bg-[#151923] border-gray-800">
+          <CardHeader>
+            <CardTitle className="text-gray-200">Role Password</CardTitle>
+            <CardDescription>Update your password</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form onSubmit={handleSubmitRole} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="currentPasswordRole" className="text-gray-200">
+                  Current Password (initially your email is your role password pls
+                  update if not already)
+                </Label>
+                <Input
+                  id="currentPasswordRole"
+                  type="password"
+                  value={formDataRole.currentPasswordRole}
+                  onChange={handleInputChangeRole}
+                  className="bg-[#0B0F17] border-gray-800 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="newPassword" className="text-gray-200">
+                  New Password
+                </Label>
+                <Input
+                  id="newPasswordRole"
+                  type="password"
+                  value={formDataRole.newPasswordRole}
+                  onChange={handleInputChangeRole}
+                  className="bg-[#0B0F17] border-gray-800 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-gray-200">
+                  Confirm New Password
+                </Label>
+                <Input
+                  id="confirmPasswordRole"
+                  type="password"
+                  value={formDataRole.confirmPasswordRole}
+                  onChange={handleInputChangeRole}
+                  className="bg-[#0B0F17] border-gray-800 text-white"
+                />
+              </div>
+              <div className="pt-2">
+                <Button
+                  type="submit"
+                  disabled={isLoadingRole}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  {isLoadingRole ? "Updating..." : "Update Password"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </TabWrapper>
   );
 }

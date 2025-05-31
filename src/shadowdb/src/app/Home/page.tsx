@@ -12,7 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Settings,
-  User, // Add User icon for Account tab
+  User,
 } from "lucide-react";
 import HomeContent from "./components/homepage";
 import RunQueryContent from "./components/RunQuery";
@@ -20,9 +20,9 @@ import CreateDatabaseContent from "./components/CreateDatabase";
 import { GetDataBases } from "@/client/lib/services/DatabasesService";
 import { signOut } from "next-auth/react";
 import DatabaseConfiguration from "./components/Configuration";
-// Import Account component (which you'll need to create)
 import AccountSettings from "./components/AccountSettings";
 import type { DatabaseEntry } from "./types/database-types";
+
 export default function HomePage() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [activePage, setActivePage] = useState("home");
@@ -44,14 +44,41 @@ export default function HomePage() {
     }
   }, [data?.databases]);
 
+  // Auto-collapse sidebar on smaller screens
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768 && !isSidebarCollapsed) {
+        setIsSidebarCollapsed(true);
+      }
+    };
+
+    // Initial check
+    handleResize();
+
+    // Add event listener
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isSidebarCollapsed]);
+
   const toggleSidebar = () => setIsSidebarCollapsed(!isSidebarCollapsed);
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-900 to-black text-white font-sans">
+      {/* Mobile overlay when sidebar is open */}
+      {!isSidebarCollapsed && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={toggleSidebar}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 bg-gray-800 transition-all duration-300 ease-in-out flex flex-col ${
-          isSidebarCollapsed ? "w-16" : "w-64"
+          isSidebarCollapsed ? "w-16" : "md:w-64 w-[85%]"
         }`}
       >
         <div
@@ -68,6 +95,7 @@ export default function HomePage() {
             )}
           </div>
         </div>
+
         <nav className="flex-1 overflow-y-auto py-4">
           <ul className="space-y-2 px-2">
             <SidebarItem
@@ -127,16 +155,16 @@ export default function HomePage() {
       {/* Main content */}
       <div
         className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${
-          isSidebarCollapsed ? "ml-16" : "ml-64"
+          isSidebarCollapsed ? "ml-16" : "md:ml-64 ml-0"
         }`}
       >
         <header className="bg-gray-800 bg-opacity-50 backdrop-filter backdrop-blur-lg p-4 flex justify-between items-center">
-          <h1 className="text-2xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+          <h1 className="text-xl md:text-2xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600 truncate">
             {getPageTitle(activePage)}
           </h1>
           <Button
             variant="outline"
-            className="text-slate-800"
+            className="text-slate-800 text-sm md:text-base"
             onClick={() => {
               signOut();
             }}
@@ -145,7 +173,7 @@ export default function HomePage() {
           </Button>
         </header>
 
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-900 bg-opacity-50 p-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-900 bg-opacity-50 p-4 md:p-6">
           {activePage === "home" && <HomeContent />}
           {activePage === "create" && <CreateDatabaseContent />}
           {activePage === "query" && (
@@ -180,21 +208,19 @@ function SidebarItem({
 }) {
   return (
     <li className="list-none">
-      {" "}
-      {/* Add list-none to explicitly remove any list styling */}
       <button
         onClick={onClick}
-        className={`flex items-center space-x-2 w-full p-2 rounded-lg transition-all duration-200 ${
+        className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 ${
           active
             ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white"
             : "text-gray-300 hover:bg-gray-700"
-        } ${collapsed ? "justify-center" : ""}`}
+        } ${collapsed ? "justify-center" : "justify-start"}`}
         title={collapsed ? title : ""}
       >
-        <span className="flex-shrink-0">{icon}</span>{" "}
-        {/* Wrap icon in span to ensure proper styling */}
-        {!collapsed && <span className="ml-2">{title}</span>}{" "}
-        {/* Explicit margin instead of space-x */}
+        <span className="flex-shrink-0">{icon}</span>
+        {!collapsed && (
+          <span className="ml-2 text-sm md:text-base">{title}</span>
+        )}
       </button>
     </li>
   );

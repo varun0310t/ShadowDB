@@ -27,9 +27,8 @@ export function Sidebar({
 
     /*   { icon: <Key size={18} />, title: "API Keys", id: "api" }, */
   ];
-
   return (
-    <Card className="bg-[#151923] border-gray-800 sticky top-6">
+    <Card className="bg-[#151923] border-gray-800 h-full">
       <CardContent className="p-4">
         {/* Profile Section */}
         <div className="flex flex-col items-center py-6">

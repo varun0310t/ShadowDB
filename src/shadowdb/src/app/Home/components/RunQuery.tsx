@@ -85,21 +85,17 @@ export default function RunQueryContent({
       db_name: selectedDatabase, 
       query: query 
     });
-  };
-
-  return (
-    <div className="min-h-screen bg-[#0B0F17] text-white">
+  };  return (
+    <div className="flex flex-col h-full w-full bg-[#0B0F17] text-white overflow-hidden">
       {/* Navigation */}
-      <header className="px-4 lg:px-6 h-14 flex items-center border-b border-gray-800">
+      <header className="px-4 lg:px-6 h-14 flex items-center border-b border-gray-800 flex-shrink-0">
         <Link href="/" className="flex items-center gap-2">
           <Database className="h-6 w-6 text-purple-500" />
           <span className="font-semibold">ShadowDB</span>
         </Link>
-      </header>
-
-      <main className="flex flex-col h-[calc(100vh-3.5rem)]">
+      </header><main className="flex flex-col h-full max-h-full w-full overflow-hidden">
         {/* Toolbar */}
-        <div className="border-b border-gray-800 p-2 flex items-center space-x-2">
+        <div className="border-b border-gray-800 p-2 flex items-center space-x-2 w-full overflow-x-auto flex-shrink-0">
           <Select value={selectedDatabase} onValueChange={setSelectedDatabase}>
             <SelectTrigger className="w-[200px] bg-[#151923] border-gray-800">
               <SelectValue placeholder="Select Database" />
@@ -198,10 +194,8 @@ export default function RunQueryContent({
               <Maximize2 className="h-4 w-4" />
             </Button>
           </div>
-        </div>
-
-        {/* Query Editor */}
-        <div className="flex-1 min-h-0 flex flex-col">
+        </div>        {/* Query Editor */}
+        <div className="flex-1 min-h-0 flex flex-col h-full">
           <div className="h-1/2 border-b border-gray-800">
             <Editor
               defaultLanguage="sql"
