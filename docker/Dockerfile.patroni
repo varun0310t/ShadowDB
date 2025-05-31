@@ -25,5 +25,5 @@ RUN chmod +x /entrypoint.sh
 # Don't switch to postgres user here - entrypoint will handle it
 # USER postgres
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/bin/bash","/entrypoint.sh"]
 CMD ["patroni", "/etc/patroni.yml"]

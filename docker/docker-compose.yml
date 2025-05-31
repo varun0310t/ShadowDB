@@ -24,9 +24,7 @@ services:
           - etcd
 
   patroni_primary:
-    build: 
-      context: .
-      dockerfile: Dockerfile.patroni
+    image: patroni:latest
     environment:
       - PATRONI_SCOPE=shadowdb
       - PATRONI_NAME=primary
@@ -59,9 +57,7 @@ services:
           - primary
 
   patroni_replica1:
-    build: 
-      context: .
-      dockerfile: Dockerfile.patroni
+    image: patroni:latest
     environment:
       - PATRONI_SCOPE=shadowdb
       - PATRONI_NAME=replica1
@@ -94,9 +90,7 @@ services:
           - replica1
 
   patroni_replica2:
-    build: 
-      context: .
-      dockerfile: Dockerfile.patroni
+    image: patroni:latest
     environment:
       - PATRONI_SCOPE=shadowdb
       - PATRONI_NAME=replica2
