@@ -1,4 +1,3 @@
-version: '3'
 services:
   etcd:
     image: bitnami/etcd:3.5.0
@@ -24,7 +23,7 @@ services:
           - etcd
 
   patroni_primary:
-    image: patroni:latest
+    image: local/patroni:latest
     environment:
       - PATRONI_SCOPE=shadowdb
       - PATRONI_NAME=primary
@@ -33,6 +32,7 @@ services:
       - PATRONI_POSTGRESQL_CONNECT_ADDRESS=primary:5432
       - PATRONI_POSTGRESQL_DATA_DIR=/var/lib/postgresql/data
       - PATRONI_POSTGRESQL_PARAMETERS_wal_level=replica
+      - PATRONI_RESTAPI_LISTEN=0.0.0.0:8008
       - PATRONI_POSTGRESQL_PARAMETERS_max_wal_senders=10
       - PATRONI_POSTGRESQL_PARAMETERS_max_replication_slots=10
       - PATRONI_POSTGRESQL_PARAMETERS_synchronous_commit=on
@@ -57,7 +57,7 @@ services:
           - primary
 
   patroni_replica1:
-    image: patroni:latest
+    image: local/patroni:latest
     environment:
       - PATRONI_SCOPE=shadowdb
       - PATRONI_NAME=replica1
@@ -76,6 +76,7 @@ services:
       - PATRONI_POSTGRESQL_PARAMETERS_max_standby_streaming_delay=30s
       - PATRONI_REPLICATION_USERNAME=replicator
       - PATRONI_REPLICATION_PASSWORD=rep-pass
+      - PATRONI_RESTAPI_LISTEN=0.0.0.0:8008
       - PATRONI_SLOTS_replica1_type=physical
     ports:
       - "5433:5432"
@@ -90,7 +91,7 @@ services:
           - replica1
 
   patroni_replica2:
-    image: patroni:latest
+    image: local/patroni:latest
     environment:
       - PATRONI_SCOPE=shadowdb
       - PATRONI_NAME=replica2
@@ -108,6 +109,7 @@ services:
       - PATRONI_POSTGRESQL_PARAMETERS_wal_receiver_status_interval=1s
       - PATRONI_POSTGRESQL_PARAMETERS_max_standby_streaming_delay=30s
       - PATRONI_REPLICATION_USERNAME=replicator
+      - PATRONI_RESTAPI_LISTEN=0.0.0.0:8008
       - PATRONI_REPLICATION_PASSWORD=rep-pass
       - PATRONI_SLOTS_replica2_type=physical
     ports:
