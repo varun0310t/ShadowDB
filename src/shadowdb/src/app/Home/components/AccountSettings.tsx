@@ -53,7 +53,7 @@ export default function AccountSettings() {
         </div>
 
         {/* Main content - scrollable */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 h-fit overflow-y-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
             <div className="p-4 md:p-6">
               <div className="space-y-6">
