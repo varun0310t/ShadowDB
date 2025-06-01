@@ -40,10 +40,10 @@ export default function AccountSettings() {
   }
 
   return (
-    <div className="flex flex-col h-screen w-full bg-gradient-to-br from-gray-900 to-black text-white overflow-y-auto md:overflow-hidden">
+    <div className="flex h-screen flex-col w-full bg-gradient-to-br from-gray-900 to-black text-white">
       <div className="flex flex-col md:flex-row w-full h-full">
-        {/* Sidebar - scrollable on desktop, fixed height on mobile */}
-        <div className="w-full md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-gray-800 md:h-screen md:overflow-y-auto">
+        {/* Sidebar - scrollable on mobile, fixed on desktop */}
+        <div className="w-full md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-gray-800">
           <Sidebar
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -53,24 +53,26 @@ export default function AccountSettings() {
         </div>
 
         {/* Main content - scrollable */}
-        <div className="flex-1 md:h-screen md:overflow-y-auto pl-0 md:pl-6 pt-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="min-h-full">
-            <div className="pb-20 px-4">
-              <TabsContent value="profile">
-                <ProfileTab userData={userData} onUpdate={fetchUserData} />
-              </TabsContent>
-              <TabsContent value="security">
-                <SecurityTab />
-              </TabsContent>
-              <TabsContent value="notifications">
-                <NotificationsTab />
-              </TabsContent>
-              <TabsContent value="billing">
-                <BillingTab />
-              </TabsContent>
-              <TabsContent value="api">
-                <ApiKeysTab />
-              </TabsContent>
+        <div className="flex-1 overflow-y-auto">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
+            <div className="p-4 md:p-6">
+              <div className="space-y-6">
+                <TabsContent value="profile">
+                  <ProfileTab userData={userData} onUpdate={fetchUserData} />
+                </TabsContent>
+                <TabsContent value="security">
+                  <SecurityTab />
+                </TabsContent>
+                <TabsContent value="notifications">
+                  <NotificationsTab />
+                </TabsContent>
+                <TabsContent value="billing">
+                  <BillingTab />
+                </TabsContent>
+                <TabsContent value="api">
+                  <ApiKeysTab />
+                </TabsContent>
+              </div>
             </div>
           </Tabs>
         </div>

@@ -18,18 +18,18 @@ import { z } from "zod";
 
 const notification_preferences = z.object({
   email: z.object({
-    security_alerts: z.boolean(),
-    product_updates: z.boolean(),
-    marketing: z.boolean(),
-    usage_reports: z.boolean(),
-    new_login: z.boolean(),
-    billing_alerts: z.boolean(),
+    security_alerts: z.boolean().default(true),
+    product_updates: z.boolean().default(true),
+    marketing: z.boolean().default(false),
+    usage_reports: z.boolean().default(true),
+    new_login: z.boolean().default(true),
+    billing_alerts: z.boolean().default(false),
   }),
   mobile: z.object({
-    security_alerts: z.boolean(),
-    product_updates: z.boolean(),
-    usage_reports: z.boolean(),
-    new_login: z.boolean(),
+    security_alerts: z.boolean().default(true),
+    product_updates: z.boolean().default(true),
+    usage_reports: z.boolean().default(false),
+    new_login: z.boolean().default(true),
   })
 });
 
@@ -227,7 +227,7 @@ export function NotificationsTab() {
                   </Label>
                   <Switch
                     id="email-new-login"
-                    checked={notificationPrefs.email.new_login}
+                    checked={notificationPrefs?.email?.new_login}
                     onCheckedChange={() => handleEmailToggle('new_login')}
                     className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
                   />
@@ -238,7 +238,7 @@ export function NotificationsTab() {
                   </Label>
                   <Switch
                     id="email-billing"
-                    checked={notificationPrefs.email.billing_alerts}
+                    checked={notificationPrefs.email?.billing_alerts}
                     onCheckedChange={() => handleEmailToggle('billing_alerts')}
                     className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
                   />
@@ -283,7 +283,7 @@ export function NotificationsTab() {
                   </Label>
                   <Switch
                     id="mobile-new-login"
-                    checked={notificationPrefs.mobile.new_login}
+                    checked={notificationPrefs.mobile?.new_login}
                     onCheckedChange={() => handleMobileToggle('new_login')}
                     className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"
                   />
