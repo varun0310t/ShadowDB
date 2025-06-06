@@ -174,7 +174,7 @@ export default function HomePage() {
         </header>
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-900 bg-opacity-50 p-4 md:p-6">
-          {activePage === "home" && <HomeContent />}
+          {activePage === "home" && <HomeContent setActivePage={setActivePage} />}
           {activePage === "create" && (
             <div className="flex items-start justify-center h-full min-h-0 pt-0">
               <CreateDatabaseContent />
