@@ -205,7 +205,7 @@ function HomeContent({ setActivePage }: { setActivePage: (page: string) => void 
               </div>
             ) : (
               <div className="space-y-3">
-                {databasesData && console.log("here", databasesData) && databasesData.length > 0 ? (
+                {databasesData && databasesData.length > 0 ? (
                   databasesData.slice(0, 5).map((db) => (
                     <div
                       key={db.id}
