@@ -35,24 +35,29 @@ const notification_preferences = z.object({
 
 type NotificationPreferences = z.infer<typeof notification_preferences>;
 
+// Define default values once
+const DEFAULT_NOTIFICATION_PREFS: NotificationPreferences = {
+  email: {
+    security_alerts: true,
+    product_updates: true,
+    marketing: false,
+    usage_reports: true,
+    new_login: true,
+    billing_alerts: false,
+  },
+  mobile: {
+    security_alerts: true,
+    product_updates: false,
+    usage_reports: false,
+    new_login: true,
+  }
+};
+
 export function NotificationsTab() {
   const {toast} = useToast();
-  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>({
-    email: {
-      security_alerts: true,
-      product_updates: true,
-      marketing: false,
-      usage_reports: true,
-      new_login: true,
-      billing_alerts: false,
-    },
-    mobile: {
-      security_alerts: true,
-      product_updates: false,
-      usage_reports: false,
-      new_login: true,
-    }
-  });
+  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>(
+    DEFAULT_NOTIFICATION_PREFS
+  );
 
   const [hasChanges, setHasChanges] = useState(false);
   const queryClient = useQueryClient();
@@ -72,7 +77,17 @@ export function NotificationsTab() {
 
   useEffect(() => {
     if (preferences) {
-      setNotificationPrefs(preferences);
+      // Merge with defaults to ensure all properties exist
+      setNotificationPrefs({
+        email: {
+          ...DEFAULT_NOTIFICATION_PREFS.email,
+          ...preferences.email
+        },
+        mobile: {
+          ...DEFAULT_NOTIFICATION_PREFS.mobile,
+          ...preferences.mobile
+        }
+      });
       setHasChanges(false);
     }
   }, [preferences]);
