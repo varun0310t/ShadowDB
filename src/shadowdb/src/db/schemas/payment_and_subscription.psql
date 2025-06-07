@@ -1,0 +1,65 @@
+-- Payment and subscription tracking tables
+
+-- Create enum for payment status
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment_status') THEN
+    CREATE TYPE payment_status AS ENUM ('PENDING', 'COMPLETED', 'FAILED');
+  END IF;
+END $$;
+
+-- Create enum for subscription duration
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'subscription_duration') THEN
+    CREATE TYPE subscription_duration AS ENUM ('monthly', 'yearly');
+  END IF;
+END $$;
+
+-- Payments table
+CREATE TABLE IF NOT EXISTS payments (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  transaction_id VARCHAR(100) NOT NULL UNIQUE,
+  payu_payment_id VARCHAR(100),
+  payu_money_id VARCHAR(100),
+  amount INTEGER NOT NULL, -- Amount in paise/cents
+  currency VARCHAR(3) NOT NULL DEFAULT 'INR',
+  status payment_status NOT NULL DEFAULT 'PENDING',
+  duration subscription_duration NOT NULL,
+  failure_reason TEXT,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Subscriptions table
+CREATE TABLE IF NOT EXISTS subscriptions (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) UNIQUE,
+  start_date TIMESTAMPTZ NOT NULL,
+  end_date TIMESTAMPTZ NOT NULL,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Add indexes
+CREATE INDEX idx_payments_user_id ON payments(user_id);
+CREATE INDEX idx_payments_transaction_id ON payments(transaction_id);
+CREATE INDEX idx_subscriptions_user_id ON subscriptions(user_id);
+CREATE INDEX idx_subscriptions_end_date ON subscriptions(end_date);
+
+-- Add triggers for updated_at
+CREATE TRIGGER update_payments_updated_at
+    BEFORE UPDATE ON payments
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_subscriptions_updated_at
+    BEFORE UPDATE ON subscriptions
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Comments
+COMMENT ON TABLE payments IS 'Tracks payment transactions for subscriptions';
+COMMENT ON TABLE subscriptions IS 'Tracks active subscriptions and their validity periods';
