@@ -8,7 +8,7 @@ const PAYU_SALT = process.env.PAYU_SALT!;
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    
+    console.log("Received form data:", formData);
     // Extract PayU response parameters
     const txnId = formData.get('txnid') as string;
     const status = formData.get('status') as string;
