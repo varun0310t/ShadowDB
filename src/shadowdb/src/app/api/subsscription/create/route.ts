@@ -7,10 +7,7 @@ import type { User as UserType } from "../../../../../types/DatabaseSchemaType";
 // PayU configuration
 const PAYU_KEY = process.env.PAYU_KEY!;
 const PAYU_SALT = process.env.PAYU_SALT!;
-const PAYU_BASE_URL =
-  process.env.NODE_ENV === "production"
-    ? "https://secure.payu.in/_payment"
-    : "https://test.payu.in/_payment";
+const PAYU_BASE_URL = "https://test.payu.in/_payment";
 const WEBSITE_BASE_URL = process.env.NEXT_PUBLIC_APP_URL!;
 
 export async function POST(req: NextRequest) {
@@ -50,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     // Create a unique transaction ID
     const txnId = `SDB_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
-    
+
     if (amount !== 999 && amount !== 9990) {
       return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
     }
