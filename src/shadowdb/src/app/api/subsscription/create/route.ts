@@ -13,7 +13,7 @@ const WEBSITE_BASE_URL = process.env.NEXT_PUBLIC_APP_URL!;
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-
+ 
     if (!session || !session.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
       lastname: lastName,
       email: email,
       phone: "9999999999", // Default phone
-      surl: `${WEBSITE_BASE_URL}/api/subsscription/success`,
+      surl: `${WEBSITE_BASE_URL}`,
       furl: `${WEBSITE_BASE_URL}/api/subsscription/failure`,
       hash: hash,
       service_provider: "payu_paisa",
