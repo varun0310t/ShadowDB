@@ -55,7 +55,7 @@ export async function POST(req: Request) {
         try {
           // Generate a secure password for the database
           if (password === undefined || password === null) {
-            password = generateSecurePassword();
+            password = process.env.CONTAINER_PASSWORD;
           }
           console.log(DB_SERVICE_URL);
           // Call DB service to create the container
@@ -153,17 +153,6 @@ export async function POST(req: Request) {
   }
 }
 
-// Helper function to generate a secure password
-function generateSecurePassword(length = 16) {
-  return "varun@1234";
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+";
-  let password = "";
-  for (let i = 0; i < length; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return password;
-}
 
 // Helper function to generate connection strings
 function getConnectionString(

@@ -6,13 +6,6 @@ import {
 } from "./userPools";
 import { initializeUserPool } from "./initializeUserPools";
 import { checkAndUpdateLeader } from "./LeaderCheck";
-import Rclient from "../db/RedisClient";
-import { CacheOptions, getCacheKey } from "./Caching";
-import {
-  queryCounter,
-  queryFailureCounter,
-  queryDurationHistogram,
-} from "./monitoring";
 
 
 function isWriteQuery(query: string): boolean {
@@ -34,7 +27,6 @@ export async function executeQuery(
   db_name: string, // Now requiring database name
   query: string,
   params: string[] = [],
-  cacheOptions?: CacheOptions,
   ClusterScope: string = "default"
 ): Promise<QueryResult<any>> {
   let pool: Pool | undefined;
@@ -44,17 +36,7 @@ export async function executeQuery(
   // Create a compound key for user-db combinations
   const poolKey = `${userId}:${db_name}:${ClusterScope}`;
 
-  // Use cache on read queries if enabled.
-  if (queryType === "read" && cacheOptions?.cache) {
-    const key = getCacheKey(poolKey, normalizedQuery, params, cacheOptions);
-    const cachedResultStr = await Rclient.get(key);
-    if (cachedResultStr) {
-      console.log("Returning cached result from Redis for key:", key);
-      // Increment the counter on cache hit.
-      queryCounter.inc({ userId, db_name, queryType });
-      return JSON.parse(cachedResultStr) as QueryResult<any>;
-    }
-  }
+
   await checkAndUpdateLeader();
 
   // Get pool for specific database
@@ -115,30 +97,20 @@ export async function executeQuery(
     const durationInSeconds = seconds + nanoseconds / 1e9;
 
     // Increment success counter and record execution time with database info
-    queryCounter.inc({ userId, db_name, queryType });
-    queryDurationHistogram.observe(
-      { userId, db_name, queryType },
-      durationInSeconds
-    );
+ 
     console.log(
       `Executed query for user: ${userId} on DB: ${db_name} (${queryType}) in ${durationInSeconds.toFixed(
         3
       )}s`
     );
 
-    // Cache result for read queries, if applicable
-    if (queryType === "read" && cacheOptions?.cache) {
-      const key = getCacheKey(poolKey, normalizedQuery, params, cacheOptions);
-      const ttl = cacheOptions.ttlSeconds ?? 60;
-      await Rclient.set(key, JSON.stringify(result), { EX: ttl });
-      console.log("Cached result for key:", key, "with TTL:", ttl);
-    }
+  
     console.log("Result:", result);
     return result;
   } catch (error) {
     console.error(`Error executing query on database ${db_name}:`, error);
     // Increment failure counter with database info
-    queryFailureCounter.inc({ userId, db_name, queryType });
+
     throw error;
   }
 }

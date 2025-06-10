@@ -5,7 +5,6 @@ import cluster from "cluster";
 export async function DELETE(request: NextRequest) {
   try {
     const url = new URL(request.url);
-    const database_id = url.searchParams.get("database_id");
     const patroni_scope = url.searchParams.get("patroni_scope");
 
     // We need database_Scope for the DB service API
