@@ -5,12 +5,10 @@ import { DB_CONFIG } from "../config/DatabaseRouteConfig";
 import { findAvailablePort } from "../lib/PortUitlity/utils";
 import { Request, Response } from "express";
 import { IsPatroniReady } from "../lib/PatroniUitlity/Uitls";
-import axios from "axios";
 import {
   createHAProxyInstance,
   updateHAProxyConfig,
 } from "../lib/Haproxyutility";
-import { createQueryCacherInstance } from "../lib/QueryCacherUtility";
 import { createPgPoolInstance, updatePgPoolConfig } from "../lib/pgpoolUtility";
 const execAsync = promisify(exec);
 //
@@ -25,7 +23,7 @@ export const CreateDatabase = async (req: Request, res: Response) => {
       haproxy_enabled,
       pgpool_enabled,
     } = req.body;
-    console.log(req.body);
+
     if (!userId || !databaseName || !password || !userEmail || !role_password) {
       res.status(400).json({
         error: "Missing required fields: userId, databaseName, password",

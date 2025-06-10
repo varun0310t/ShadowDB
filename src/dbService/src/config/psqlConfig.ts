@@ -1,7 +1,7 @@
 import { Pool } from "pg";
 import dotenv from "dotenv";
 
-import { setUserPool, getUserPool } from "../lib/Getpools";
+import { setUserPool } from "../lib/Getpools";
 
 dotenv.config(); // Loads variables from a .env file (if present)
 console.log("env", process.env.environment);
