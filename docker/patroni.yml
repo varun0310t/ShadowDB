@@ -42,8 +42,8 @@ postgresql:
   data_dir: ${PATRONI_POSTGRESQL_DATA_DIR}
   authentication:
     replication:
-      username: replicator
-      password: rep-pass
+      username: ${PATRONI_REPLICATION_USERNAME}
+      password: ${PATRONI_REPLICATION_PASSWORD}
     superuser:
-      username: postgres
-      password: node.Js03#
+      username: ${PATRONI_SUPERUSER_USERNAME}
+      password: ${PATRONI_SUPERUSER_PASSWORD}
