@@ -40,7 +40,7 @@ services:
       - PATRONI_POSTGRESQL_PARAMETERS_synchronous_mode=true
       - PATRONI_POSTGRESQL_PARAMETERS_synchronous_mode_strict=true
       - PATRONI_REPLICATION_USERNAME=replicator
-      - PATRONI_REPLICATION_PASSWORD=rep-pass
+      - PATRONI_REPLICATION_PASSWORD={PATRONI_REPLICATION_PASSWORD}
       - PATRONI_SLOTS_primary_type=physical
       - PATRONI_SLOTS_replica1_type=physical
       - PATRONI_SLOTS_replica2_type=physical
@@ -75,7 +75,7 @@ services:
       - PATRONI_POSTGRESQL_PARAMETERS_wal_receiver_status_interval=1s
       - PATRONI_POSTGRESQL_PARAMETERS_max_standby_streaming_delay=30s
       - PATRONI_REPLICATION_USERNAME=replicator
-      - PATRONI_REPLICATION_PASSWORD=rep-pass
+      - PATRONI_REPLICATION_PASSWORD={PATRONI_REPLICATION_PASSWORD}
       - PATRONI_RESTAPI_LISTEN=0.0.0.0:8008
       - PATRONI_SLOTS_replica1_type=physical
     ports:
@@ -110,7 +110,7 @@ services:
       - PATRONI_POSTGRESQL_PARAMETERS_max_standby_streaming_delay=30s
       - PATRONI_REPLICATION_USERNAME=replicator
       - PATRONI_RESTAPI_LISTEN=0.0.0.0:8008
-      - PATRONI_REPLICATION_PASSWORD=rep-pass
+      - PATRONI_REPLICATION_PASSWORD={PATRONI_REPLICATION_PASSWORD}
       - PATRONI_SLOTS_replica2_type=physical
     ports:
       - "5434:5432"
