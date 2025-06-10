@@ -123,45 +123,12 @@ services:
       default:
         aliases:
           - replica2
-  redis:
-    image: redis:latest
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      default:
-        aliases:
-          - redis
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    ports:
-      - "9090:9090"   # Prometheus default UI port
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-    networks:
-      default:
-        aliases:
-          - prometheus         
 
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    ports:
-      - "3001:3000"  # default Grafana port
-    volumes:
-      - grafana_data:/var/lib/grafana
-    networks:
-      default:
-        aliases:
-          - grafana
 
 volumes:
   pg_primary:
   pg_replica1:
   pg_replica2:
   etcd_data:
-  redis_data:
-  grafana_data:
+ 
 
