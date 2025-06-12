@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
       lastname: lastName,
       email: email,
       phone: "9999999999", // Default phone
-      surl: `${WEBSITE_BASE_URL}`,
+      surl: `${WEBSITE_BASE_URL}/api/subsscription/success`,
       furl: `${WEBSITE_BASE_URL}/api/subsscription/failure`,
       hash: hash,
       service_provider: "payu_paisa",
