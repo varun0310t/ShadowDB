@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { useRouter } from "next/navigation";
+import { Zap } from "lucide-react";
+import { Badge } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -14,6 +17,7 @@ import {
 import { useResourceData } from "../hooks/useResourceData";
 import { useStorageData } from "../hooks/useStorageData";
 import { DatabaseEntry } from "../../../../types/database-types";
+import router from '../../../../../../../../dbService/src/routes/DataBaseBackupRoute';
 
 interface ResourceAllocationSectionProps {
   database: DatabaseEntry;
@@ -134,6 +138,7 @@ export function ResourceAllocationSection({
       </div>
     );
   }
+  const router = useRouter();
 
   return (
     <Card className="bg-[#151923] border-gray-800">
@@ -272,6 +277,29 @@ export function ResourceAllocationSection({
           </Button>
         </CardFooter>
       )}
+
+      {/* Pro Subscription Banner - Just add this component */}
+      <div className="bg-gradient-to-r from-[#1A1E2A] to-[#191E2E] border border-[#2A2F42] rounded-lg p-4 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Badge className="bg-purple-600">Pro Plan</Badge>
+            <span className="text-yellow-400 text-sm font-medium">
+              4x More Resources
+            </span>
+          </div>
+          <p className="text-gray-300 text-sm">
+            Need more power? Upgrade to Pro for up to 8 CPU cores, 4 GB memory,
+            and 10 GB storage.
+          </p>
+        </div>
+        <Button
+          className="whitespace-nowrap bg-purple-600 hover:bg-purple-700"
+          onClick={() => router.push("/SubScription")}
+        >
+          <Zap className="h-4 w-4 mr-1" />
+          Upgrade to Pro
+        </Button>
+      </div>
     </Card>
   );
 }
