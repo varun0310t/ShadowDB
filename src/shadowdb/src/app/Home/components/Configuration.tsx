@@ -178,33 +178,31 @@ export default function DatabaseConfiguration({
         </Card>
       </div>
     );
-  }
-
-  if (!selectedDatabase) {
+  }  if (!selectedDatabase) {
     return (
-      <div className="container mx-auto p-6 animate-fadeIn">
-        <Card className="bg-[#151923] border-gray-800">
-          <CardHeader>
-            <CardTitle>Select Database</CardTitle>
-            <CardDescription>Choose a database to configure</CardDescription>
+      <div className="w-full max-w-none px-2 sm:px-4 md:px-6 py-4 sm:py-6 animate-fadeIn">
+        <Card className="bg-[#151923] border-gray-800 max-w-2xl mx-auto">
+          <CardHeader className="p-3 sm:p-4 md:p-6">
+            <CardTitle className="text-base sm:text-lg md:text-xl text-white">Select Database</CardTitle>
+            <CardDescription className="text-xs sm:text-sm md:text-base text-gray-400">Choose a database to configure</CardDescription>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-4 md:p-6">
             {databases.length === 0 ? (
               <div className="text-center py-8">
                 <Database className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">
+                <h3 className="text-base md:text-lg font-medium mb-2 text-white">
                   No Databases Available
                 </h3>
-                <p className="text-gray-400 mb-4">
+                <p className="text-sm md:text-base text-gray-400 mb-4">
                   You don't have any databases yet.
                 </p>
-                <Button className="bg-purple-600 hover:bg-purple-700">
+                <Button className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto">
                   Create Database
                 </Button>
               </div>
             ) : (
               <div className="space-y-4">
-                <Label htmlFor="database-select">
+                <Label htmlFor="database-select" className="text-sm md:text-base text-white">
                   Select a database to configure
                 </Label>
                 <Select
@@ -226,112 +224,191 @@ export default function DatabaseConfiguration({
                   </SelectContent>
                 </Select>
               </div>
-            )}
-          </CardContent>
+            )}          </CardContent>
         </Card>
       </div>
     );
-  }
-
-  return (
-    <div className="container mx-auto p-6 animate-fadeIn">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-3">
-          <div className="h-10 w-10 rounded-md bg-purple-600/20 flex items-center justify-center">
-            <Database className="h-5 w-5 text-purple-500" />
-          </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h1 className="text-2xl font-bold">{selectedDatabase.db_name}</h1>
-              <Select
-                value={selectedDatabaseId}
-                onValueChange={setSelectedDatabaseId}
-              >
-                <SelectTrigger className="h-8 px-2 text-sm bg-transparent border-0 hover:bg-gray-800 focus:ring-0">
-                  <span className="sr-only">Change database</span>
-                </SelectTrigger>
-                <SelectContent className="bg-[#151923] border-gray-800">
-                  {databases.map((db) => (
-                    <SelectItem key={db.id} value={db.id.toString()}>
-                      {db.db_name} ({db.tenancy_type})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+  }  return (
+    <div className="w-full max-w-none px-2 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 animate-fadeIn">
+      {/* Header Section - Mobile Responsive */}
+      <div className="flex flex-col space-y-3 sm:space-y-4 mb-4 sm:mb-6">
+        {/* Database Info Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+            <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-md bg-purple-600/20 flex items-center justify-center flex-shrink-0">
+              <Database className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500" />
             </div>
-            <div className="flex items-center space-x-2 mt-1">
-              <Badge
-                className={
-                  selectedDatabase.status === "running"
-                    ? "bg-green-600"
-                    : selectedDatabase.status === "stopped"
-                    ? "bg-yellow-600"
-                    : "bg-red-600"
-                }
-              >
-                {(selectedDatabase.status || "unknown")
-                  .charAt(0)
-                  .toUpperCase() +
-                  (selectedDatabase.status || "unknown").slice(1)}
-              </Badge>
-              <Badge className="bg-purple-600">
-                {selectedDatabase.tenancy_type.charAt(0).toUpperCase() +
-                  selectedDatabase.tenancy_type.slice(1)}
-              </Badge>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center space-x-2">
+                <h1 className="text-base sm:text-lg md:text-2xl font-bold truncate">{selectedDatabase.db_name}</h1>
+                {/* Database Selector - Mobile: Below title, Desktop: Inline */}
+                <div className="hidden md:block">
+                  <Select
+                    value={selectedDatabaseId}
+                    onValueChange={setSelectedDatabaseId}
+                  >
+                    <SelectTrigger className="h-8 px-2 text-sm bg-transparent border-0 hover:bg-gray-800 focus:ring-0">
+                      <span className="sr-only">Change database</span>
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#151923] border-gray-800">
+                      {databases.map((db) => (
+                        <SelectItem key={db.id} value={db.id.toString()}>
+                          {db.db_name} ({db.tenancy_type})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>              <div className="flex items-center space-x-1 sm:space-x-2 mt-1 flex-wrap gap-1">
+                <Badge
+                  className={`text-xs px-1.5 py-0.5 ${
+                    selectedDatabase.status === "running"
+                      ? "bg-green-600"
+                      : selectedDatabase.status === "stopped"
+                      ? "bg-yellow-600"
+                      : "bg-red-600"
+                  }`}
+                >
+                  {(selectedDatabase.status || "unknown")
+                    .charAt(0)
+                    .toUpperCase() +
+                    (selectedDatabase.status || "unknown").slice(1)}
+                </Badge>
+                <Badge className="bg-purple-600 text-xs px-1.5 py-0.5">
+                  {selectedDatabase.tenancy_type.charAt(0).toUpperCase() +
+                    selectedDatabase.tenancy_type.slice(1)}
+                </Badge>
+              </div>
             </div>
           </div>
+          
+          {/* Save Button - Full width on mobile */}
+          <Button className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto text-sm py-2 px-3">
+            <Save className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            Save Changes
+          </Button>
+        </div>        {/* Mobile Database Selector */}
+        <div className="md:hidden">
+          <Select
+            value={selectedDatabaseId}
+            onValueChange={setSelectedDatabaseId}
+          >
+            <SelectTrigger className="w-full bg-[#0B0F17] border-gray-800 h-9 text-sm">
+              <SelectValue placeholder="Switch database..." />
+            </SelectTrigger>
+            <SelectContent className="bg-[#151923] border-gray-800">
+              {databases.map((db) => (
+                <SelectItem key={db.id} value={db.id.toString()}>
+                  {db.db_name} ({db.tenancy_type})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        <Button className="bg-purple-600 hover:bg-purple-700">
-          <Save className="h-4 w-4 mr-2" />
-          Save Changes
-        </Button>
-      </div>
-
-      <Tabs
+      </div>      <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
-        className="space-y-4"
-      >
-        <TabsList className="bg-gray-800 p-1">
-          <TabsTrigger
-            value="general"
-            className="data-[state=active]:bg-purple-600"
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            General
-          </TabsTrigger>
-          <TabsTrigger
-            value="performance"
-            className="data-[state=active]:bg-purple-600"
-          >
-            <Server className="h-4 w-4 mr-2" />
-            Performance
-          </TabsTrigger>
-          <TabsTrigger
-            value="backup"
-            className="data-[state=active]:bg-purple-600"
-          >
-            <HardDrive className="h-4 w-4 mr-2" />
-            Backup & Recovery
-          </TabsTrigger>
-          <TabsTrigger
-            value="security"
-            className="data-[state=active]:bg-purple-600"
-          >
-            <Shield className="h-4 w-4 mr-2" />
-            Security
-          </TabsTrigger>
-          <TabsTrigger
-            value="api"
-            className="data-[state=active]:bg-purple-600"
-          >
-            <Key className="h-4 w-4 mr-2" />
-            API Tokens
-          </TabsTrigger>
-        </TabsList>
+        className="space-y-3 sm:space-y-4"
+      >{/* Tab Navigation - Mobile: Flex wrap, Desktop: Horizontal */}
+        <div className="w-full">
+          {/* Mobile: Flexible wrapping layout */}
+          <div className="flex flex-wrap gap-1.5 md:hidden">
+            <button
+              onClick={() => setActiveTab("general")}
+              className={`flex items-center justify-center px-2 py-2.5 rounded-md text-xs font-medium transition-colors min-w-0 flex-1 basis-[calc(50%-3px)] ${
+                activeTab === "general"
+                  ? "bg-purple-600 text-white"
+                  : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+              }`}
+            >
+              <Settings className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+              <span className="truncate">General</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("performance")}
+              className={`flex items-center justify-center px-2 py-2.5 rounded-md text-xs font-medium transition-colors min-w-0 flex-1 basis-[calc(50%-3px)] ${
+                activeTab === "performance"
+                  ? "bg-purple-600 text-white"
+                  : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+              }`}
+            >
+              <Server className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+              <span className="truncate">Performance</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("backup")}
+              className={`flex items-center justify-center px-2 py-2.5 rounded-md text-xs font-medium transition-colors min-w-0 flex-1 basis-[calc(50%-3px)] ${
+                activeTab === "backup"
+                  ? "bg-purple-600 text-white"
+                  : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+              }`}
+            >
+              <HardDrive className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+              <span className="truncate">Backup</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("security")}
+              className={`flex items-center justify-center px-2 py-2.5 rounded-md text-xs font-medium transition-colors min-w-0 flex-1 basis-[calc(50%-3px)] ${
+                activeTab === "security"
+                  ? "bg-purple-600 text-white"
+                  : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+              }`}
+            >
+              <Shield className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+              <span className="truncate">Security</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("api")}
+              className={`flex items-center justify-center px-2 py-2.5 rounded-md text-xs font-medium transition-colors min-w-0 flex-1 basis-full ${
+                activeTab === "api"
+                  ? "bg-purple-600 text-white"
+                  : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+              }`}
+            >              <Key className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
+              <span className="truncate">API Tokens</span>
+            </button>
+          </div>
 
-        {/* General Settings */}
-        <TabsContent value="general" className="space-y-4">
+          {/* Desktop: Traditional horizontal tabs */}
+          <TabsList className="hidden md:flex bg-gray-800 p-1 w-full justify-start">
+            <TabsTrigger
+              value="general"
+              className="data-[state=active]:bg-purple-600 text-sm px-4 py-2"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              General
+            </TabsTrigger>
+            <TabsTrigger
+              value="performance"
+              className="data-[state=active]:bg-purple-600 text-sm px-4 py-2"
+            >
+              <Server className="h-4 w-4 mr-2" />
+              Performance
+            </TabsTrigger>
+            <TabsTrigger
+              value="backup"
+              className="data-[state=active]:bg-purple-600 text-sm px-4 py-2"
+            >
+              <HardDrive className="h-4 w-4 mr-2" />
+              Backup & Recovery
+            </TabsTrigger>
+            <TabsTrigger
+              value="security"
+              className="data-[state=active]:bg-purple-600 text-sm px-4 py-2"
+            >
+              <Shield className="h-4 w-4 mr-2" />
+              Security
+            </TabsTrigger>
+            <TabsTrigger
+              value="api"
+              className="data-[state=active]:bg-purple-600 text-sm px-4 py-2"
+            >
+              <Key className="h-4 w-4 mr-2" />
+              API Tokens
+            </TabsTrigger>
+          </TabsList>
+        </div>        {/* General Settings */}
+        <TabsContent value="general" className="space-y-3 sm:space-y-4">
           <GeneralTab
             selectedDatabase={selectedDatabase}
             copyToClipboard={copyToClipboard}
@@ -340,22 +417,22 @@ export default function DatabaseConfiguration({
         </TabsContent>
 
         {/* Performance Settings */}
-        <TabsContent value="performance" className="space-y-4">
+        <TabsContent value="performance" className="space-y-3 sm:space-y-4">
           <PerformanceTab selectedDatabase={selectedDatabase} />
         </TabsContent>
 
         {/* Backup & Recovery */}
-        <TabsContent value="backup" className="space-y-4">
+        <TabsContent value="backup" className="space-y-3 sm:space-y-4">
           <BackupTab selectedDatabase={selectedDatabase} />
         </TabsContent>
 
         {/* Security Settings */}
-        <TabsContent value="security" className="space-y-4">
+        <TabsContent value="security" className="space-y-3 sm:space-y-4">
           <SecurityTab selectedDatabase={selectedDatabase} />
         </TabsContent>
 
         {/* API Tokens */}
-        <TabsContent value="api" className="space-y-4">
+        <TabsContent value="api" className="space-y-3 sm:space-y-4">
           <ApiTokensTab
             apiTokens={apiTokens}
             newToken={newToken}

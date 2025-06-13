@@ -9,10 +9,11 @@ interface SecurityTabProps {
 
 export function SecurityTab({ selectedDatabase }: SecurityTabProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4 w-full overflow-hidden">
       {/* Access Control Card */}
-      <AccessControlCard selectedDatabase={selectedDatabase} />
-
+      <div className="w-full">
+        <AccessControlCard selectedDatabase={selectedDatabase} />
+      </div>
     
       {/* <EncryptionCard /> */}
     </div>

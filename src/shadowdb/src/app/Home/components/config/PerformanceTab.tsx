@@ -27,22 +27,25 @@ export function PerformanceTab({
   
   // Check if data is still loading
   const isLoading = resourceLoading || storageLoading;
-
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+      <div className="flex justify-center items-center h-32 sm:h-48 md:h-64">
+        <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-purple-600" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <ResourceAllocationSection 
-        database={selectedDatabase}
-        refetchDatabases={refetchDatabases}
-      />
-      <QueryOptimizationSection />
+    <div className="space-y-3 sm:space-y-4 w-full overflow-hidden">
+      <div className="w-full">
+        <ResourceAllocationSection 
+          database={selectedDatabase}
+          refetchDatabases={refetchDatabases}
+        />
+      </div>
+      <div className="w-full">
+        <QueryOptimizationSection />
+      </div>
     </div>
   );
 }

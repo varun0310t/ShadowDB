@@ -33,26 +33,33 @@ export function GeneralTab({
       return response.data;
     },
     enabled: !!selectedDatabase.id, // Only run this query if we have a database ID
-  });
-  return (
-    <div className="space-y-4">
+  });  return (
+    <div className="space-y-3 sm:space-y-4">
       {/* Database Information Card */}
-      <DatabaseInfoCard
-        selectedDatabase={selectedDatabase}
-        refetchDatabases={refetchDatabases}
-      />      {/* Database Lifecycle Card */}
-      <DatabaseLifecycleCard
-        selectedDatabase={selectedDatabase}
-        refetchDatabases={refetchDatabases}
-      />
+      <div className="w-full overflow-hidden">
+        <DatabaseInfoCard
+          selectedDatabase={selectedDatabase}
+          refetchDatabases={refetchDatabases}
+        />
+      </div>
+      
+      {/* Database Lifecycle Card */}
+      <div className="w-full overflow-hidden">
+        <DatabaseLifecycleCard
+          selectedDatabase={selectedDatabase}
+          refetchDatabases={refetchDatabases}
+        />
+      </div>
 
       {/* Connection Settings Card */}
-      <ConnectionSettingsCard
-        selectedDatabase={selectedDatabase}
-        connectionConfig={connectionConfig}
-        isLoading={isLoading}
-        copyToClipboard={copyToClipboard}
-      />
+      <div className="w-full overflow-hidden">
+        <ConnectionSettingsCard
+          selectedDatabase={selectedDatabase}
+          connectionConfig={connectionConfig}
+          isLoading={isLoading}
+          copyToClipboard={copyToClipboard}
+        />
+      </div>
     </div>
   );
 }
