@@ -272,152 +272,128 @@ useEffect(() => {
       }
     });
   };
-
   window.addEventListener("keydown", handleKeyDown);
   return () => window.removeEventListener("keydown", handleKeyDown);
 }, [query, selectedDatabase]); // Add any other dependencies your handlers use
-
   return (
-    <div className="flex flex-col h-full w-full bg-[#0B0F17] text-white overflow-hidden">
-      {/* Navigation */}
-      <header className="px-4 lg:px-6 h-14 flex items-center border-b border-gray-800 flex-shrink-0">
+    <div className="flex flex-col h-full w-full bg-[#0B0F17] text-white">
+      {/* Navigation - Hidden on mobile since it's within the main app */}
+      <header className="hidden md:flex px-4 lg:px-6 h-14 items-center border-b border-gray-800 flex-shrink-0">
         <Link href="/" className="flex items-center gap-2">
           <Database className="h-6 w-6 text-purple-500" />
           <span className="font-semibold">ShadowDB</span>
         </Link>
       </header>
-      <main className="flex flex-col h-full max-h-full w-full overflow-hidden">
-        {/* Toolbar */}
-        <div className="border-b border-gray-800 p-2 flex items-center space-x-2 w-full overflow-x-auto flex-shrink-0">
-          <Select value={selectedDatabase} onValueChange={setSelectedDatabase}>
-            <SelectTrigger className="w-[200px] bg-[#151923] border-gray-800">
-              <SelectValue placeholder="Select Database" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#151923] border-gray-800">
-              {databases.length === 0 ? (
-                <SelectItem value="no-db" disabled>
-                  No databases available
-                </SelectItem>
-              ) : (
-                databases.map((db) => (
-                  <SelectItem key={db.id} value={db.db_name}>
-                    {db.db_name} ({db.tenancy_type})
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
-          <div className="h-6 w-px bg-gray-800" />
-          {/* 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-gray-400 hover:bg-purple-600 hover:text-white"
-          >
-            <Save className="h-4 w-4" />
-          </Button> */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-gray-400 hover:bg-purple-600 hover:text-white"
-            onClick={handleCopyQuery}
-          >
-            <FileCode className="h-4 w-4" />
-          </Button>
+      
+      <main className="flex flex-col flex-1 min-h-0 lg:overflow-hidden">
+        {/* Toolbar - Responsive */}
+        <div className="border-b border-gray-800 p-3 md:p-4 flex-shrink-0">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 sm:items-center max-w-full">
+            {/* Database Selection */}
+            <div className="flex items-center gap-2 min-w-0">
+              <Select value={selectedDatabase} onValueChange={setSelectedDatabase}>
+                <SelectTrigger className="w-full sm:w-[200px] bg-[#151923] border-gray-800 h-10">
+                  <SelectValue placeholder="Select Database" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#151923] border-gray-800">
+                  {databases.length === 0 ? (
+                    <SelectItem value="no-db" disabled>
+                      No databases available
+                    </SelectItem>
+                  ) : (
+                    databases.map((db) => (
+                      <SelectItem key={db.id} value={db.db_name}>
+                        {db.db_name} ({db.tenancy_type})
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-gray-400 hover:bg-purple-600 hover:text-white"
-            onClick={handleFormatQuery}
-            title="Format SQL"
-          >
-            <AlignLeft className="h-4 w-4" />
-          </Button>
-          {/* <Button
-            variant="ghost"
-            size="icon"
-            className="text-gray-400 hover:bg-purple-600 hover:text-white"
-          >
-            <Settings2 className="h-4 w-4" />
-          </Button> */}
-          {/* 
-          <div className="h-6 w-px bg-gray-800" />
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-gray-400 hover:bg-purple-600 hover:text-white"
-          >
-            <Filter className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-gray-400 hover:bg-purple-600 hover:text-white"
-          >
-            <Clock className="h-4 w-4" />
-          </Button>
-
-          <div className="h-6 w-px bg-gray-800" /> */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
+              <div className="hidden sm:block h-6 w-px bg-gray-800" />
+              
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-400 hover:bg-purple-600 hover:text-white"
+                className="text-gray-400 hover:bg-purple-600 hover:text-white h-10"
+                onClick={handleCopyQuery}
               >
-                <Download className="h-4 w-4 mr-2" />
-                Export
-                <ChevronDown className="h-4 w-4 ml-2" />
+                <FileCode className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Copy</span>
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className=" bg-purple-600 text-white">
-              <DropdownMenuItem onClick={exportToCSV}>CSV</DropdownMenuItem>
-              <DropdownMenuItem onClick={exportToJSON}>JSON</DropdownMenuItem>
-              <DropdownMenuItem onClick={exportToSQL}>SQL</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <div className="ml-auto flex items-center space-x-2">
-            <HoverMessage message="Need help with PSQL queries? Check out our documentation.">
+
               <Button
                 variant="ghost"
-                size="icon"
-                className="text-gray-400 hover:bg-purple-600 hover:text-white"
+                size="sm"
+                className="text-gray-400 hover:bg-purple-600 hover:text-white h-10"
+                onClick={handleFormatQuery}
+                title="Format SQL"
               >
-                <HelpCircle className="h-4 w-4" />
+                <AlignLeft className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Format</span>
               </Button>
-            </HoverMessage>
-            {/* <Button
-              variant="ghost"
-              size="icon"
-              className="text-gray-400 hover:bg-purple-600 hover:text-white"
-              onClick={() => setIsFullscreen(!isFullscreen)}
-            >
-              <Maximize2 className="h-4 w-4" />
-            </Button> */}
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-400 hover:bg-purple-600 hover:text-white h-10"
+                  >
+                    <Download className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Export</span>
+                    <ChevronDown className="h-4 w-4 sm:ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-purple-600 text-white">
+                  <DropdownMenuItem onClick={exportToCSV}>CSV</DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportToJSON}>JSON</DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportToSQL}>SQL</DropdownMenuItem>                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <div className="hidden sm:block ml-auto">
+                <HoverMessage message="Need help with PSQL queries? Check out our documentation.">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-400 hover:bg-purple-600 hover:text-white h-10"
+                  >
+                    <HelpCircle className="h-4 w-4" />
+                  </Button>
+                </HoverMessage>
+              </div>
+            </div>
           </div>
-        </div>{" "}
-        {/* Query Editor */}
-        <div className="flex-1 min-h-0 flex flex-col h-full">
-          <div className="h-1/2 border-b border-gray-800">
-            <Editor
-              defaultLanguage="sql"
-              defaultValue="-- Enter your SQL query here"
-              value={query}
-              theme="vs-dark"
-              options={{
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                fontSize: 14,
-                lineNumbers: "on",
-              }}
-              onChange={(value) => setQuery(value || "")}
-              className="h-full"
-            />
-            <div className="absolute bottom-[50%] right-4 transform translate-y-[-50%]">
+        </div>        {/* Query Editor & Results */}
+        <div className="flex-1 min-h-0 flex flex-col lg:overflow-hidden">
+          {/* Query Editor Section */}
+          <div className="flex flex-col lg:h-1/2 min-h-[300px] border-b border-gray-800 relative lg:overflow-hidden">
+            <div className="flex-1 min-h-0 lg:overflow-hidden">
+              <Editor
+                defaultLanguage="sql"
+                defaultValue="-- Enter your SQL query here"
+                value={query}
+                theme="vs-dark"
+                options={{
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  fontSize: 14,
+                  lineNumbers: "on",
+                  wordWrap: "on",
+                  automaticLayout: true,
+                }}
+                onChange={(value) => setQuery(value || "")}
+                className="h-full"
+              />
+            </div>
+            
+            {/* Run Query Button - Responsive positioning */}
+            <div className="absolute bottom-4 right-4">
               <Button
-                className="bg-purple-600 hover:bg-purple-700"
+                className="bg-purple-600 hover:bg-purple-700 shadow-lg"
                 onClick={handleRunQuery}
                 disabled={mutation.isPending || !selectedDatabase}
               >
@@ -426,46 +402,45 @@ useEffect(() => {
                 ) : (
                   <Play className="h-4 w-4 mr-2" />
                 )}
-                Run Query
+                <span className="hidden sm:inline">Run Query</span>
+                <span className="sm:hidden">Run</span>
               </Button>
             </div>
-          </div>
-
-          {/* Results Area */}
-          <div className="h-1/2 flex-1 min-h-0">
+          </div>          {/* Results Area */}
+          <div className="flex-1 min-h-0 lg:h-1/2 lg:overflow-hidden">
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}
-              className="h-full flex flex-col"
+              className="h-full flex flex-col lg:overflow-hidden"
             >
-              <TabsList className="border-b border-gray-800 bg-transparent">
+              <TabsList className="border-b border-gray-800 bg-transparent p-2 md:p-4 justify-start flex-shrink-0">
                 <TabsTrigger
                   value="data"
-                  className="data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+                  className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs md:text-sm px-3 md:px-4"
                 >
                   Data Output
                 </TabsTrigger>
                 <TabsTrigger
                   value="messages"
-                  className="data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+                  className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs md:text-sm px-3 md:px-4"
                 >
                   Messages
                 </TabsTrigger>
                 <TabsTrigger
                   value="explain"
-                  className="data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+                  className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs md:text-sm px-3 md:px-4"
                 >
                   Explain
                 </TabsTrigger>
               </TabsList>
-              <TabsContent value="data" className="flex-1 p-4 overflow-auto">
+                <TabsContent value="data" className="flex-1 p-3 md:p-4 min-h-0 overflow-auto">
                 {results.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left text-gray-300">
-                      <thead className="text-xs uppercase bg-[#151923] text-gray-400">
+                  <div className="lg:overflow-auto lg:h-full">
+                    <table className="w-full text-xs md:text-sm text-left text-gray-300 min-w-[600px]">
+                      <thead className="text-xs uppercase bg-[#151923] text-gray-400 sticky top-0">
                         <tr>
                           {Object.keys(results[0]).map((key) => (
-                            <th key={key} className="px-4 py-2">
+                            <th key={key} className="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
                               {key}
                             </th>
                           ))}
@@ -473,12 +448,14 @@ useEffect(() => {
                       </thead>
                       <tbody>
                         {results.map((row, i) => (
-                          <tr key={i} className="border-b border-gray-800">
+                          <tr key={i} className="border-b border-gray-800 hover:bg-gray-800/30">
                             {Object.values(row).map((value: string, j) => (
-                              <td key={j} className="px-4 py-2">
-                                {typeof value === "object" && value !== null
-                                  ? JSON.stringify(value)
-                                  : String(value)}
+                              <td key={j} className="px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm max-w-[200px]">
+                                <div className="truncate" title={typeof value === "object" && value !== null ? JSON.stringify(value) : String(value)}>
+                                  {typeof value === "object" && value !== null
+                                    ? JSON.stringify(value)
+                                    : String(value)}
+                                </div>
                               </td>
                             ))}
                           </tr>
@@ -486,39 +463,59 @@ useEffect(() => {
                       </tbody>
                     </table>
                   </div>
-                ) : (
-                  <div className="text-sm text-gray-400">
-                    {mutation.isPending
-                      ? "Running query..."
-                      : "No results to display"}
+                ) : (                  <div className="flex items-center justify-center h-full min-h-[200px]">
+                    <div className="text-center">
+                      <Database className="h-12 w-12 md:h-16 md:w-16 text-gray-600 mx-auto mb-4" />
+                      <div className="text-sm md:text-base text-gray-400">
+                        {mutation.isPending
+                          ? "Running query..."
+                          : "No results to display"}
+                      </div>
+                      <div className="text-xs md:text-sm text-gray-500 mt-2">
+                        {!mutation.isPending && "Execute a query to see results here"}
+                      </div>
+                    </div>
                   </div>
                 )}
               </TabsContent>
 
               <TabsContent
                 value="messages"
-                className="flex-1 p-4 overflow-auto"
+                className="flex-1 p-3 md:p-4 overflow-auto min-h-0"
               >
                 {error || mutation.error ? (
-                  <div className="text-sm text-red-400">
-                    {error ||
-                      (mutation.error as Error)?.message ||
-                      "An error occurred"}
+                  <div className="bg-red-900/20 border border-red-800 rounded-lg p-4">
+                    <div className="text-sm md:text-base text-red-400 font-medium mb-2">
+                      Query Error
+                    </div>
+                    <div className="text-xs md:text-sm text-red-300 font-mono break-words">
+                      {error ||
+                        (mutation.error as Error)?.message ||
+                        "An error occurred"}
+                    </div>
                   </div>
-                ) : (
-                  <div className="text-sm text-gray-400">No messages</div>
+                ) : (                  <div className="flex items-center justify-center h-full min-h-[200px]">
+                    <div className="text-center">
+                      <div className="text-sm md:text-base text-gray-400">No messages</div>
+                      <div className="text-xs md:text-sm text-gray-500 mt-2">
+                        Error messages and query information will appear here
+                      </div>
+                    </div>
+                  </div>
                 )}
               </TabsContent>
 
-              <TabsContent value="explain" className="flex-1 p-4 overflow-auto">
-                <div className="text-sm text-gray-400">
-                  No execution plan available
+              <TabsContent value="explain" className="flex-1 p-3 md:p-4 overflow-auto min-h-0">                <div className="flex items-center justify-center h-full min-h-[200px]">
+                  <div className="text-center">
+                    <div className="text-sm md:text-base text-gray-400">No execution plan available</div>
+                    <div className="text-xs md:text-sm text-gray-500 mt-2">
+                      Query execution plans will be displayed here
+                    </div>
+                  </div>
                 </div>
-              </TabsContent>
-            </Tabs>
+              </TabsContent>            </Tabs>
           </div>
-        </div>
-      </main>
+        </div>      </main>
     </div>
   );
 }
