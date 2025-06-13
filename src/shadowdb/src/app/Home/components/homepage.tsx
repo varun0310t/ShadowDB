@@ -107,96 +107,89 @@ function HomeContent({ setActivePage }: { setActivePage: (page: string) => void 
 
     loadSystemChanges()
   }, [])
-
   return (
-    <div className="flex flex-col h-full w-full space-y-6 animate-fadeIn overflow-y-auto pb-6">
+    <div className="flex flex-col h-full w-full space-y-4 md:space-y-6 animate-fadeIn overflow-y-auto pb-6">
       {/* Welcome Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+          <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
             Welcome to ShadowDB
           </h1>
-          <p className="text-gray-400 mt-2">Manage your databases with enterprise-grade performance and security</p>
+          <p className="text-gray-400 mt-1 md:mt-2 text-sm md:text-base">Manage your databases with enterprise-grade performance and security</p>
         </div>
-      </div>
-
-      {/* User Profile Section */}
+      </div>      {/* User Profile Section */}
       <Card className="bg-[#151923] border-gray-800">
-        <CardContent className="p-6">
-          <div className="flex items-center space-x-4">
+        <CardContent className="p-4 md:p-6">
+          <div className="flex items-center space-x-3 md:space-x-4">
             {loadingUser ? (
-              <Skeleton className="h-16 w-16 rounded-full" />
+              <Skeleton className="h-12 w-12 md:h-16 md:w-16 rounded-full" />
             ) : (
               <div className="relative">
-                <div className="h-16 w-16 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 p-0.5">
+                <div className="h-12 w-12 md:h-16 md:w-16 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 p-0.5">
                   <img
                     src={userData?.image || "/placeholder.svg?height=64&width=64"}
                     alt="Profile"
                     className="h-full w-full rounded-full object-cover bg-[#151923]"
                   />
                 </div>
-                <div className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-green-500 border-2 border-[#151923]"></div>
+                <div className="absolute bottom-0 right-0 h-3 w-3 md:h-4 md:w-4 rounded-full bg-green-500 border-2 border-[#151923]"></div>
               </div>
             )}
 
-            <div className="flex-1">
-              <h2 className="text-2xl font-semibold text-white">
-                {loadingUser ? <Skeleton className="h-8 w-40" /> : `Welcome back, ${userData?.name || "User"}`}
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg md:text-2xl font-semibold text-white truncate">
+                {loadingUser ? <Skeleton className="h-6 md:h-8 w-32 md:w-40" /> : `Welcome back, ${userData?.name || "User"}`}
               </h2>
               <div className="text-gray-400 mt-1">
                 {loadingUser ? (
-                  <Skeleton className="h-4 w-64" />
+                  <Skeleton className="h-4 w-48 md:w-64" />
                 ) : (
-                  <div className="flex items-center space-x-2">
-                    <span className="text-purple-400">{userData?.email}</span>
-                    <span>•</span>
-                    <Badge className="bg-purple-600">{userData?.provider || "Account"}</Badge>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-1 sm:space-y-0">
+                    <span className="text-purple-400 text-sm md:text-base truncate">{userData?.email}</span>
+                    <span className="hidden sm:inline">•</span>
+                    <Badge className="bg-purple-600 text-xs md:text-sm w-fit">{userData?.provider || "Account"}</Badge>
                   </div>
                 )}
               </div>
             </div>
           </div>
         </CardContent>
-      </Card>
-
-      {/* Database Stats Cards */}
+      </Card>      {/* Database Stats Cards */}
       {databasesData && databasesData.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
           <StatCard
             title="Total Databases"
             value={loadingDatabases ? "-" : databasesData?.length || 0}
-            icon={<Database className="h-5 w-5 text-purple-500" />}
+            icon={<Database className="h-4 w-4 md:h-5 md:w-5 text-purple-500" />}
             trend="+12%"
             trendUp={true}
           />
           <StatCard
             title="Isolated Databases"
             value={loadingDatabases ? "-" : databasesData?.filter((db) => db.tenancy_type === "isolated").length || 0}
-            icon={<Shield className="h-5 w-5 text-purple-500" />}
+            icon={<Shield className="h-4 w-4 md:h-5 md:w-5 text-purple-500" />}
             trend="+8%"
             trendUp={true}
           />
           <StatCard
             title="Shared Databases"
             value={loadingDatabases ? "-" : databasesData?.filter((db) => db.tenancy_type === "shared").length || 0}
-            icon={<Zap className="h-5 w-5 text-purple-500" />}
+            icon={<Zap className="h-4 w-4 md:h-5 md:w-5 text-purple-500" />}
             trend="+15%"
             trendUp={true}
           />
         </div>
-      )}
-
-      <div className="grid md:grid-cols-2 gap-6">
+      )}      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Your Databases Card */}
         <Card className="bg-[#151923] border-gray-800">
-          <CardHeader>
-            <CardTitle className="flex items-center text-white">
-              <Database className="w-5 h-5 mr-2 text-purple-500" />
+          <CardHeader className="pb-3 md:pb-6">
+            <CardTitle className="flex items-center text-white text-lg md:text-xl">
+              <Database className="w-4 h-4 md:w-5 md:h-5 mr-2 text-purple-500" />
               Your Databases
             </CardTitle>
-            <CardDescription>Manage and monitor your database instances</CardDescription>
+            <CardDescription className="text-sm md:text-base">Manage and monitor your database instances</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             {loadingDatabases ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
@@ -211,34 +204,34 @@ function HomeContent({ setActivePage }: { setActivePage: (page: string) => void 
                       key={db.id}
                       className="flex items-center justify-between p-3 rounded-lg bg-[#0B0F17] border border-gray-800 hover:border-purple-500 transition-colors"
                     >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                        <span className="font-medium text-white">{db.db_name}</span>
+                      <div className="flex items-center space-x-3 min-w-0 flex-1">
+                        <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></div>
+                        <span className="font-medium text-white text-sm md:text-base truncate">{db.db_name}</span>
                       </div>
-                      <div className="flex space-x-2">
+                      <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2 ml-2">
                         <Badge
-                          className={
+                          className={`text-xs ${
                             db.tenancy_type === "isolated"
                               ? "bg-purple-600 hover:bg-purple-700"
                               : "bg-gray-600 hover:bg-gray-700"
-                          }
+                          }`}
                         >
                           {db.tenancy_type}
                         </Badge>
-                        <Badge className="bg-gray-700 hover:bg-gray-600">{db.access_level}</Badge>
+                        <Badge className="bg-gray-700 hover:bg-gray-600 text-xs">{db.access_level}</Badge>
                       </div>
                     </div>
                   ))
                 ) : (
                   
-                  <div className="flex flex-col items-center justify-center text-gray-400 py-8">
-                    <Database className="h-12 w-12 text-gray-600 mb-4" />
+                  <div className="flex flex-col items-center justify-center text-gray-400 py-6 md:py-8">
+                    <Database className="h-10 w-10 md:h-12 md:w-12 text-gray-600 mb-3 md:mb-4" />
                   
-                    <p className="text-lg font-medium mb-2">No databases found</p>
-                    <p className="text-sm text-gray-500 mb-4">Get started by creating your first database</p>
+                    <p className="text-base md:text-lg font-medium mb-2">No databases found</p>
+                    <p className="text-sm text-gray-500 mb-3 md:mb-4 text-center px-4">Get started by creating your first database</p>
                     <Button
                       onClick={() => setActivePage("create")}
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-sm md:text-base"
                     >
                       <PlusCircle className="h-4 w-4 mr-2" />
                       Create Database
@@ -250,7 +243,7 @@ function HomeContent({ setActivePage }: { setActivePage: (page: string) => void 
                   <div className="pt-3 border-t border-gray-800">
                     <Button
                       variant="ghost"
-                      className="w-full text-purple-400 hover:text-purple-300 hover:bg-purple-900/20"
+                      className="w-full text-purple-400 hover:text-purple-300 hover:bg-purple-900/20 text-sm md:text-base"
                     >
                       View all databases ({databasesData.length})
                     </Button>
@@ -259,29 +252,27 @@ function HomeContent({ setActivePage }: { setActivePage: (page: string) => void 
               </div>
             )}
           </CardContent>
-        </Card>
-
-        {/* Latest Platform Changes */}
+        </Card>        {/* Latest Platform Changes */}
         <Card className="bg-[#151923] border-gray-800">
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle className="flex items-center text-white">
-                <GitCommit className="w-5 h-5 mr-2 text-purple-500" />
-                Latest Platform Updates
+          <CardHeader className="pb-3 md:pb-6">
+            <div className="flex justify-between items-start">
+              <CardTitle className="flex items-center text-white text-lg md:text-xl">
+                <GitCommit className="w-4 h-4 md:w-5 md:h-5 mr-2 text-purple-500" />
+                Platform Updates
               </CardTitle>
-              <Button variant="ghost" size="sm" className="text-purple-400 hover:text-purple-300">
-                View all changes
+              <Button variant="ghost" size="sm" className="text-purple-400 hover:text-purple-300 text-xs md:text-sm">
+                View all
               </Button>
             </div>
-            <CardDescription>Recent improvements and new features</CardDescription>
+            <CardDescription className="text-sm md:text-base">Recent improvements and new features</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-0">
             {loadingChanges ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="border-l-2 border-gray-700 pl-4 py-2">
-                    <Skeleton className="h-5 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-full mb-2" />
+                  <div key={i} className="border-l-2 border-gray-700 pl-3 md:pl-4 py-2">
+                    <Skeleton className="h-4 md:h-5 w-3/4 mb-2" />
+                    <Skeleton className="h-3 md:h-4 w-full mb-2" />
                     <Skeleton className="h-3 w-1/3" />
                   </div>
                 ))}
@@ -289,15 +280,15 @@ function HomeContent({ setActivePage }: { setActivePage: (page: string) => void 
             ) : (
               <div className="space-y-4">
                 {latestChanges.slice(0, 3).map((change) => (
-                  <div key={change.id} className={`border-l-2 ${getBorderColor(change.type)} pl-4 py-2`}>
-                    <div className="flex justify-between items-start">
-                      <h4 className="font-medium text-white flex items-center">
+                  <div key={change.id} className={`border-l-2 ${getBorderColor(change.type)} pl-3 md:pl-4 py-2`}>
+                    <div className="flex justify-between items-start gap-2">
+                      <h4 className="font-medium text-white flex items-center text-sm md:text-base">
                         {getChangeIcon(change.type)}
-                        <span className="ml-2">{change.title}</span>
+                        <span className="ml-2 leading-tight">{change.title}</span>
                       </h4>
-                      <span className="text-xs text-gray-400 whitespace-nowrap ml-2">{formatDate(change.date)}</span>
+                      <span className="text-xs text-gray-400 whitespace-nowrap flex-shrink-0">{formatDate(change.date)}</span>
                     </div>
-                    <p className="text-gray-300 mt-1 text-sm">{change.description}</p>
+                    <p className="text-gray-300 mt-1 text-xs md:text-sm leading-relaxed">{change.description}</p>
                     {change.link && (
                       <Button
                         variant="ghost"
@@ -338,24 +329,24 @@ function StatCard({
 }) {
   return (
     <Card className="bg-[#151923] border-gray-800">
-      <CardContent className="p-6">
+      <CardContent className="p-4 md:p-6">
         <div className="flex justify-between items-start">
-          <div>
-            <p className="text-gray-400 text-sm font-medium">{title}</p>
-            <p className="text-3xl font-bold text-white mt-2">{value}</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-gray-400 text-xs md:text-sm font-medium truncate">{title}</p>
+            <p className="text-2xl md:text-3xl font-bold text-white mt-1 md:mt-2">{value}</p>
             {trend && (
-              <div className="flex items-center mt-2">
+              <div className="flex items-center mt-1 md:mt-2">
                 <TrendingUp
-                  className={`h-4 w-4 mr-1 ${trendUp ? "text-green-500" : "text-red-500"} ${
+                  className={`h-3 w-3 md:h-4 md:w-4 mr-1 ${trendUp ? "text-green-500" : "text-red-500"} ${
                     !trendUp ? "rotate-180" : ""
                   }`}
                 />
-                <span className={`text-sm ${trendUp ? "text-green-500" : "text-red-500"}`}>{trend}</span>
-                <span className="text-gray-400 text-sm ml-1">from last month</span>
+                <span className={`text-xs md:text-sm ${trendUp ? "text-green-500" : "text-red-500"}`}>{trend}</span>
+                <span className="text-gray-400 text-xs md:text-sm ml-1">from last month</span>
               </div>
             )}
           </div>
-          <div className="bg-purple-600/20 p-3 rounded-lg">{icon}</div>
+          <div className="bg-purple-600/20 p-2 md:p-3 rounded-lg ml-2">{icon}</div>
         </div>
       </CardContent>
     </Card>
@@ -371,45 +362,45 @@ function QuickActions({
 }) {
   return (
     <Card className="bg-[#151923] border-gray-800">
-      <CardHeader>
-        <CardTitle className="text-white">Quick Actions</CardTitle>
-        <CardDescription>Common tasks and shortcuts</CardDescription>
+      <CardHeader className="pb-3 md:pb-6">
+        <CardTitle className="text-white text-lg md:text-xl">Quick Actions</CardTitle>
+        <CardDescription className="text-sm md:text-base">Common tasks and shortcuts</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <CardContent className="pt-0">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <Button
             onClick={() => setActivePage("create")}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-20 flex flex-col items-center justify-center space-y-2"
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-16 md:h-20 flex flex-col items-center justify-center space-y-1 md:space-y-2 min-h-[64px]"
           >
-            <PlusCircle className="h-6 w-6" />
-            <span className="text-sm">Create Database</span>
+            <PlusCircle className="h-5 w-5 md:h-6 md:w-6" />
+            <span className="text-xs md:text-sm text-center leading-tight">Create Database</span>
           </Button>
 
           <Button
             onClick={() => setActivePage("query")}
-            className="bg-[#0B0F17] border border-gray-800 hover:border-purple-500 hover:bg-purple-900/20 h-20 flex flex-col items-center justify-center space-y-2"
+            className="bg-[#0B0F17] border border-gray-800 hover:border-purple-500 hover:bg-purple-900/20 h-16 md:h-20 flex flex-col items-center justify-center space-y-1 md:space-y-2 min-h-[64px]"
             variant="outline"
           >
-            <Play className="h-6 w-6 text-purple-400" />
-            <span className="text-sm text-purple-400">Run Query</span>
+            <Play className="h-5 w-5 md:h-6 md:w-6 text-purple-400" />
+            <span className="text-xs md:text-sm text-purple-400 text-center leading-tight">Run Query</span>
           </Button>
 
           <Button
             onClick={() => setActivePage("Configuration")}
-            className="bg-[#0B0F17] border border-gray-800 hover:border-purple-500 hover:bg-purple-900/20 h-20 flex flex-col items-center justify-center space-y-2"
+            className="bg-[#0B0F17] border border-gray-800 hover:border-purple-500 hover:bg-purple-900/20 h-16 md:h-20 flex flex-col items-center justify-center space-y-1 md:space-y-2 min-h-[64px]"
             variant="outline"
           >
-            <Settings className="h-6 w-6 text-purple-400" />
-            <span className="text-sm text-purple-400">Configuration</span>
+            <Settings className="h-5 w-5 md:h-6 md:w-6 text-purple-400" />
+            <span className="text-xs md:text-sm text-purple-400 text-center leading-tight">Configuration</span>
           </Button>
 
           <Button
             onClick={() => setActivePage("account")}
-            className="bg-[#0B0F17] border border-gray-800 hover:border-purple-500 hover:bg-purple-900/20 h-20 flex flex-col items-center justify-center space-y-2"
+            className="bg-[#0B0F17] border border-gray-800 hover:border-purple-500 hover:bg-purple-900/20 h-16 md:h-20 flex flex-col items-center justify-center space-y-1 md:space-y-2 min-h-[64px]"
             variant="outline"
           >
-            <User className="h-6 w-6 text-purple-400" />
-            <span className="text-sm text-purple-400">Account</span>
+            <User className="h-5 w-5 md:h-6 md:w-6 text-purple-400" />
+            <span className="text-xs md:text-sm text-purple-400 text-center leading-tight">Account</span>
           </Button>
         </div>
       </CardContent>
