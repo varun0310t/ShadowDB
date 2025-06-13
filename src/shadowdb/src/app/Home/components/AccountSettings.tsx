@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { Sidebar } from "./AccountSettings/Sidebar"
@@ -40,10 +40,12 @@ export default function AccountSettings() {
   }
 
   return (
-    <div className="flex h-screen flex-col w-full bg-gradient-to-br from-gray-900 to-black text-white">
-      <div className="flex flex-col md:flex-row w-full h-full">
-        {/* Sidebar - scrollable on mobile, fixed on desktop */}
-        <div className="w-full md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-gray-800">
+    <div className="w-full bg-gradient-to-br from-gray-900 to-black text-white">
+      {/* Mobile: Stack layout, Desktop: Side-by-side */}
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Mobile Header with Navigation */}
+        <div className="md:hidden">
           <Sidebar
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -52,29 +54,41 @@ export default function AccountSettings() {
           />
         </div>
 
-        {/* Main content - scrollable */}
-        <div className="flex-1 h-fit overflow-y-auto">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-            <div className="p-4 md:p-6">
+        <div className="md:flex md:gap-6 md:p-6">
+          {/* Desktop Sidebar */}
+          <div className="hidden md:block md:w-80 md:flex-shrink-0">
+            <div className="sticky top-6">
+              <Sidebar
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                userData={userData}
+                loading={loading}
+              />
+            </div>
+          </div>
+
+          {/* Main content */}
+          <div className="flex-1  min-w-0 p-4 md:p-0">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="space-y-6">
-                <TabsContent value="profile">
+                <TabsContent value="profile" className="mt-0 space-y-0">
                   <ProfileTab userData={userData} onUpdate={fetchUserData} />
                 </TabsContent>
-                <TabsContent value="security">
+                <TabsContent value="security" className="mt-0 space-y-0">
                   <SecurityTab />
                 </TabsContent>
-                <TabsContent value="notifications">
+                <TabsContent value="notifications" className="mt-0 space-y-0">
                   <NotificationsTab />
                 </TabsContent>
-                <TabsContent value="billing">
+                <TabsContent value="billing" className="mt-0 space-y-0">
                   <BillingTab />
                 </TabsContent>
-                <TabsContent value="api">
+                <TabsContent value="api" className="mt-0 space-y-0">
                   <ApiKeysTab />
                 </TabsContent>
               </div>
-            </div>
-          </Tabs>
+            </Tabs>
+          </div>
         </div>
       </div>
     </div>

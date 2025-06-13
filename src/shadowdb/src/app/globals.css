@@ -97,3 +97,15 @@ body {
 .animate-gradient {
   animation: gradient 3s ease infinite;
 }
+
+/* Scrollbar utilities for mobile navigation */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

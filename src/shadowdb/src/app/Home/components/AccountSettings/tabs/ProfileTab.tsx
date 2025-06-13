@@ -107,40 +107,45 @@ useEffect(() => {
     })
   }
 }
-
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-none">
       <Card className="bg-[#151923] border-gray-800">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="text-gray-200">Personal Information</CardTitle>
-              <CardDescription>Update your personal details</CardDescription>
+        <CardHeader className="p-4 md:p-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+            <div className="min-w-0 flex-1">
+              <CardTitle className="text-lg md:text-xl text-gray-200">Personal Information</CardTitle>
+              <CardDescription className="text-sm md:text-base mt-1">Update your personal details</CardDescription>
             </div>
             <Button
               variant="outline"
               size="sm"
-              className="border-gray-700"
+              className="border-gray-700 w-full sm:w-auto"
               onClick={() => setEditing(!editing)}
             >
-              {editing ? "Cancel" : <Edit2 size={20} className="" />}
+              {editing ? "Cancel" : (
+                <>
+                  <Edit2 size={16} className="mr-2 sm:mr-0" />
+                  <span className="sm:hidden">Edit Profile</span>
+                </>
+              )}
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="p-4 md:p-6 pt-0">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Profile Image Upload - Only show in edit mode */}
             {editing && (
-              <div className="flex items-center space-x-4">
-                <div className="relative h-20 w-20">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-gray-800/30 rounded-lg">
+                <div className="relative h-20 w-20 mx-auto sm:mx-0">
                   <img
                     src={imagePreview || "/default-avatar.png"}
                     alt="Profile Preview"
-                    className="h-full w-full rounded-full object-cover"
+                    className="h-full w-full rounded-full object-cover border-2 border-purple-500"
                   />
                   <div className="absolute bottom-0 right-0">
                     <Label htmlFor="image-upload" className="cursor-pointer">
-                      <div className="rounded-full bg-purple-600 p-2 hover:bg-purple-700">
-                        <Upload size={16} />
+                      <div className="rounded-full bg-purple-600 p-2 hover:bg-purple-700 transition-colors">
+                        <Upload size={14} />
                       </div>
                       <Input
                         id="image-upload"
@@ -152,62 +157,95 @@ useEffect(() => {
                     </Label>
                   </div>
                 </div>
-                <p className="text-sm text-gray-400">Click the upload button to change your profile picture</p>
+                <div className="text-center sm:text-left">
+                  <p className="text-sm md:text-base text-gray-300 font-medium">Profile Picture</p>
+                  <p className="text-xs md:text-sm text-gray-400 mt-1">
+                    Click the upload button to change your profile picture
+                  </p>
+                </div>
               </div>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-gray-200">Full Name</Label>
-                <Input
-                  id="name"
-                  {...register('name')}
-                  className="bg-[#0B0F17] border-gray-800 text-white"
-                  disabled={!editing}
-                />
+
+            {/* Form Fields */}
+            <div className="space-y-4 md:space-y-6">
+              {/* Name Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-sm md:text-base text-gray-200 font-medium">
+                    Full Name
+                  </Label>
+                  <Input
+                    id="name"
+                    {...register('name')}
+                    className="bg-[#0B0F17] border-gray-800 text-white h-11 md:h-10"
+                    disabled={!editing}
+                    placeholder="Enter your full name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="display_name" className="text-sm md:text-base text-gray-200 font-medium">
+                    Display Name
+                  </Label>
+                  <Input
+                    id="display_name"
+                    {...register('display_name')}
+                    className="bg-[#0B0F17] border-gray-800 text-white h-11 md:h-10"
+                    disabled={!editing}
+                    placeholder="How others see your name"
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="display_name" className="text-gray-200">Display Name</Label>
-                <Input
-                  id="display_name"
-                  {...register('display_name')}
-                  className="bg-[#0B0F17] border-gray-800 text-white"
-                  disabled={!editing}
-                />
+
+              {/* Company and Website */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="company" className="text-sm md:text-base text-gray-200 font-medium">
+                    Company
+                  </Label>
+                  <Input
+                    id="company"
+                    {...register('company')}
+                    className="bg-[#0B0F17] border-gray-800 text-white h-11 md:h-10"
+                    disabled={!editing}
+                    placeholder="Your company or organization"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="website" className="text-sm md:text-base text-gray-200 font-medium">
+                    Website
+                  </Label>
+                  <Input
+                    id="website"
+                    {...register('website')}
+                    className="bg-[#0B0F17] border-gray-800 text-white h-11 md:h-10"
+                    disabled={!editing}
+                    placeholder="https://your-website.com"
+                  />
+                </div>
               </div>
+
+              {/* Bio */}
               <div className="space-y-2">
-                <Label htmlFor="company" className="text-gray-200">Company</Label>
-                <Input
-                  id="company"
-                  {...register('company')}
-                  className="bg-[#0B0F17] border-gray-800 text-white"
-                  disabled={!editing}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="website" className="text-gray-200">Website</Label>
-                <Input
-                  id="website"
-                  {...register('website')}
-                  className="bg-[#0B0F17] border-gray-800 text-white"
-                  disabled={!editing}
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="bio" className="text-gray-200">Bio</Label>
+                <Label htmlFor="bio" className="text-sm md:text-base text-gray-200 font-medium">
+                  Bio
+                </Label>
                 <textarea
                   id="bio"
                   {...register('bio')}
-                  className="w-full min-h-[100px] bg-[#0B0F17] border-gray-800 text-white rounded-md p-2"
+                  className="w-full min-h-[100px] md:min-h-[120px] bg-[#0B0F17] border border-gray-800 text-white rounded-md p-3 resize-vertical focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   disabled={!editing}
+                  placeholder="Tell us about yourself..."
                 />
               </div>
             </div>
 
+            {/* Action Buttons */}
             {editing && (
-              <div className="flex justify-end space-x-4">
+              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-800">
                 <Button 
                   type="button" 
                   variant="outline" 
+                  className="w-full sm:w-auto order-2 sm:order-1"
                   onClick={() => {
                     setEditing(false)
                     reset()
@@ -215,7 +253,10 @@ useEffect(() => {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" className="bg-purple-600 hover:bg-purple-700">
+                <Button 
+                  type="submit" 
+                  className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto sm:ml-auto order-1 sm:order-2"
+                >
                   Save Changes
                 </Button>
               </div>
@@ -223,36 +264,6 @@ useEffect(() => {
           </form>
         </CardContent>
       </Card>
-
-  {/*     <Card className="bg-[#151923] border-gray-800">
-        <CardHeader>
-          <CardTitle>Account Preferences</CardTitle>
-          <CardDescription>Manage your account settings</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Dark Mode</Label>
-              <p className="text-gray-200">Use dark theme across the application</p>
-            </div>
-            <Switch defaultChecked className="data-[state=checked]:bg-purple-800 data-[state=unchecked]:bg-slate-800"/>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Time Zone</Label>
-              <p className="text-gray-200">Current: UTC-05:00 (Eastern Time)</p>
-            </div>
-            <Button variant="outline" size="sm" className="border-gray-700">Change</Button>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Language</Label>
-              <p className="text-gray-200">Current: English (US)</p>
-            </div>
-            <Button variant="outline" size="sm" className="border-gray-700">Change</Button>
-          </div>
-        </CardContent>
-      </Card> */}
     </div>
   )
 }
