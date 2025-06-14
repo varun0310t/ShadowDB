@@ -24,12 +24,6 @@ const notification_preferences = z.object({
     usage_reports: z.boolean().default(true),
     new_login: z.boolean().default(true),
     billing_alerts: z.boolean().default(false),
-  }),
-  mobile: z.object({
-    security_alerts: z.boolean().default(true),
-    product_updates: z.boolean().default(true),
-    usage_reports: z.boolean().default(false),
-    new_login: z.boolean().default(true),
   })
 });
 
@@ -44,12 +38,6 @@ const DEFAULT_NOTIFICATION_PREFS: NotificationPreferences = {
     usage_reports: true,
     new_login: true,
     billing_alerts: false,
-  },
-  mobile: {
-    security_alerts: true,
-    product_updates: false,
-    usage_reports: false,
-    new_login: true,
   }
 };
 
@@ -74,18 +62,13 @@ export function NotificationsTab() {
       return response.data;
     },
   });
-
   useEffect(() => {
     if (preferences) {
       // Merge with defaults to ensure all properties exist
       setNotificationPrefs({
         email: {
           ...DEFAULT_NOTIFICATION_PREFS.email,
-          ...preferences.email
-        },
-        mobile: {
-          ...DEFAULT_NOTIFICATION_PREFS.mobile,
-          ...preferences.mobile
+          ...preferences
         }
       });
       setHasChanges(false);
@@ -98,18 +81,6 @@ export function NotificationsTab() {
       const updated = { 
         ...prev, 
         email: { ...prev.email, [key]: !prev.email[key] }
-      };
-      setHasChanges(true);
-      return updated;
-    });
-  };
-
-  // Handle mobile switch toggle
-  const handleMobileToggle = (key: keyof NotificationPreferences['mobile']) => {
-    setNotificationPrefs(prev => {
-      const updated = { 
-        ...prev, 
-        mobile: { ...prev.mobile, [key]: !prev.mobile[key] }
       };
       setHasChanges(true);
       return updated;
@@ -148,11 +119,20 @@ export function NotificationsTab() {
   const handleSave = () => {
     savePreferencesMutation.mutate(notificationPrefs);
   };
-
   // Handle cancel button click
   const handleCancel = () => {
     if (preferences) {
-      setNotificationPrefs(preferences);
+      // Properly reset to the original preferences from server
+      setNotificationPrefs({
+        email: {
+          ...DEFAULT_NOTIFICATION_PREFS.email,
+          ...preferences.email
+        }
+      });
+      setHasChanges(false);
+    } else {
+      // If no preferences loaded, reset to defaults
+      setNotificationPrefs(DEFAULT_NOTIFICATION_PREFS);
       setHasChanges(false);
     }
   };
@@ -192,190 +172,112 @@ export function NotificationsTab() {
         <CardHeader className="p-4 md:p-6">
           <CardTitle className="text-lg md:text-xl text-gray-200">Notification Preferences</CardTitle>
           <CardDescription className="text-sm md:text-base">Manage how you receive notifications</CardDescription>
-        </CardHeader>
-        <CardContent className="p-4 md:p-6 pt-0">
+        </CardHeader>        <CardContent className="p-4 md:p-6 pt-0">
           <div className="space-y-6 md:space-y-8">
-            {/* Mobile: Stack sections, Desktop: Side by side */}
-            <div className="space-y-6 md:space-y-0 md:grid md:grid-cols-2 md:gap-8">
-              {/* Email Notifications Section */}
+            {/* Email Notifications Section */}
+            <div className="space-y-4">
+              <h3 className="text-base md:text-lg font-medium text-gray-200">Email Notifications</h3>
               <div className="space-y-4">
-                <h3 className="text-base md:text-lg font-medium text-gray-200">Email Notifications</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex-1 min-w-0 pr-4">
-                      <Label htmlFor="email-security" className="text-sm md:text-base text-gray-300 font-medium">
-                        Security Alerts
-                      </Label>
-                      <p className="text-xs md:text-sm text-gray-500 mt-1">
-                        Get notified about security issues
-                      </p>
-                    </div>
-                    <Switch
-                      id="email-security"
-                      checked={notificationPrefs?.email?.security_alerts}
-                      onCheckedChange={() => handleEmailToggle('security_alerts')}
-                      className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-gray-600 flex-shrink-0"
-                    />
+                <div className="flex items-center justify-between py-2">
+                  <div className="flex-1 min-w-0 pr-4">
+                    <Label htmlFor="email-security" className="text-sm md:text-base text-gray-300 font-medium">
+                      Security Alerts
+                    </Label>
+                    <p className="text-xs md:text-sm text-gray-500 mt-1">
+                      Get notified about security issues
+                    </p>
                   </div>
-                  
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex-1 min-w-0 pr-4">
-                      <Label htmlFor="email-updates" className="text-sm md:text-base text-gray-300 font-medium">
-                        Product Updates
-                      </Label>
-                      <p className="text-xs md:text-sm text-gray-500 mt-1">
-                        News about new features and updates
-                      </p>
-                    </div>
-                    <Switch
-                      id="email-updates"
-                      checked={notificationPrefs?.email?.product_updates}
-                      onCheckedChange={() => handleEmailToggle('product_updates')}
-                      className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-gray-600 flex-shrink-0"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex-1 min-w-0 pr-4">
-                      <Label htmlFor="email-marketing" className="text-sm md:text-base text-gray-300 font-medium">
-                        Marketing
-                      </Label>
-                      <p className="text-xs md:text-sm text-gray-500 mt-1">
-                        Promotional emails and newsletters
-                      </p>
-                    </div>
-                    <Switch
-                      id="email-marketing"
-                      checked={notificationPrefs?.email?.marketing}
-                      onCheckedChange={() => handleEmailToggle('marketing')}
-                      className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-gray-600 flex-shrink-0"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex-1 min-w-0 pr-4">
-                      <Label htmlFor="email-usage" className="text-sm md:text-base text-gray-300 font-medium">
-                        Usage Reports
-                      </Label>
-                      <p className="text-xs md:text-sm text-gray-500 mt-1">
-                        Weekly usage statistics
-                      </p>
-                    </div>
-                    <Switch
-                      id="email-usage"
-                      checked={notificationPrefs?.email?.usage_reports}
-                      onCheckedChange={() => handleEmailToggle('usage_reports')}
-                      className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-gray-600 flex-shrink-0"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex-1 min-w-0 pr-4">
-                      <Label htmlFor="email-new-login" className="text-sm md:text-base text-gray-300 font-medium">
-                        New Login Notifications
-                      </Label>
-                      <p className="text-xs md:text-sm text-gray-500 mt-1">
-                        Alert when someone logs into your account
-                      </p>
-                    </div>
-                    <Switch
-                      id="email-new-login"
-                      checked={notificationPrefs?.email?.new_login}
-                      onCheckedChange={() => handleEmailToggle('new_login')}
-                      className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-gray-600 flex-shrink-0"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex-1 min-w-0 pr-4">
-                      <Label htmlFor="email-billing" className="text-sm md:text-base text-gray-300 font-medium">
-                        Billing Alerts
-                      </Label>
-                      <p className="text-xs md:text-sm text-gray-500 mt-1">
-                        Payment and billing notifications
-                      </p>
-                    </div>
-                    <Switch
-                      id="email-billing"
-                      checked={notificationPrefs.email?.billing_alerts}
-                      onCheckedChange={() => handleEmailToggle('billing_alerts')}
-                      className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-gray-600 flex-shrink-0"
-                    />
-                  </div>
+                  <Switch
+                    id="email-security"
+                    checked={notificationPrefs?.email?.security_alerts}
+                    onCheckedChange={() => handleEmailToggle('security_alerts')}
+                    className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-gray-600 flex-shrink-0"
+                  />
                 </div>
-              </div>
-
-              {/* Mobile Notifications Section */}
-              <div className="space-y-4">
-                <h3 className="text-base md:text-lg font-medium text-gray-200">Mobile Notifications</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex-1 min-w-0 pr-4">
-                      <Label htmlFor="mobile-security" className="text-sm md:text-base text-gray-300 font-medium">
-                        Security Alerts
-                      </Label>
-                      <p className="text-xs md:text-sm text-gray-500 mt-1">
-                        Push notifications for security issues
-                      </p>
-                    </div>
-                    <Switch
-                      id="mobile-security"
-                      checked={notificationPrefs?.mobile?.security_alerts}
-                      onCheckedChange={() => handleMobileToggle('security_alerts')}
-                      className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-gray-600 flex-shrink-0"
-                    />
+                
+                <div className="flex items-center justify-between py-2">
+                  <div className="flex-1 min-w-0 pr-4">
+                    <Label htmlFor="email-updates" className="text-sm md:text-base text-gray-300 font-medium">
+                      Product Updates
+                    </Label>
+                    <p className="text-xs md:text-sm text-gray-500 mt-1">
+                      News about new features and updates
+                    </p>
                   </div>
-                  
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex-1 min-w-0 pr-4">
-                      <Label htmlFor="mobile-updates" className="text-sm md:text-base text-gray-300 font-medium">
-                        Product Updates
-                      </Label>
-                      <p className="text-xs md:text-sm text-gray-500 mt-1">
-                        New features and updates
-                      </p>
-                    </div>
-                    <Switch
-                      id="mobile-updates"
-                      checked={notificationPrefs?.mobile?.product_updates}
-                      onCheckedChange={() => handleMobileToggle('product_updates')}
-                      className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-gray-600 flex-shrink-0"
-                    />
+                  <Switch
+                    id="email-updates"
+                    checked={notificationPrefs?.email?.product_updates}
+                    onCheckedChange={() => handleEmailToggle('product_updates')}
+                    className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-gray-600 flex-shrink-0"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between py-2">
+                  <div className="flex-1 min-w-0 pr-4">
+                    <Label htmlFor="email-marketing" className="text-sm md:text-base text-gray-300 font-medium">
+                      Marketing
+                    </Label>
+                    <p className="text-xs md:text-sm text-gray-500 mt-1">
+                      Promotional emails and newsletters
+                    </p>
                   </div>
-                  
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex-1 min-w-0 pr-4">
-                      <Label htmlFor="mobile-usage" className="text-sm md:text-base text-gray-300 font-medium">
-                        Usage Reports
-                      </Label>
-                      <p className="text-xs md:text-sm text-gray-500 mt-1">
-                        Weekly usage statistics
-                      </p>
-                    </div>
-                    <Switch
-                      id="mobile-usage"
-                      checked={notificationPrefs?.mobile?.usage_reports}
-                      onCheckedChange={() => handleMobileToggle('usage_reports')}
-                      className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-gray-600 flex-shrink-0"
-                    />
+                  <Switch
+                    id="email-marketing"
+                    checked={notificationPrefs?.email?.marketing}
+                    onCheckedChange={() => handleEmailToggle('marketing')}
+                    className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-gray-600 flex-shrink-0"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between py-2">
+                  <div className="flex-1 min-w-0 pr-4">
+                    <Label htmlFor="email-usage" className="text-sm md:text-base text-gray-300 font-medium">
+                      Usage Reports
+                    </Label>
+                    <p className="text-xs md:text-sm text-gray-500 mt-1">
+                      Weekly usage statistics
+                    </p>
                   </div>
-                  
-                  <div className="flex items-center justify-between py-2">
-                    <div className="flex-1 min-w-0 pr-4">
-                      <Label htmlFor="mobile-new-login" className="text-sm md:text-base text-gray-300 font-medium">
-                        New Login Notifications
-                      </Label>
-                      <p className="text-xs md:text-sm text-gray-500 mt-1">
-                        Push alert for new logins
-                      </p>
-                    </div>
-                    <Switch
-                      id="mobile-new-login"
-                      checked={notificationPrefs.mobile?.new_login}
-                      onCheckedChange={() => handleMobileToggle('new_login')}
-                      className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-gray-600 flex-shrink-0"
-                    />
+                  <Switch
+                    id="email-usage"
+                    checked={notificationPrefs?.email?.usage_reports}
+                    onCheckedChange={() => handleEmailToggle('usage_reports')}
+                    className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-gray-600 flex-shrink-0"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between py-2">
+                  <div className="flex-1 min-w-0 pr-4">
+                    <Label htmlFor="email-new-login" className="text-sm md:text-base text-gray-300 font-medium">
+                      New Login Notifications
+                    </Label>
+                    <p className="text-xs md:text-sm text-gray-500 mt-1">
+                      Alert when someone logs into your account
+                    </p>
                   </div>
+                  <Switch
+                    id="email-new-login"
+                    checked={notificationPrefs?.email?.new_login}
+                    onCheckedChange={() => handleEmailToggle('new_login')}
+                    className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-gray-600 flex-shrink-0"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between py-2">
+                  <div className="flex-1 min-w-0 pr-4">
+                    <Label htmlFor="email-billing" className="text-sm md:text-base text-gray-300 font-medium">
+                      Billing Alerts
+                    </Label>
+                    <p className="text-xs md:text-sm text-gray-500 mt-1">
+                      Payment and billing notifications
+                    </p>
+                  </div>
+                  <Switch
+                    id="email-billing"
+                    checked={notificationPrefs.email?.billing_alerts}
+                    onCheckedChange={() => handleEmailToggle('billing_alerts')}
+                    className="data-[state=checked]:bg-purple-600 data-[state=unchecked]:bg-gray-600 flex-shrink-0"
+                  />
                 </div>
               </div>
             </div>

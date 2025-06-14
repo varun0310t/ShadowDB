@@ -66,7 +66,8 @@ export async function PATCH(req: Request) {
     // Validate request body
     try {
       console.log(body);
-      email_notifications_preferrences.parse(body.emailPreferences);
+      console.log(body.preferences.email)
+      email_notifications_preferrences.parse(body.preferences.email);
     } catch (validationError: unknown) {
 
       const errorMessage=
@@ -85,7 +86,7 @@ export async function PATCH(req: Request) {
       marketing,
       usage_reports,
       new_login,
-    } = body.emailPreferences;
+    } = body.preferences.email;
     const userId = session.user.id;
     console.log("here");
     const result = await getDefaultWriterPool().query(
