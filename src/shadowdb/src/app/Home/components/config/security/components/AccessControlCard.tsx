@@ -40,6 +40,7 @@ import {
   Shield,
   AlertCircle,
   Loader2,
+  Crown,
 } from "lucide-react";
 import { FeaturePreview } from "@/components/ComingSoonToopTipWrapper";
 import type { DatabaseEntry } from "@/app/Home/types/database-types";
@@ -269,83 +270,169 @@ export function AccessControlCard({ selectedDatabase }: AccessControlCardProps) 
               <p className="text-sm mt-1">Add users using the "Add User" button above</p>
             </div>
           ) : (
-            <div className="rounded-md border border-gray-800">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-gray-800 hover:bg-[#0B0F17]">
-                    <TableHead className="text-gray-300">User</TableHead>
-                    <TableHead className="text-gray-300">Email</TableHead>
-                    <TableHead className="text-gray-300">Access Level</TableHead>
-                    <TableHead className="text-right text-gray-300">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {accessUsers.map((user) => (
-                    <TableRow key={user.id} className="border-gray-800 hover:bg-[#0B0F17]">
-                      <TableCell className="text-gray-200">{user.name}</TableCell>
-                      <TableCell className="text-gray-200">{user.email}</TableCell>
-                      <TableCell>
-                        {getAccessLevelBadge(user.access_level, user.is_owner)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {!user.is_owner && (
-                          <div className="flex justify-end gap-2">
-                            <Select 
-                              value={user.access_level}
-                              onValueChange={(value: string) => handleUpdateAccess(user.email, value as AccessLevel)}
-                              disabled={user.is_owner || isUpdatingAccess[user.email]}
-                            >
-                              <SelectTrigger className="h-8 w-28 bg-[#0B0F17] border-gray-800 text-white">
-                                {isUpdatingAccess[user.email] ? (
-                                  <div className="flex items-center">
-                                    <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                                    <span>Updating</span>
-                                  </div>
-                                ) : (
-                                  <SelectValue placeholder="Change" />
-                                )}
-                              </SelectTrigger>
-                              <SelectContent className="bg-[#151923] border-gray-800 text-white">
-                                <SelectItem value="admin">
-                                  <div className="flex items-center">
-                                    <Shield className="h-3 w-3 mr-2 text-red-500" />
-                                    <span>Admin</span>
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="user">
-                                  <div className="flex items-center">
-                                    <UserPlus className="h-3 w-3 mr-2 text-blue-500" />
-                                    <span>User</span>
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="readonly">
-                                  <div className="flex items-center">
-                                    <Lock className="h-3 w-3 mr-2 text-green-500" />
-                                    <span>Read</span>
-                                  </div>
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-red-500 hover:text-red-300 hover:bg-red-950"
-                              onClick={() => openRevokeConfirm(user.email)}
-                              disabled={isRevokingAccess[user.email]}
-                            >
-                              {isRevokingAccess[user.email] ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Trash2 className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </div>
-                        )}
-                      </TableCell>
+            <div className="rounded-md border border-gray-800">              {/* Desktop Table View */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-gray-800 hover:bg-[#0B0F17]">
+                      <TableHead className="text-gray-300">User</TableHead>
+                      <TableHead className="text-gray-300">Email</TableHead>
+                      <TableHead className="text-gray-300">Access Level</TableHead>
+                      <TableHead className="text-right text-gray-300">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {accessUsers.map((user) => (
+                      <TableRow key={user.id} className="border-gray-800 hover:bg-[#0B0F17]">
+                        <TableCell className="text-gray-200">{user.name}</TableCell>
+                        <TableCell className="text-gray-200">{user.email}</TableCell>
+                        <TableCell>
+                          {getAccessLevelBadge(user.access_level, user.is_owner)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {!user.is_owner && (
+                            <div className="flex justify-end gap-2">
+                              <Select 
+                                value={user.access_level}
+                                onValueChange={(value: string) => handleUpdateAccess(user.email, value as AccessLevel)}
+                                disabled={user.is_owner || isUpdatingAccess[user.email]}
+                              >
+                                <SelectTrigger className="h-8 w-28 bg-[#0B0F17] border-gray-800 text-white">
+                                  {isUpdatingAccess[user.email] ? (
+                                    <div className="flex items-center">
+                                      <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                                      <span>Updating</span>
+                                    </div>
+                                  ) : (
+                                    <SelectValue placeholder="Change" />
+                                  )}
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#151923] border-gray-800 text-white">
+                                  <SelectItem value="admin">
+                                    <div className="flex items-center">
+                                      <Shield className="h-3 w-3 mr-2 text-red-500" />
+                                      <span>Admin</span>
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="user">
+                                    <div className="flex items-center">
+                                      <UserPlus className="h-3 w-3 mr-2 text-blue-500" />
+                                      <span>User</span>
+                                    </div>
+                                  </SelectItem>
+                                  <SelectItem value="readonly">
+                                    <div className="flex items-center">
+                                      <Lock className="h-3 w-3 mr-2 text-green-500" />
+                                      <span>Read</span>
+                                    </div>
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-500 hover:text-red-300 hover:bg-red-950"
+                                onClick={() => openRevokeConfirm(user.email)}
+                                disabled={isRevokingAccess[user.email]}
+                              >
+                                {isRevokingAccess[user.email] ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4">
+                {accessUsers.map((user) => (
+                  <div
+                    key={`user-mobile-${user.id}`}
+                    className="rounded-lg border border-gray-800 p-4 bg-[#0B0F17]"
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-white truncate">{user.name}</h3>
+                        <p className="text-sm text-gray-400 truncate">{user.email}</p>
+                      </div>
+                      <div className="ml-3 flex-shrink-0">
+                        {getAccessLevelBadge(user.access_level, user.is_owner)}
+                      </div>
+                    </div>
+                    
+                    {!user.is_owner && (
+                      <div className="flex gap-2 mt-4">
+                        <Select 
+                          value={user.access_level}
+                          onValueChange={(value: string) => handleUpdateAccess(user.email, value as AccessLevel)}
+                          disabled={user.is_owner || isUpdatingAccess[user.email]}
+                        >
+                          <SelectTrigger className="h-9 flex-1 bg-[#151923] border-gray-800 text-white">
+                            {isUpdatingAccess[user.email] ? (
+                              <div className="flex items-center">
+                                <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                                <span>Updating...</span>
+                              </div>
+                            ) : (
+                              <SelectValue placeholder="Change Access" />
+                            )}
+                          </SelectTrigger>
+                          <SelectContent className="bg-[#151923] border-gray-800 text-white">
+                            <SelectItem value="admin">
+                              <div className="flex items-center">
+                                <Shield className="h-3 w-3 mr-2 text-red-500" />
+                                <span>Admin</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="user">
+                              <div className="flex items-center">
+                                <UserPlus className="h-3 w-3 mr-2 text-blue-500" />
+                                <span>User</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="readonly">
+                              <div className="flex items-center">
+                                <Lock className="h-3 w-3 mr-2 text-green-500" />
+                                <span>Read Only</span>
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 text-red-500 hover:text-red-300 hover:bg-red-950 flex-shrink-0"
+                          onClick={() => openRevokeConfirm(user.email)}
+                          disabled={isRevokingAccess[user.email]}
+                        >
+                          {isRevokingAccess[user.email] ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {user.is_owner && (
+                      <div className="mt-4 p-3 bg-yellow-900/20 border border-yellow-800 rounded-md">
+                        <p className="text-xs text-yellow-400 flex items-center">
+                          <Crown className="h-3 w-3 mr-1" />
+                          Owner - Cannot modify access
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>          )}
 
           {/* IP Allowlist Section */}

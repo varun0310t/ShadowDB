@@ -40,12 +40,12 @@ export default function AccountSettings() {
   }
 
   return (
-    <div className="w-full bg-gradient-to-br from-gray-900 to-black text-white">
+    <div className="w-full h-full  text-white">
       {/* Mobile: Stack layout, Desktop: Side-by-side */}
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl h-full mx-auto">
         
         {/* Mobile Header with Navigation */}
-        <div className="md:hidden">
+        <div className="h-full md:hidden">
           <Sidebar
             activeTab={activeTab}
             setActiveTab={setActiveTab}

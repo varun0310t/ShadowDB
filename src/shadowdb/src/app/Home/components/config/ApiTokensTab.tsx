@@ -168,98 +168,195 @@ export function ApiTokensTab({
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-          </div>
-
-          <div className="rounded-md border border-gray-800">
-            <div className="relative w-full overflow-auto">
-              <table className="w-full caption-bottom text-sm">
-                <thead className="bg-[#0B0F17]">
-                  <tr className="border-b border-gray-800">
-                    <th className="h-10 px-4 text-left font-medium text-gray-400">
-                      Token ID
-                    </th>
-                    <th className="h-10 px-4 text-left font-medium text-gray-400">
-                      Created
-                    </th>
-                    <th className="h-10 px-4 text-left font-medium text-gray-400">
-                      Expires
-                    </th>
-                    <th className="h-10 px-4 text-left font-medium text-gray-400">
-                      Last Used
-                    </th>
-                    <th className="h-10 px-4 text-right font-medium text-gray-400">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="text-gray-300">
-                  {isLoadingTokens ? (
-                    <tr>
-                      <td colSpan={5} className="p-4 text-center text-gray-300">
-                        <div className="flex justify-center items-center space-x-2">
-                          <div className="h-4 w-4 rounded-full border-2 border-purple-600 border-t-transparent animate-spin"></div>
-                          <span>Loading tokens...</span>
-                        </div>
-                      </td>
+          </div>          {/* Desktop Table View */}
+          <div className="hidden md:block">
+            <div className="rounded-md border border-gray-800">
+              <div className="relative w-full overflow-auto">
+                <table className="w-full caption-bottom text-sm">
+                  <thead className="bg-[#0B0F17]">
+                    <tr className="border-b border-gray-800">
+                      <th className="h-10 px-4 text-left font-medium text-gray-400">
+                        Token ID
+                      </th>
+                      <th className="h-10 px-4 text-left font-medium text-gray-400">
+                        Created
+                      </th>
+                      <th className="h-10 px-4 text-left font-medium text-gray-400">
+                        Expires
+                      </th>
+                      <th className="h-10 px-4 text-left font-medium text-gray-400">
+                        Last Used
+                      </th>
+                      <th className="h-10 px-4 text-right font-medium text-gray-400">
+                        Actions
+                      </th>
                     </tr>
-                  ) : apiTokens.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={5}
-                        className="p-4 text-center text-gray-400"
-                      >
-                        No tokens found. Generate a new token to get
-                        started.
-                      </td>
-                    </tr>
-                  ) : (
-                    apiTokens.map((token) => (
-                      <tr
-                        key={token.id}
-                        className="border-b border-gray-800"
-                      >
-                        <td className="p-4 align-middle font-medium text-gray-300">
-                          {`...${token.token.slice(-8)}`}
-                        </td>
-                        <td className="p-4 align-middle text-gray-400">
-                          {new Date(token.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="p-4 align-middle text-gray-400">
-                          {new Date(token.expires_at).toLocaleDateString()}
-                        </td>
-                        <td className="p-4 align-middle text-gray-400">
-                          {token.last_used_at
-                            ? new Date(
-                                token.last_used_at
-                              ).toLocaleDateString()
-                            : "Never"}
-                        </td>
-                        <td className="p-4 align-middle text-right">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-gray-400 hover:text-white"
-                                  onClick={() => deleteToken(token.id)}
-                                  disabled={deleteTokenMutation.isPending}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent className="text-white bg-gray-800 border-gray-700">
-                                <p>Delete token</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                  </thead>
+                  <tbody className="text-gray-300">
+                    {isLoadingTokens ? (
+                      <tr>
+                        <td colSpan={5} className="p-4 text-center text-gray-300">
+                          <div className="flex justify-center items-center space-x-2">
+                            <div className="h-4 w-4 rounded-full border-2 border-purple-600 border-t-transparent animate-spin"></div>
+                            <span>Loading tokens...</span>
+                          </div>
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : apiTokens.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          className="p-4 text-center text-gray-400"
+                        >
+                          No tokens found. Generate a new token to get
+                          started.
+                        </td>
+                      </tr>
+                    ) : (
+                      apiTokens.map((token) => (
+                        <tr
+                          key={token.id}
+                          className="border-b border-gray-800"
+                        >
+                          <td className="p-4 align-middle font-medium text-gray-300">
+                            {`...${token.token.slice(-8)}`}
+                          </td>
+                          <td className="p-4 align-middle text-gray-400">
+                            {new Date(token.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="p-4 align-middle text-gray-400">
+                            {new Date(token.expires_at).toLocaleDateString()}
+                          </td>
+                          <td className="p-4 align-middle text-gray-400">
+                            {token.last_used_at
+                              ? new Date(
+                                  token.last_used_at
+                                ).toLocaleDateString()
+                              : "Never"}
+                          </td>
+                          <td className="p-4 align-middle text-right">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-gray-400 hover:text-white"
+                                    onClick={() => deleteToken(token.id)}
+                                    disabled={deleteTokenMutation.isPending}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent className="text-white bg-gray-800 border-gray-700">
+                                  <p>Delete token</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden">
+            {isLoadingTokens ? (
+              <div className="p-8 text-center text-gray-300">
+                <div className="flex justify-center items-center space-x-2">
+                  <div className="h-4 w-4 rounded-full border-2 border-purple-600 border-t-transparent animate-spin"></div>
+                  <span>Loading tokens...</span>
+                </div>
+              </div>
+            ) : apiTokens.length === 0 ? (
+              <div className="p-8 text-center text-gray-400 border border-gray-800 rounded-lg">
+                <Key className="h-12 w-12 mx-auto mb-4 text-gray-600" />
+                <p className="text-lg font-medium mb-2">No API tokens</p>
+                <p className="text-sm">Generate a new token to get started.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {apiTokens.map((token) => (
+                  <div
+                    key={`token-mobile-${token.id}`}
+                    className="rounded-lg border border-gray-800 p-4 bg-[#0B0F17]"
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-white font-mono text-sm">
+                          ...{token.token.slice(-8)}
+                        </h3>
+                        <p className="text-xs text-gray-400 mt-1">Token ID</p>
+                      </div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-950"
+                              onClick={() => deleteToken(token.id)}
+                              disabled={deleteTokenMutation.isPending}
+                            >
+                              {deleteTokenMutation.isPending ? (
+                                <div className="h-4 w-4 rounded-full border-2 border-red-400 border-t-transparent animate-spin"></div>
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent className="text-white bg-gray-800 border-gray-700">
+                            <p>Delete token</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Created:</span>
+                        <span className="text-gray-300">
+                          {new Date(token.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Expires:</span>
+                        <span className="text-gray-300">
+                          {new Date(token.expires_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Last Used:</span>
+                        <span className="text-gray-300">
+                          {token.last_used_at
+                            ? new Date(token.last_used_at).toLocaleDateString()
+                            : "Never"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Expiry Status */}
+                    <div className="mt-3 pt-3 border-t border-gray-800">
+                      {new Date(token.expires_at) < new Date() ? (
+                        <div className="flex items-center text-red-400 text-xs">
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          <span>Expired</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center text-green-400 text-xs">
+                          <div className="h-2 w-2 bg-green-400 rounded-full mr-2"></div>
+                          <span>Active</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="bg-[#0B0F17] rounded-md p-4 border border-gray-800">

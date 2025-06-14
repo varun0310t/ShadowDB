@@ -292,114 +292,201 @@ console.log("selectedDatabase", selectedDatabase);
               className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
             />
           </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border border-gray-800">
-            <div className="relative w-full overflow-auto">
-              <table className="w-full caption-bottom text-sm">
-                <thead className="bg-[#0B0F17]">
-                  <tr className="border-b border-gray-800">
-                    <th className="h-10 px-4 text-left font-medium text-gray-400">
-                      ID
-                    </th>
-                    <th className="h-10 px-4 text-left font-medium text-gray-400">
-                      Database
-                    </th>
-                    <th className="h-10 px-4 text-left font-medium text-gray-400">
-                      Date
-                    </th>
-                    <th className="h-10 px-4 text-left font-medium text-gray-400">
-                      Size
-                    </th>
-                    <th className="h-10 px-4 text-left font-medium text-gray-400">
-                      Status
-                    </th>
-                    <th className="h-10 px-4 text-left font-medium text-gray-400">
-                      Type
-                    </th>
-                    <th className="h-10 px-4 text-left font-medium text-gray-400">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="text-gray-300">
-                  {backups.length > 0 ? (
-                    backups.map((backup) => (
-                      <tr
-                        key={`backup-${backup.id}`}
-                        className="border-b border-gray-800"
-                      >
-                        <td className="p-4 align-middle">#{backup.id}</td>
-                        <td className="p-4 align-middle">
-                          {backup.databaseName}
-                        </td>
-                        <td className="p-4 align-middle">
-                          {formatDate(backup.createdAt)}
-                        </td>
-                        <td className="p-4 align-middle">
-                          {backup.fileSize || "N/A"}
-                        </td>
-                        <td className="p-4 align-middle">
-                          <Badge
-                            className={
-                              backup.status === "completed"
-                                ? "bg-green-600"
-                                : backup.status === "in_progress"
-                                ? "bg-yellow-600"
-                                : backup.status === "failed"
-                                ? "bg-red-600"
-                                : "bg-gray-600"
-                            }
-                          >
-                            {backup.status}
-                          </Badge>
-                        </td>
-                        <td className="p-4 align-middle">
-                          <Badge
-                            className={
-                              backup.backupType === "manual"
-                                ? "bg-blue-600"
-                                : "bg-green-600"
-                            }
-                          >
-                            {backup.backupType === "manual"
-                              ? "Manual"
-                              : "Automated"}
-                          </Badge>
-                        </td>
-                        <td className="p-4 align-middle flex space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-gray-800 text-gray-300"
-                            disabled={backup.status !== "completed"}
-                            onClick={() => handleRestoreBackup(backup.id)}
-                          >
-                            <RotateCcw className="h-4 w-4" />
-                          </Button>
-                          {backup.status === "completed" && (
+        </CardHeader>        <CardContent>
+          {/* Desktop Table View */}
+          <div className="hidden md:block">
+            <div className="rounded-md border border-gray-800">
+              <div className="relative w-full overflow-auto">
+                <table className="w-full caption-bottom text-sm">
+                  <thead className="bg-[#0B0F17]">
+                    <tr className="border-b border-gray-800">
+                      <th className="h-10 px-4 text-left font-medium text-gray-400">
+                        ID
+                      </th>
+                      <th className="h-10 px-4 text-left font-medium text-gray-400">
+                        Database
+                      </th>
+                      <th className="h-10 px-4 text-left font-medium text-gray-400">
+                        Date
+                      </th>
+                      <th className="h-10 px-4 text-left font-medium text-gray-400">
+                        Size
+                      </th>
+                      <th className="h-10 px-4 text-left font-medium text-gray-400">
+                        Status
+                      </th>
+                      <th className="h-10 px-4 text-left font-medium text-gray-400">
+                        Type
+                      </th>
+                      <th className="h-10 px-4 text-left font-medium text-gray-400">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-gray-300">
+                    {backups.length > 0 ? (
+                      backups.map((backup) => (
+                        <tr
+                          key={`backup-${backup.id}`}
+                          className="border-b border-gray-800"
+                        >
+                          <td className="p-4 align-middle">#{backup.id}</td>
+                          <td className="p-4 align-middle">
+                            {backup.databaseName}
+                          </td>
+                          <td className="p-4 align-middle">
+                            {formatDate(backup.createdAt)}
+                          </td>
+                          <td className="p-4 align-middle">
+                            {backup.fileSize || "N/A"}
+                          </td>
+                          <td className="p-4 align-middle">
+                            <Badge
+                              className={
+                                backup.status === "completed"
+                                  ? "bg-green-600"
+                                  : backup.status === "in_progress"
+                                  ? "bg-yellow-600"
+                                  : backup.status === "failed"
+                                  ? "bg-red-600"
+                                  : "bg-gray-600"
+                              }
+                            >
+                              {backup.status}
+                            </Badge>
+                          </td>
+                          <td className="p-4 align-middle">
+                            <Badge
+                              className={
+                                backup.backupType === "manual"
+                                  ? "bg-blue-600"
+                                  : "bg-green-600"
+                              }
+                            >
+                              {backup.backupType === "manual"
+                                ? "Manual"
+                                : "Automated"}
+                            </Badge>
+                          </td>
+                          <td className="p-4 align-middle flex space-x-2">
                             <Button
                               variant="outline"
                               size="sm"
                               className="border-gray-800 text-gray-300"
-                              onClick={() => handleDownloadBackup(backup.id)}
+                              disabled={backup.status !== "completed"}
+                              onClick={() => handleRestoreBackup(backup.id)}
                             >
-                              <Download className="h-4 w-4" />
+                              <RotateCcw className="h-4 w-4" />
                             </Button>
-                          )}
+                            {backup.status === "completed" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="border-gray-800 text-gray-300"
+                                onClick={() => handleDownloadBackup(backup.id)}
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={7} className="p-4 text-center text-gray-500">
+                          {isLoading ? "Loading backups..." : "No backups found"}
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={7} className="p-4 text-center text-gray-500">
-                        {isLoading ? "Loading backups..." : "No backups found"}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-4">
+            {backups.length > 0 ? (
+              backups.map((backup) => (
+                <div
+                  key={`backup-mobile-${backup.id}`}
+                  className="rounded-lg border border-gray-800 p-4 bg-[#0B0F17]"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h3 className="font-medium text-white">#{backup.id}</h3>
+                      <p className="text-sm text-gray-400">{backup.databaseName}</p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Badge
+                        className={
+                          backup.status === "completed"
+                            ? "bg-green-600"
+                            : backup.status === "in_progress"
+                            ? "bg-yellow-600"
+                            : backup.status === "failed"
+                            ? "bg-red-600"
+                            : "bg-gray-600"
+                        }
+                      >
+                        {backup.status}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                    <div>
+                      <span className="text-gray-400">Date:</span>
+                      <p className="text-gray-300">{formatDate(backup.createdAt)}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Size:</span>
+                      <p className="text-gray-300">{backup.fileSize || "N/A"}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Type:</span>
+                      <Badge
+                        className={
+                          backup.backupType === "manual"
+                            ? "bg-blue-600"
+                            : "bg-green-600"
+                        }
+                      >
+                        {backup.backupType === "manual" ? "Manual" : "Automated"}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-gray-800 text-gray-300 flex-1"
+                      disabled={backup.status !== "completed"}
+                      onClick={() => handleRestoreBackup(backup.id)}
+                    >
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      Restore
+                    </Button>
+                    {backup.status === "completed" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-gray-800 text-gray-300 flex-1"
+                        onClick={() => handleDownloadBackup(backup.id)}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-gray-500 py-8">
+                {isLoading ? "Loading backups..." : "No backups found"}
+              </div>
+            )}
           </div>
 
           {/* Pagination */}
