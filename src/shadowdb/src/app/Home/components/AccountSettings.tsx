@@ -40,7 +40,7 @@ export default function AccountSettings() {
   }
 
   return (
-    <div className="w-full h-full  text-white">
+    <div className="w-full   text-white">
       {/* Mobile: Stack layout, Desktop: Side-by-side */}
       <div className="max-w-7xl h-full mx-auto">
         
