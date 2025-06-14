@@ -42,7 +42,8 @@ export default function HomePage() {
       console.log("databases", data.databases);
       setDatabases(data.databases);
     }
-  }, [data?.databases]); // Auto-collapse sidebar on desktop, hide completely on mobile
+  }, [data?.databases]);
+  // Auto-collapse sidebar on desktop, hide completely on mobile
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {

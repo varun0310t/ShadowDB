@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { format } from "sql-formatter";
 import { AlignLeft } from "lucide-react";
 import Link from "next/link";
@@ -39,6 +39,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { set } from "date-fns";
+
 type KeyboardShortcut = {
   key: string;
   ctrlKey?: boolean;
@@ -46,6 +47,7 @@ type KeyboardShortcut = {
   handler: () => void;
   description: string;
 };
+
 export default function RunQueryContent({
   selectedDatabase,
   setSelectedDatabase,
@@ -55,20 +57,20 @@ export default function RunQueryContent({
   setSelectedDatabase: (db: string) => void;
   databases: Array<{
     id: number;
-    tenancy_type: "shared" | "isolated";
     db_name: string;
-    access_level: "admin" | "user";
+    tenancy_type: string;
+    access_level: string;
   }>;
-}) {
-
-  const [query, setQuery] = useState("");
+}) {  const [query, setQuery] = useState("");
   const [results, setResults] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("data");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  
+  // Add ref for Monaco Editor
+  const editorRef = useRef<any>(null);
 
- 
   const mutation = useMutation({
     mutationFn: (queryData: { db_name: string; query: string }) =>
       executeQuery(queryData),
@@ -239,63 +241,95 @@ export default function RunQueryContent({
     }
   };
   const shortcuts: KeyboardShortcut[] = [
-  {
-    key: "F4",
-    ctrlKey: false,
-    handler: handleRunQuery,
-    description: "Run query",
-  },
-  {
-    key: "s",
-    ctrlKey: true,
-    handler: handleFormatQuery,
-    description: "Format SQL",
-  },
-  {
-    key: "x",
-    altKey: true,
-    handler: handleCopyQuery,
-    description: "Copy query",
-  },
-];
-// Add the event listener
-useEffect(() => {
-  const handleKeyDown = (event: KeyboardEvent) => {
-    shortcuts.forEach(({ key, ctrlKey, altKey, handler }) => {
-      if (
-        event.key.toLowerCase() === key.toLowerCase() &&
-        event.ctrlKey === !!ctrlKey &&
-        event.altKey === !!altKey
-      ) {
-        event.preventDefault();
-        handler();
+    {
+      key: "F4",
+      ctrlKey: false,
+      handler: handleRunQuery,
+      description: "Run query",
+    },
+    {
+      key: "s",
+      ctrlKey: true,
+      handler: handleFormatQuery,
+      description: "Format SQL",
+    },
+    {
+      key: "x",
+      altKey: true,
+      handler: handleCopyQuery,
+      description: "Copy query",
+    },
+  ];
+  // Add the event listener
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      shortcuts.forEach(({ key, ctrlKey, altKey, handler }) => {
+        if (
+          event.key.toLowerCase() === key.toLowerCase() &&
+          event.ctrlKey === !!ctrlKey &&
+          event.altKey === !!altKey
+        ) {
+          event.preventDefault();
+          handler();
+        }
+      });
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [query, selectedDatabase]); // Add any other dependencies your handlers use  // Handle window resize with proper Monaco Editor layout fix
+  useEffect(() => {
+    const handleResize = () => {
+      if (editorRef.current) {
+        // Make editor as small as possible first
+        editorRef.current.layout({ width: 0, height: 0 });
+
+        // Wait for next frame to ensure last layout finished
+        window.requestAnimationFrame(() => {
+          // Get the parent dimensions and re-layout the editor
+          const editorContainer = editorRef.current.getContainerDomNode();
+          const parent = editorContainer?.parentElement;
+          
+          if (parent) {
+            const rect = parent.getBoundingClientRect();
+            editorRef.current.layout({ width: rect.width, height: rect.height });
+          }
+        });
       }
-    });
-  };
-  window.addEventListener("keydown", handleKeyDown);
-  return () => window.removeEventListener("keydown", handleKeyDown);
-}, [query, selectedDatabase]); // Add any other dependencies your handlers use
+    };
+
+    // Initial resize after component mount
+    setTimeout(handleResize, 100);
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   return (
-    <div className="flex flex-col h-full w-full bg-[#0B0F17] text-white">
+    <div
+      className="flex flex-col h-full w-full bg-[#0B0F17] text-white min-w-0 overflow-hidden force-resize"
+      style={{ maxWidth: "100%", width: "100%" }}
+    >
       {/* Navigation - Hidden on mobile since it's within the main app */}
       <header className="hidden md:flex px-4 lg:px-6 h-14 items-center border-b border-gray-800 flex-shrink-0">
         <Link href="/" className="flex items-center gap-2">
           <Database className="h-6 w-6 text-purple-500" />
           <span className="font-semibold">ShadowDB</span>
         </Link>
-      </header>
-      
-      <main className="flex flex-col flex-1 min-h-0 lg:overflow-hidden">
+      </header>{" "}
+      <main className="flex flex-col flex-1 min-h-0 min-w-0 overflow-hidden w-full max-w-full">
         {/* Toolbar - Responsive */}
-        <div className="border-b border-gray-800 p-3 md:p-4 flex-shrink-0">
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 sm:items-center max-w-full">
+        <div className="border-b border-gray-800 p-3 md:p-4 flex-shrink-0 min-w-0 w-full max-w-full">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 sm:items-center max-w-full min-w-0">
             {/* Database Selection */}
-            <div className="flex items-center gap-2 min-w-0">
-              <Select value={selectedDatabase} onValueChange={setSelectedDatabase}>
-                <SelectTrigger className="w-full sm:w-[200px] bg-[#151923] border-gray-800 h-10">
+            <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
+              {" "}
+              <Select
+                value={selectedDatabase}
+                onValueChange={setSelectedDatabase}
+              >
+                <SelectTrigger className="w-full sm:max-w-[200px] bg-[#151923] border-gray-800 h-10 min-w-0">
                   <SelectValue placeholder="Select Database" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#151923] border-gray-800">
+                <SelectContent className="bg-[#151923] border-gray-800 min-w-0">
                   {databases.length === 0 ? (
                     <SelectItem value="no-db" disabled>
                       No databases available
@@ -309,12 +343,11 @@ useEffect(() => {
                   )}
                 </SelectContent>
               </Select>
-            </div>
-
+            </div>{" "}
             {/* Action Buttons */}
-            <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <div className="flex items-center gap-2 flex-wrap min-w-0 flex-shrink">
               <div className="hidden sm:block h-6 w-px bg-gray-800" />
-              
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -350,8 +383,11 @@ useEffect(() => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-purple-600 text-white">
                   <DropdownMenuItem onClick={exportToCSV}>CSV</DropdownMenuItem>
-                  <DropdownMenuItem onClick={exportToJSON}>JSON</DropdownMenuItem>
-                  <DropdownMenuItem onClick={exportToSQL}>SQL</DropdownMenuItem>                </DropdownMenuContent>
+                  <DropdownMenuItem onClick={exportToJSON}>
+                    JSON
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportToSQL}>SQL</DropdownMenuItem>
+                </DropdownMenuContent>
               </DropdownMenu>
 
               <div className="hidden sm:block ml-auto">
@@ -367,29 +403,45 @@ useEffect(() => {
               </div>
             </div>
           </div>
-        </div>        {/* Query Editor & Results */}
-        <div className="flex-1 min-h-0 flex flex-col lg:overflow-hidden">
+        </div>{" "}
+        {/* Query Editor & Results */}
+        <div className="flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden w-full max-w-full">
           {/* Query Editor Section */}
-          <div className="flex flex-col lg:h-1/2 min-h-[300px] border-b border-gray-800 relative lg:overflow-hidden">
-            <div className="flex-1 min-h-0 lg:overflow-hidden">
+          <div className="flex flex-col lg:h-1/2 min-h-[300px] border-b border-gray-800 relative overflow-hidden min-w-0 max-w-full">
+            {" "}
+            <div
+              className="flex-1 min-h-0 min-w-0 overflow-hidden w-full max-w-full"
+              style={{ minWidth: 0 }}
+            >
               <Editor
                 defaultLanguage="sql"
-                defaultValue="-- Enter your SQL query here"
+                defaultValue="-- Enter your PSQL query here"
                 value={query}
                 theme="vs-dark"
+                width="100%"
+                height="100%"
                 options={{
+             
                   minimap: { enabled: false },
                   scrollBeyondLastLine: false,
                   fontSize: 14,
                   lineNumbers: "on",
                   wordWrap: "on",
                   automaticLayout: true,
+                  scrollbar: {
+                    horizontal: "auto",
+                    vertical: "auto",
+                  },
+                  overviewRulerBorder: false,
+                  hideCursorInOverviewRuler: true,
+                  renderLineHighlight: "none",
+                }}                onChange={(value) => setQuery(value || "")}
+                onMount={(editor) => {
+                  editorRef.current = editor;
                 }}
-                onChange={(value) => setQuery(value || "")}
-                className="h-full"
+                className=" position-absolute"
               />
             </div>
-            
             {/* Run Query Button - Responsive positioning */}
             <div className="absolute bottom-4 right-4">
               <Button
@@ -406,12 +458,13 @@ useEffect(() => {
                 <span className="sm:hidden">Run</span>
               </Button>
             </div>
-          </div>          {/* Results Area */}
-          <div className="flex-1 min-h-0 lg:h-1/2 lg:overflow-hidden">
+          </div>{" "}
+          {/* Results Area */}
+          <div className="flex-1 min-h-0 min-w-0 lg:h-1/2 overflow-hidden w-full">
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}
-              className="h-full flex flex-col lg:overflow-hidden"
+              className="h-full flex flex-col overflow-hidden min-w-0 w-full"
             >
               <TabsList className="border-b border-gray-800 bg-transparent p-2 md:p-4 justify-start flex-shrink-0">
                 <TabsTrigger
@@ -426,32 +479,46 @@ useEffect(() => {
                 >
                   Messages
                 </TabsTrigger>
-                <TabsTrigger
-                  value="explain"
-                  className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-xs md:text-sm px-3 md:px-4"
-                >
-                  Explain
-                </TabsTrigger>
-              </TabsList>
-                <TabsContent value="data" className="flex-1 p-3 md:p-4 min-h-0 overflow-auto">
+             
+              </TabsList>{" "}
+              <TabsContent
+                className="flex-1 min-w-0 p-3 md:p-4 min-h-0 overflow-auto w-full"
+                value="data"
+              >
                 {results.length > 0 ? (
-                  <div className="lg:overflow-auto lg:h-full">
-                    <table className="w-full text-xs md:text-sm text-left text-gray-300 min-w-[600px]">
+                  <div className="overflow-auto h-full min-w-0 w-full">
+                    <table className="table-fixed w-full text-xs md:text-sm text-left text-gray-300">
                       <thead className="text-xs uppercase bg-[#151923] text-gray-400 sticky top-0">
                         <tr>
                           {Object.keys(results[0]).map((key) => (
-                            <th key={key} className="px-2 md:px-4 py-2 md:py-3 whitespace-nowrap">
-                              {key}
+                            <th
+                              key={key}
+                              className="px-2 md:px-4 py-2 md:py-3 break-words"
+                            >
+                              <div className="truncate">{key}</div>
                             </th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
                         {results.map((row, i) => (
-                          <tr key={i} className="border-b border-gray-800 hover:bg-gray-800/30">
+                          <tr
+                            key={i}
+                            className="border-b border-gray-800 hover:bg-gray-800/30"
+                          >
                             {Object.values(row).map((value: string, j) => (
-                              <td key={j} className="px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm max-w-[200px]">
-                                <div className="truncate" title={typeof value === "object" && value !== null ? JSON.stringify(value) : String(value)}>
+                              <td
+                                key={j}
+                                className="px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm"
+                              >
+                                <div
+                                  className="truncate min-w-0 max-w-full"
+                                  title={
+                                    typeof value === "object" && value !== null
+                                      ? JSON.stringify(value)
+                                      : String(value)
+                                  }
+                                >
                                   {typeof value === "object" && value !== null
                                     ? JSON.stringify(value)
                                     : String(value)}
@@ -463,7 +530,8 @@ useEffect(() => {
                       </tbody>
                     </table>
                   </div>
-                ) : (                  <div className="flex items-center justify-center h-full min-h-[200px]">
+                ) : (
+                  <div className="flex items-center justify-center h-full min-h-[200px]">
                     <div className="text-center">
                       <Database className="h-12 w-12 md:h-16 md:w-16 text-gray-600 mx-auto mb-4" />
                       <div className="text-sm md:text-base text-gray-400">
@@ -472,16 +540,16 @@ useEffect(() => {
                           : "No results to display"}
                       </div>
                       <div className="text-xs md:text-sm text-gray-500 mt-2">
-                        {!mutation.isPending && "Execute a query to see results here"}
+                        {!mutation.isPending &&
+                          "Execute a query to see results here"}
                       </div>
                     </div>
                   </div>
                 )}
-              </TabsContent>
-
+              </TabsContent>{" "}
               <TabsContent
                 value="messages"
-                className="flex-1 p-3 md:p-4 overflow-auto min-h-0"
+                className="flex-1 min-w-0 p-3 md:p-4 overflow-auto min-h-0 w-full"
               >
                 {error || mutation.error ? (
                   <div className="bg-red-900/20 border border-red-800 rounded-lg p-4">
@@ -494,9 +562,12 @@ useEffect(() => {
                         "An error occurred"}
                     </div>
                   </div>
-                ) : (                  <div className="flex items-center justify-center h-full min-h-[200px]">
+                ) : (
+                  <div className="flex items-center justify-center h-full min-h-[200px]">
                     <div className="text-center">
-                      <div className="text-sm md:text-base text-gray-400">No messages</div>
+                      <div className="text-sm md:text-base text-gray-400">
+                        No messages
+                      </div>
                       <div className="text-xs md:text-sm text-gray-500 mt-2">
                         Error messages and query information will appear here
                       </div>
@@ -504,18 +575,11 @@ useEffect(() => {
                   </div>
                 )}
               </TabsContent>
-
-              <TabsContent value="explain" className="flex-1 p-3 md:p-4 overflow-auto min-h-0">                <div className="flex items-center justify-center h-full min-h-[200px]">
-                  <div className="text-center">
-                    <div className="text-sm md:text-base text-gray-400">No execution plan available</div>
-                    <div className="text-xs md:text-sm text-gray-500 mt-2">
-                      Query execution plans will be displayed here
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>            </Tabs>
+          
+            </Tabs>
           </div>
-        </div>      </main>
+        </div>{" "}
+      </main>
     </div>
   );
 }
