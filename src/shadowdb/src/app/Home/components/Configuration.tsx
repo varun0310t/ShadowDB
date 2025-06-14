@@ -282,11 +282,7 @@ export default function DatabaseConfiguration({
             </div>
           </div>
           
-          {/* Save Button - Full width on mobile */}
-          <Button className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto text-sm py-2 px-3">
-            <Save className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-            Save Changes
-          </Button>
+      
         </div>        {/* Mobile Database Selector */}
         <div className="md:hidden">
           <Select

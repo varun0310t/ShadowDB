@@ -32,10 +32,7 @@ export default function HomePage() {
   const [selectedDatabase, setSelectedDatabase] = useState("");
   const [databases, setDatabases] = useState<DatabaseEntry[]>([]);
 
-  const { data } = useQuery<
-    { databases: DatabaseEntry[] },
-    Error
-  >({
+  const { data } = useQuery<{ databases: DatabaseEntry[] }, Error>({
     queryKey: ["GetDatabases"],
     queryFn: GetDataBases,
   });
@@ -45,7 +42,7 @@ export default function HomePage() {
       console.log("databases", data.databases);
       setDatabases(data.databases);
     }
-  }, [data?.databases]);  // Auto-collapse sidebar on desktop, hide completely on mobile
+  }, [data?.databases]); // Auto-collapse sidebar on desktop, hide completely on mobile
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
@@ -70,14 +67,14 @@ export default function HomePage() {
   // Handle body scroll lock for mobile menu
   useEffect(() => {
     if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }
 
     // Cleanup on unmount
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [isMobileMenuOpen]);
 
@@ -98,7 +95,8 @@ export default function HomePage() {
           onClick={toggleMobileMenu}
           aria-hidden="true"
         />
-      )}      {/* Sidebar - Hidden on mobile by default, overlay when opened */}
+      )}{" "}
+      {/* Sidebar - Hidden on mobile by default, overlay when opened */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 bg-gray-800 transition-all duration-300 ease-in-out flex flex-col
           ${
@@ -111,7 +109,9 @@ export default function HomePage() {
           }
           w-[280px] md:translate-x-0
         `}
-      >        <div
+      >
+        {" "}
+        <div
           className={`flex items-center justify-between p-3 md:p-4 border-b border-gray-700 ${
             isSidebarCollapsed ? "md:justify-center" : ""
           }`}
@@ -133,9 +133,10 @@ export default function HomePage() {
             <X size={20} />
           </button>
         </div>
-
         <nav className="flex-1 overflow-y-auto py-3 md:py-4">
-          <ul className="space-y-2 px-2">            <SidebarItem
+          <ul className="space-y-2 px-2">
+            {" "}
+            <SidebarItem
               icon={<Home />}
               title="Home"
               active={activePage === "home"}
@@ -165,16 +166,18 @@ export default function HomePage() {
             />
           </ul>
         </nav>
-
         {/* Account tab at the bottom */}
-        <div className="mt-auto border-t border-gray-700 pt-2 pb-4 px-2 flex flex-col">          <SidebarItem
+        <div className="mt-auto border-t border-gray-700 pt-2 pb-4 px-2 flex flex-col">
+          {" "}
+          <SidebarItem
             icon={<User />}
             title="Account"
             active={activePage === "account"}
             onClick={() => handlePageChange("account")}
             collapsed={isSidebarCollapsed}
           />
-        </div>        {/* Desktop toggle button - hidden on mobile */}
+        </div>{" "}
+        {/* Desktop toggle button - hidden on mobile */}
         <button
           onClick={toggleSidebar}
           className="hidden md:flex p-2 m-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors duration-200 items-center justify-center"
@@ -185,7 +188,8 @@ export default function HomePage() {
             <ChevronLeft size={20} />
           )}
         </button>
-      </aside>      {/* Main content */}
+      </aside>{" "}
+      {/* Main content */}
       <div
         className={`flex-1 flex flex-col transition-all duration-300 ease-in-out
           ${isSidebarCollapsed ? "md:ml-16" : "md:ml-64"}
@@ -206,19 +210,13 @@ export default function HomePage() {
               {getPageTitle(activePage)}
             </h1>
           </div>
-          <Button
-            variant="outline"
-            className="text-slate-800 text-xs md:text-base px-3 py-2"
-            onClick={() => {
-              signOut();
-            }}
-          >
-            Log Out
-          </Button>
+       
         </header>
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-900 bg-opacity-50 p-4 md:p-6">
-          {activePage === "home" && <HomeContent setActivePage={setActivePage} />}
+          {activePage === "home" && (
+            <HomeContent setActivePage={setActivePage} />
+          )}
           {activePage === "create" && (
             <div className="flex items-start justify-center h-full min-h-0 pt-0">
               <CreateDatabaseContent />
@@ -255,7 +253,9 @@ function SidebarItem({
   collapsed: boolean;
 }) {
   return (
-    <li className="list-none">      <button
+    <li className="list-none">
+      {" "}
+      <button
         onClick={onClick}
         className={`flex items-center w-full p-3 rounded-lg transition-all duration-200 min-h-[44px] ${
           active
@@ -265,7 +265,11 @@ function SidebarItem({
         title={collapsed ? title : ""}
       >
         <span className="flex-shrink-0">{icon}</span>
-        <span className={`ml-2 text-sm md:text-base truncate ${collapsed ? "md:hidden" : ""}`}>
+        <span
+          className={`ml-2 text-sm md:text-base truncate ${
+            collapsed ? "md:hidden" : ""
+          }`}
+        >
           {title}
         </span>
       </button>
