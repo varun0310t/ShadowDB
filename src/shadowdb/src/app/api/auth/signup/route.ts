@@ -48,10 +48,9 @@ export async function POST(req: Request) {
         verification_token, 
         verification_expires,
         provider,
-        is_verified,
-        role
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
-      RETURNING id, name, email, provider, role`,
+        is_verified
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7) 
+      RETURNING id, name, email, provider`,
       [
         name, 
         email, 
@@ -59,8 +58,7 @@ export async function POST(req: Request) {
         verification_token, 
         verification_expires,
         'credentials', // Set provider type
-        false, // is_verified starts as false
-        'user' // default role
+        false // Initially not verified
       ]
     );
 
