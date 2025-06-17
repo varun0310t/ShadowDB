@@ -21,7 +21,7 @@ export const FooterSection=()=>{
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="SubScription"
                   className="hover:text-purple-400 transition-colors"
                 >
                   Pricing

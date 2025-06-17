@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Database, Shield, Zap, Cloud, DollarSign, Users } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { TestimonialCard } from "./Components/TestimonialCard";
 import { FeatureCard } from "./Components/FeatureCard";
 import { renderAuthButton } from "./Components/RendarAuthButton";
 import { ArchitectureSection } from "./Components/ArchitechitureSection";
 import { FooterSection } from "./Components/Footer";
 import { PricingSection } from "./Components/PricingSection";
+import { FAQSection } from "./Components/FAQSection";
 export default function Home() {
   const { data: session, status } = useSession();
   const [isClient, setIsClient] = useState(false);
@@ -40,12 +40,11 @@ export default function Home() {
             className="hover:text-purple-400 transition-colors"
           >
             Pricing
-          </Link>
-          <Link
-            href="#testimonials"
+          </Link>          <Link
+            href="#faq"
             className="hover:text-purple-400 transition-colors"
           >
-            Testimonials
+            FAQ
           </Link>
         </nav>
         {renderAuthButton(isClient, status)}
@@ -97,29 +96,10 @@ export default function Home() {
       </section>
 
       {/* Pricing Section */}
-      <PricingSection />
+      <PricingSection />      {/* FAQ Section */}
+      <FAQSection />
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 px-4">
-        <h2 className="text-3xl font-bold text-center mb-12">
-          What Our Customers Say
-        </h2>
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          <TestimonialCard
-            quote="ShadowDB has revolutionized our data management. It's fast, reliable, and incredibly easy to use."
-            author="Jane Doe"
-            company="Tech Innovators Inc."
-          />
-          <TestimonialCard
-            quote="The scalability of ShadowDB allowed us to grow our startup without worrying about database limitations."
-            author="John Smith"
-            company="GrowFast Startups"
-          />
-        </div>
-      </section>
-
-      {/* architechture Section */}
-      <ArchitectureSection isClient={isClient} status={status} />
+     
       {/* Footer */}
       <FooterSection />
       {/* Bottom Spacer */}
