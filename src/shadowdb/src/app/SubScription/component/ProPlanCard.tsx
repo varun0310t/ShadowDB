@@ -10,7 +10,16 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Database, Shield, Zap, HeadphonesIcon, HardDrive, Settings, Check, Sparkles } from 'lucide-react';
+import {
+  Database,
+  Shield,
+  Zap,
+  HeadphonesIcon,
+  HardDrive,
+  Settings,
+  Check,
+  Sparkles,
+} from "lucide-react";
 import axios from "axios";
 
 interface ProPlanProps {
@@ -19,7 +28,9 @@ interface ProPlanProps {
 
 export function ProPlanCard({ isSubscribed = false }: ProPlanProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedDuration, setSelectedDuration] = useState<"monthly" | "yearly">("monthly");
+  const [selectedDuration, setSelectedDuration] = useState<
+    "monthly" | "yearly"
+  >("monthly");
   const { toast } = useToast();
 
   const planDetails = {
@@ -42,8 +53,10 @@ export function ProPlanCard({ isSubscribed = false }: ProPlanProps) {
     { icon: <Zap className="h-4 w-4" />, title: " monitoring" },
     { icon: <HeadphonesIcon className="h-4 w-4" />, title: "Priority support" },
     { icon: <Shield className="h-4 w-4" />, title: "Automatic backups" },
-    { icon: <Sparkles className="h-4 w-4" />, title: "Future Exclusive features" },
-  
+    {
+      icon: <Sparkles className="h-4 w-4" />,
+      title: "Future Exclusive features",
+    },
   ];
 
   const handleSubscribe = async () => {
@@ -53,32 +66,37 @@ export function ProPlanCard({ isSubscribed = false }: ProPlanProps) {
         duration: selectedDuration,
         amount: planDetails[selectedDuration].price,
       });
-
+     
       if (response.data.redirectUrl) {
-        const form = document.createElement('form');
-        form.method = 'POST';
+        const form = document.createElement("form");
+        form.method = "POST";
         form.action = response.data.redirectUrl;
-        
+
         for (const key in response.data.formData) {
           if (response.data.formData.hasOwnProperty(key)) {
-            const hiddenField = document.createElement('input');
-            hiddenField.type = 'hidden';
+            const hiddenField = document.createElement("input");
+            hiddenField.type = "hidden";
             hiddenField.name = key;
             hiddenField.value = response.data.formData[key];
             form.appendChild(hiddenField);
           }
         }
-        
+
         document.body.appendChild(form);
         form.submit();
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to initiate payment process. Please try again.",
-        variant: "destructive",
-      });
       setIsLoading(false);
+      //status 401
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        toast({
+          title: "Unauthorized",
+          description: "Please log in to subscribe.",
+          variant: "destructive",
+        });
+        window.location.href = "/Users/login";
+      }
+    
     }
   };
 
@@ -88,7 +106,7 @@ export function ProPlanCard({ isSubscribed = false }: ProPlanProps) {
         {/* Gradient border */}
         <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 opacity-75 blur-sm"></div>
         <div className="absolute inset-[1px] bg-[#151923] rounded-lg"></div>
-        
+
         {/* Popular badge */}
         <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10">
           <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 text-xs">
@@ -117,7 +135,9 @@ export function ProPlanCard({ isSubscribed = false }: ProPlanProps) {
                 variant="ghost"
                 size="sm"
                 className={`flex-1 relative z-10 text-xs ${
-                  selectedDuration === "monthly" ? "text-white" : "text-gray-400"
+                  selectedDuration === "monthly"
+                    ? "text-white"
+                    : "text-gray-400"
                 }`}
                 onClick={() => setSelectedDuration("monthly")}
               >
@@ -134,10 +154,12 @@ export function ProPlanCard({ isSubscribed = false }: ProPlanProps) {
                 Yearly
                 <Badge className="ml-1 bg-green-600 text-xs px-1">20%</Badge>
               </Button>
-              
-              <div 
+
+              <div
                 className={`absolute top-1 bottom-1 w-1/2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-md transition-transform duration-200 ${
-                  selectedDuration === "yearly" ? "translate-x-full" : "translate-x-0"
+                  selectedDuration === "yearly"
+                    ? "translate-x-full"
+                    : "translate-x-0"
                 }`}
               />
             </div>
@@ -148,9 +170,11 @@ export function ProPlanCard({ isSubscribed = false }: ProPlanProps) {
                 <span className="text-3xl font-bold text-white">
                   {planDetails[selectedDuration].label}
                 </span>
-                <span className="text-gray-400 text-sm">/{planDetails[selectedDuration].period}</span>
+                <span className="text-gray-400 text-sm">
+                  /{planDetails[selectedDuration].period}
+                </span>
               </div>
-              
+
               {selectedDuration === "yearly" && (
                 <div className="mt-1">
                   <span className="text-green-400 text-xs">
@@ -163,13 +187,16 @@ export function ProPlanCard({ isSubscribed = false }: ProPlanProps) {
             {/* Features - Compact Grid */}
             <div className="grid grid-cols-2 gap-2">
               {features.map((feature, index) => (
-                <div key={index} className="flex items-center space-x-2 text-sm">
+                <div
+                  key={index}
+                  className="flex items-center space-x-2 text-sm"
+                >
                   <div className="w-6 h-6 bg-purple-600/20 rounded flex items-center justify-center flex-shrink-0">
-                    <div className="text-purple-400">
-                      {feature.icon}
-                    </div>
+                    <div className="text-purple-400">{feature.icon}</div>
                   </div>
-                  <span className="text-gray-300 text-xs leading-tight">{feature.title}</span>
+                  <span className="text-gray-300 text-xs leading-tight">
+                    {feature.title}
+                  </span>
                 </div>
               ))}
             </div>
@@ -192,8 +219,8 @@ export function ProPlanCard({ isSubscribed = false }: ProPlanProps) {
 
           <CardFooter className="px-6 pb-6 pt-2">
             {isSubscribed ? (
-              <Button 
-                className="w-full bg-gray-700 hover:bg-gray-600 cursor-not-allowed" 
+              <Button
+                className="w-full bg-gray-700 hover:bg-gray-600 cursor-not-allowed"
                 disabled
                 size="sm"
               >
