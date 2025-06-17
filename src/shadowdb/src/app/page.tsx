@@ -48,27 +48,45 @@ export default function Home() {
           </Link>
         </nav>
         {renderAuthButton(isClient, status)}
-      </header>
+      </header>      {/* Hero Section */}
+      <section className="min-h-screen flex flex-col justify-center items-center text-center px-4 py-20 bg-gradient-to-b from-gray-900 to-gray-800 relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500/30 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-bounce" style={{ animationDuration: '3s' }}></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-purple-400/10 rounded-full blur-2xl animate-spin" style={{ animationDuration: '20s' }}></div>
+        </div>
+        
+        {/* Floating particles */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-20 w-2 h-2 bg-purple-400 rounded-full animate-float-1"></div>
+          <div className="absolute top-40 right-32 w-1 h-1 bg-blue-400 rounded-full animate-float-2"></div>
+          <div className="absolute bottom-32 left-16 w-1.5 h-1.5 bg-purple-300 rounded-full animate-float-3"></div>
+          <div className="absolute bottom-40 right-20 w-2 h-2 bg-blue-300 rounded-full animate-float-1" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute top-32 left-1/2 w-1 h-1 bg-purple-200 rounded-full animate-float-2" style={{ animationDelay: '1s' }}></div>
+        </div>
 
-      {/* Hero Section */}
-      <section className="flex-1 flex flex-col justify-center items-center text-center px-4 py-20 bg-gradient-to-b from-gray-900 to-gray-800">
-        <h1 className="text-4xl md:text-6xl font-bold mb-6">
-          Production-Ready Database{" "}
-          <span className="text-purple-500">as a Service</span>
-        </h1>
-        <p className="text-xl mb-8 max-w-2xl">
-          Scale your applications with ease using ShadowDB's powerful, reliable,
-          and secure database solution.
-        </p>
-        {isClient && status === "authenticated" ? (
-          <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
-            <Link href="/Home">Go to Dashboard</Link>
-          </Button>
-        ) : (
-          <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
-            <Link href="/Users/login">Sign Up Now</Link>
-          </Button>
-        )}
+        <div className="relative z-10">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fade-in-up">
+            Production-Ready Database{" "}
+            <span className="text-purple-500 inline-block animate-gradient-text bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600 bg-clip-text text-transparent">as a Service</span>
+          </h1>
+          <p className="text-xl mb-8 max-w-2xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            Scale your applications with ease using ShadowDB's powerful, reliable,
+            and secure database solution.
+          </p>
+          <div className="animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+            {isClient && status === "authenticated" ? (
+              <Button size="lg" className="bg-purple-600 hover:bg-purple-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-purple-500/25">
+                <Link href="/Home">Go to Dashboard</Link>
+              </Button>
+            ) : (
+              <Button size="lg" className="bg-purple-600 hover:bg-purple-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-purple-500/25">
+                <Link href="/Users/login">Sign Up Now</Link>
+              </Button>
+            )}
+          </div>
+        </div>
       </section>
 
       {/* Features Section */}
@@ -85,12 +103,12 @@ export default function Home() {
           <FeatureCard
             icon={<Shield className="w-12 h-12 text-purple-500" />}
             title="Produciton Ready"
-            description="Read and Write replicas, automated backups, and 24/7 monitoring."
+            description="Read and Write replicas, backups, and 24/7 monitoring."
           />
           <FeatureCard
             icon={<Cloud className="w-12 h-12 text-purple-500" />}
             title="Scalable Cloud"
-            description="Grow your database effortlessly with our auto-scaling cloud infrastructure."
+            description="Grow your database effortlessly with our scaling cloud infrastructure."
           />
         </div>
       </section>
