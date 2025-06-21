@@ -23,7 +23,7 @@ export const CreateDatabase = async (req: Request, res: Response) => {
       haproxy_enabled,
       pgpool_enabled,
     } = req.body;
-
+ console.log(`Received request to create database for user ${userId} with database name ${databaseName} and role password ${role_password}`);
     if (!userId || !databaseName || !password || !userEmail || !role_password) {
       res.status(400).json({
         error: "Missing required fields: userId, databaseName, password",
