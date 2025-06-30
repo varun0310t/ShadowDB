@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,24 +12,23 @@ import { Database, Shield, Cloud } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { CreateDatabse } from "@/client/lib/services/DatabasesService";
 import { toast, ToastContainer } from "react-toastify";
-// Import the Switch component at the top of your file
 import { Switch } from "@/components/ui/switch";
 import { FeaturePreview } from "@/components/ComingSoonToopTipWrapper";
 import "react-toastify/dist/ReactToastify.css";
 import { registry } from "../../../lib/Prom-client";
+import { databaseRequestSchema, DatabaseRequestSchema } from "@/lib/shared/Zodschema/NewDatabaseZodSchema";
+import * as z from "zod";
 
-// Define the schema using zod
-const schema = z.object({
-  dbName: z
-    .string()
-    .min(1, "Database name is required")
-    .regex(/^[a-zA-Z0-9_]+$/, "Invalid database name"),
-  dbType: z.enum(["shared", "isolated"]).default("isolated"),
-  haproxy_enabled: z.boolean().default(false),
-  pgpool_enabled: z.boolean().default(false),
-});
+// Create a form-compatible version of the schema
+const formSchema = databaseRequestSchema
+  .omit({ password: true })
+  .extend({
+    dbName: databaseRequestSchema.shape.db_name,
+    dbType: databaseRequestSchema.shape.tenancy_type,
+  })
+  .omit({ db_name: true, tenancy_type: true });
 
-type FormData = z.infer<typeof schema>;
+type FormData = z.infer<typeof formSchema>;
 
 function CreateDatabaseContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,7 +43,13 @@ function CreateDatabaseContent() {
     watch,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      dbName: "",
+      dbType: "isolated",
+      haproxy_enabled: false,
+      pgpool_enabled: false,
+    },
   });
 
   const createDatabase = useMutation({
@@ -54,14 +58,9 @@ function CreateDatabaseContent() {
       dbType,
       haproxy_enabled,
       pgpool_enabled,
-    }: {
-      dbName: string;
-      dbType: string;
-      haproxy_enabled: boolean;
-      pgpool_enabled: boolean;
-    }) =>
+    }: FormData) =>
       CreateDatabse({
-        db_name: dbName,
+        db_name: dbName.toLowerCase(), // Ensure lowercase for PostgreSQL
         tenancy_type: dbType,
         haproxy_enabled,
         pgpool_enabled,
@@ -88,8 +87,8 @@ function CreateDatabaseContent() {
   const onSubmit = (data: FormData) => {
     setIsSubmitting(true);
     createDatabase.mutate(data);
-  };  
-  
+  };
+
   return (
     <div className="flex flex-col flex-grow justify-center items-center w-full overflow-y-auto py-4">
       <ToastContainer />
@@ -104,9 +103,7 @@ function CreateDatabaseContent() {
             <h2 className="text-2xl font-bold text-white">
               Create a New Database
             </h2>
-            <p className="text-gray-400 mt-2">
-              Configure your ShadowDB instance
-            </p>
+            <p className="text-gray-400 mt-2">Configure your ShadowDB instance</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -125,8 +122,8 @@ function CreateDatabaseContent() {
                 <p className="text-sm text-red-500">{errors.dbName.message}</p>
               )}
               <p className="text-xs text-gray-500">
-                Name must be unique and contain only letters, numbers, and
-                underscores
+                Name must start with a lowercase letter and contain only lowercase
+                letters, numbers, and underscores
               </p>
             </div>
 
@@ -262,7 +259,6 @@ function CreateDatabaseContent() {
                   </p>
                 </div>
               )}
-            
             </div>
 
             {error && <p className="text-sm text-red-500">{error}</p>}
