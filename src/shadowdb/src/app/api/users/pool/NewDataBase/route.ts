@@ -4,6 +4,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { getDefaultWriterPool } from "../../../../../lib/userPools";
 import { checkAndUpdateLeader, scopeLeaderIndex } from "@/lib/LeaderCheck";
 import axios from "axios";
+import { databaseRequestSchema } from "@/lib/shared/Zodschema/NewDatabaseZodSchema";
+import { parseFormData } from '@/lib/utils/ReqUtils';
 
 // DB Service configuration
 const DB_SERVICE_URL = `http://${process.env.DB_Service_Host || "localhost"}:${
@@ -32,6 +34,17 @@ export async function POST(req: Request) {
   // Validate db_name
   if (!db_name) {
     return NextResponse.json({ error: "db_name is required" }, { status: 400 });
+  }
+  // zod validation for all incoming data
+
+ 
+  const validationResult = databaseRequestSchema.safeParse(body);
+
+  if (!validationResult.success) {
+    return NextResponse.json(
+      { error: "Invalid request data", issues: validationResult.error.issues },
+      { status: 400 }
+    );
   }
 
   try {
