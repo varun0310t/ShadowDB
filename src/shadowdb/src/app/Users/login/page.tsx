@@ -205,7 +205,7 @@ export default function LoginPage() {
                   <Input
                     id="password"
                     type="password"
-                    className="bg-[#0B0F17] border-gray-800"
+                    className="bg-[#0B0F17] border-gray-800 text-gray-400"
                     {...register("password")}
                   />
                 </div>

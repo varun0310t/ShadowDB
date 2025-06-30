@@ -329,7 +329,7 @@ export default function RunQueryContent({
                 <SelectTrigger className="w-full sm:max-w-[200px] bg-[#151923] border-gray-800 h-10 min-w-0">
                   <SelectValue placeholder="Select Database" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#151923] border-gray-800 min-w-0">
+                <SelectContent className="bg-[#151923] border-gray-800 text-gray-400 min-w-0">
                   {databases.length === 0 ? (
                     <SelectItem value="no-db" disabled>
                       No databases available

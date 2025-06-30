@@ -219,7 +219,7 @@ export default function SignUpPage() {
                   id="password"
                   type="password"
                   placeholder="Create a password"
-                  className="bg-[#0B0F17] border-gray-800"
+                  className="bg-[#0B0F17] border-gray-800 text-gray-400"
                   {...register("password")}
                 />
                 {errors.password && (
