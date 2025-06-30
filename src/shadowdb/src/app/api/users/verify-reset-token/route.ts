@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getDefaultWriterPool } from "@/lib/userPools";
 import crypto from "crypto";
-
+import "../../../../db/index"; // Ensure database connection is established
 // Validate token format
 const requestSchema = z.object({
   token: z.string().min(32, "Invalid token"),
