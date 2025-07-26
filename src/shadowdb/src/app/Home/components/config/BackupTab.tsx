@@ -369,20 +369,22 @@ console.log("selectedDatabase", selectedDatabase);
                             </Badge>
                           </td>
                           <td className="p-4 align-middle flex space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="border-gray-800 text-gray-300"
-                              disabled={backup.status !== "completed"}
-                              onClick={() => handleRestoreBackup(backup.id)}
-                            >
-                              <RotateCcw className="h-4 w-4" />
-                            </Button>
+                            <FeaturePreview message="Restore feature will be available soon">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="border-gray-800 text-gray-600"
+                                disabled={true}
+                                onClick={() => {}}
+                              >
+                                <RotateCcw className="h-4 w-4" />
+                              </Button>
+                            </FeaturePreview>
                             {backup.status === "completed" && (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="border-gray-800 text-gray-300"
+                                className="border-gray-800 text-gray-600"
                                 onClick={() => handleDownloadBackup(backup.id)}
                               >
                                 <Download className="h-4 w-4" />
@@ -458,24 +460,26 @@ console.log("selectedDatabase", selectedDatabase);
                   </div>
 
                   <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-gray-800 text-gray-300 flex-1"
-                      disabled={backup.status !== "completed"}
-                      onClick={() => handleRestoreBackup(backup.id)}
-                    >
-                      <RotateCcw className="h-4 w-4 mr-2" />
-                      Restore
-                    </Button>
+                    <FeaturePreview message="Restore feature will be available soon">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-gray-800 text-gray-600 flex-1"
+                        disabled={true}
+                        onClick={() => {}}
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Restore
+                      </Button>
+                    </FeaturePreview>
                     {backup.status === "completed" && (
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-gray-800 text-gray-300 flex-1"
+                        className="border-gray-800 text-gray-600 flex-1"
                         onClick={() => handleDownloadBackup(backup.id)}
                       >
-                        <Download className="h-4 w-4 mr-2" />
+                        <Download className="h-4 w-4 mr-2 " />
                         Download
                       </Button>
                     )}

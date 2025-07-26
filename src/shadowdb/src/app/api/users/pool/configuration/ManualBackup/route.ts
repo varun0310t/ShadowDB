@@ -25,10 +25,10 @@ console.log("Request body:", databaseName, databaseID);
     }
     console.log("Database name:", databaseName);
     // Create backup by calling dbservice API
-    console.log(`http://${process.env.DB_SERVICE_HOST}:${process.env.DB_SERVICE_PORT}/api/backup/create`);
-    
+    console.log(`http://${process.env.DB_Service_Host}:${process.env.DB_Service_Port}/api/backup/create`);
+
     const backupResponse = await axios.post(
-      `http://${process.env.DB_SERVICE_HOST}:${process.env.DB_SERVICE_PORT}/api/backup/create`,
+      `http://${process.env.DB_Service_Host}:${process.env.DB_Service_Port}/api/backup/create`,
       {
         databaseId: databaseID,
         userId: session.user.id,

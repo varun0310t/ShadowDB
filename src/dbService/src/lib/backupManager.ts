@@ -280,7 +280,8 @@ export class BackupService {
         }
 
         // Copy the backup file from container to host
-        const copyCmd = `docker cp ${containerName}:/tmp/${backupFileName} "${backupFilePath}"`;
+        const backupFilePathFormatted = backupFilePath.replace(/\\/g, '/');
+        const copyCmd = `docker cp ${containerName}:/tmp/${backupFileName} "${backupFilePathFormatted}"`;
         await execAsync(copyCmd);
 
         // Remove the file from the container
